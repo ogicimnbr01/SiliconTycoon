@@ -767,67 +767,67 @@ export const OFFICE_CONFIGS = {
 
 // Tech Tree for CPUs (10 TIERS with Branching)
 export const CPU_TECH_TREE: TechNode[] = [
-  { id: 'cpu_0', name: '8086', tier: 0, productionCost: 25, baseMarketPrice: 32, researchCost: 0, branch: 'balanced' },
-  { id: 'cpu_1', name: '80286', tier: 1, productionCost: 55, baseMarketPrice: 70, researchCost: 100, branch: 'balanced', prerequisites: ['cpu_0'] },
-  { id: 'cpu_2', name: '80386', tier: 2, productionCost: 140, baseMarketPrice: 180, researchCost: 500, branch: 'balanced', prerequisites: ['cpu_1'] },
-  { id: 'cpu_3', name: '80486', tier: 3, productionCost: 450, baseMarketPrice: 550, researchCost: 2000, branch: 'balanced', prerequisites: ['cpu_2'] },
+  { id: 'cpu_0', name: '8-bit Processor', tier: 0, productionCost: 25, baseMarketPrice: 32, researchCost: 0, branch: 'balanced' },
+  { id: 'cpu_1', name: '16-bit Processor', tier: 1, productionCost: 55, baseMarketPrice: 70, researchCost: 100, branch: 'balanced', prerequisites: ['cpu_0'] },
+  { id: 'cpu_2', name: '32-bit RISC', tier: 2, productionCost: 140, baseMarketPrice: 180, researchCost: 500, branch: 'balanced', prerequisites: ['cpu_1'] },
+  { id: 'cpu_3', name: '32-bit CISC', tier: 3, productionCost: 450, baseMarketPrice: 550, researchCost: 2000, branch: 'balanced', prerequisites: ['cpu_2'] },
 
-  // Tier 4: Branching starts (Pentium era)
-  { id: 'cpu_4_perf', name: 'Pentium Pro', tier: 4, productionCost: 1200, baseMarketPrice: 1800, researchCost: 8000, branch: 'performance', prerequisites: ['cpu_3'], specialBonus: { type: 'market', value: 10 } },
-  { id: 'cpu_4_eff', name: 'Pentium MMX', tier: 4, productionCost: 900, baseMarketPrice: 1200, researchCost: 6000, branch: 'efficiency', prerequisites: ['cpu_3'], specialBonus: { type: 'production', value: 15 } },
+  // Tier 4: Branching starts
+  { id: 'cpu_4_perf', name: '64-bit High-Freq', tier: 4, productionCost: 1200, baseMarketPrice: 1800, researchCost: 8000, branch: 'performance', prerequisites: ['cpu_3'], specialBonus: { type: 'market', value: 10 } },
+  { id: 'cpu_4_eff', name: '64-bit Low-Power', tier: 4, productionCost: 900, baseMarketPrice: 1200, researchCost: 6000, branch: 'efficiency', prerequisites: ['cpu_3'], specialBonus: { type: 'production', value: 15 } },
 
   // Tier 5
-  { id: 'cpu_5_perf', name: 'Pentium II', tier: 5, productionCost: 3000, baseMarketPrice: 4500, researchCost: 25000, branch: 'performance', prerequisites: ['cpu_4_perf'] },
-  { id: 'cpu_5_eff', name: 'Celeron', tier: 5, productionCost: 2200, baseMarketPrice: 3000, researchCost: 18000, branch: 'efficiency', prerequisites: ['cpu_4_eff'] },
+  { id: 'cpu_5_perf', name: 'Dual-Core HT', tier: 5, productionCost: 3000, baseMarketPrice: 4500, researchCost: 25000, branch: 'performance', prerequisites: ['cpu_4_perf'] },
+  { id: 'cpu_5_eff', name: 'Dual-Core Budget', tier: 5, productionCost: 2200, baseMarketPrice: 3000, researchCost: 18000, branch: 'efficiency', prerequisites: ['cpu_4_eff'] },
 
   // Tier 6
-  { id: 'cpu_6_perf', name: 'Pentium III', tier: 6, productionCost: 7500, baseMarketPrice: 11000, researchCost: 75000, branch: 'performance', prerequisites: ['cpu_5_perf'], specialBonus: { type: 'market', value: 15 } },
-  { id: 'cpu_6_eff', name: 'Athlon', tier: 6, productionCost: 5500, baseMarketPrice: 8000, researchCost: 55000, branch: 'efficiency', prerequisites: ['cpu_5_eff'], specialBonus: { type: 'production', value: 20 } },
+  { id: 'cpu_6_perf', name: 'Quad-Core 3GHz', tier: 6, productionCost: 7500, baseMarketPrice: 11000, researchCost: 75000, branch: 'performance', prerequisites: ['cpu_5_perf'], specialBonus: { type: 'market', value: 15 } },
+  { id: 'cpu_6_eff', name: 'Quad-Core 2GHz', tier: 6, productionCost: 5500, baseMarketPrice: 8000, researchCost: 55000, branch: 'efficiency', prerequisites: ['cpu_5_eff'], specialBonus: { type: 'production', value: 20 } },
 
   // Tier 7
-  { id: 'cpu_7_perf', name: 'Pentium 4', tier: 7, productionCost: 18000, baseMarketPrice: 28000, researchCost: 200000, branch: 'performance', prerequisites: ['cpu_6_perf'] },
-  { id: 'cpu_7_eff', name: 'Athlon XP', tier: 7, productionCost: 13000, baseMarketPrice: 20000, researchCost: 150000, branch: 'efficiency', prerequisites: ['cpu_6_eff'] },
+  { id: 'cpu_7_perf', name: 'Hexa-Core Turbo', tier: 7, productionCost: 18000, baseMarketPrice: 28000, researchCost: 200000, branch: 'performance', prerequisites: ['cpu_6_perf'] },
+  { id: 'cpu_7_eff', name: 'Hexa-Core ECO', tier: 7, productionCost: 13000, baseMarketPrice: 20000, researchCost: 150000, branch: 'efficiency', prerequisites: ['cpu_6_eff'] },
 
   // Tier 8
-  { id: 'cpu_8_perf', name: 'Core 2 Quad', tier: 8, productionCost: 45000, baseMarketPrice: 70000, researchCost: 500000, branch: 'performance', prerequisites: ['cpu_7_perf'], specialBonus: { type: 'market', value: 25 } },
-  { id: 'cpu_8_eff', name: 'Athlon 64 X2', tier: 8, productionCost: 32000, baseMarketPrice: 50000, researchCost: 380000, branch: 'efficiency', prerequisites: ['cpu_7_eff'], specialBonus: { type: 'production', value: 30 } },
+  { id: 'cpu_8_perf', name: 'Octa-Core 5GHz', tier: 8, productionCost: 45000, baseMarketPrice: 70000, researchCost: 500000, branch: 'performance', prerequisites: ['cpu_7_perf'], specialBonus: { type: 'market', value: 25 } },
+  { id: 'cpu_8_eff', name: 'Octa-Core 3GHz', tier: 8, productionCost: 32000, baseMarketPrice: 50000, researchCost: 380000, branch: 'efficiency', prerequisites: ['cpu_7_eff'], specialBonus: { type: 'production', value: 30 } },
 
   // Tier 9: Ultimate
-  { id: 'cpu_9_perf', name: 'Core i9 Extreme', tier: 9, productionCost: 120000, baseMarketPrice: 200000, researchCost: 1500000, branch: 'performance', prerequisites: ['cpu_8_perf'], specialBonus: { type: 'market', value: 40 } },
-  { id: 'cpu_9_eff', name: 'Ryzen Threadripper', tier: 9, productionCost: 85000, baseMarketPrice: 140000, researchCost: 1100000, branch: 'efficiency', prerequisites: ['cpu_8_eff'], specialBonus: { type: 'production', value: 50 } },
+  { id: 'cpu_9_perf', name: '16-Core Extreme', tier: 9, productionCost: 120000, baseMarketPrice: 200000, researchCost: 1500000, branch: 'performance', prerequisites: ['cpu_8_perf'], specialBonus: { type: 'market', value: 40 } },
+  { id: 'cpu_9_eff', name: '32-Core Workstation', tier: 9, productionCost: 85000, baseMarketPrice: 140000, researchCost: 1100000, branch: 'efficiency', prerequisites: ['cpu_8_eff'], specialBonus: { type: 'production', value: 50 } },
 ];
 
 
 // Tech Tree for GPUs (10 TIERS with Branching)
 export const GPU_TECH_TREE: TechNode[] = [
-  { id: 'gpu_0', name: 'VGA', tier: 0, productionCost: 40, baseMarketPrice: 50, researchCost: 0, branch: 'balanced' },
-  { id: 'gpu_1', name: 'SVGA', tier: 1, productionCost: 90, baseMarketPrice: 120, researchCost: 250, branch: 'balanced', prerequisites: ['gpu_0'] },
+  { id: 'gpu_0', name: 'VGA Graphics', tier: 0, productionCost: 40, baseMarketPrice: 50, researchCost: 0, branch: 'balanced' },
+  { id: 'gpu_1', name: 'SVGA Graphics', tier: 1, productionCost: 90, baseMarketPrice: 120, researchCost: 250, branch: 'balanced', prerequisites: ['gpu_0'] },
   { id: 'gpu_2', name: '3D Accelerator', tier: 2, productionCost: 220, baseMarketPrice: 290, researchCost: 800, branch: 'balanced', prerequisites: ['gpu_1'] },
-  { id: 'gpu_3', name: 'GeForce 256', tier: 3, productionCost: 700, baseMarketPrice: 900, researchCost: 3000, branch: 'balanced', prerequisites: ['gpu_2'] },
+  { id: 'gpu_3', name: 'T&L GPU', tier: 3, productionCost: 700, baseMarketPrice: 900, researchCost: 3000, branch: 'balanced', prerequisites: ['gpu_2'] },
 
   // Tier 4: Branching starts
-  { id: 'gpu_4_perf', name: 'GeForce 2 Ultra', tier: 4, productionCost: 2000, baseMarketPrice: 3200, researchCost: 10000, branch: 'performance', prerequisites: ['gpu_3'], specialBonus: { type: 'market', value: 12 } },
-  { id: 'gpu_4_eff', name: 'Radeon 7000', tier: 4, productionCost: 1500, baseMarketPrice: 2200, researchCost: 7500, branch: 'efficiency', prerequisites: ['gpu_3'], specialBonus: { type: 'production', value: 18 } },
+  { id: 'gpu_4_perf', name: 'Shader Model 1.0', tier: 4, productionCost: 2000, baseMarketPrice: 3200, researchCost: 10000, branch: 'performance', prerequisites: ['gpu_3'], specialBonus: { type: 'market', value: 12 } },
+  { id: 'gpu_4_eff', name: 'Budget Shader', tier: 4, productionCost: 1500, baseMarketPrice: 2200, researchCost: 7500, branch: 'efficiency', prerequisites: ['gpu_3'], specialBonus: { type: 'production', value: 18 } },
 
   // Tier 5
-  { id: 'gpu_5_perf', name: 'GeForce 3 Ti', tier: 5, productionCost: 5000, baseMarketPrice: 8000, researchCost: 35000, branch: 'performance', prerequisites: ['gpu_4_perf'] },
-  { id: 'gpu_5_eff', name: 'Radeon 8500', tier: 5, productionCost: 3800, baseMarketPrice: 5800, researchCost: 26000, branch: 'efficiency', prerequisites: ['gpu_4_eff'] },
+  { id: 'gpu_5_perf', name: 'Shader Model 2.0', tier: 5, productionCost: 5000, baseMarketPrice: 8000, researchCost: 35000, branch: 'performance', prerequisites: ['gpu_4_perf'] },
+  { id: 'gpu_5_eff', name: 'DirectX 8.1 GPU', tier: 5, productionCost: 3800, baseMarketPrice: 5800, researchCost: 26000, branch: 'efficiency', prerequisites: ['gpu_4_eff'] },
 
   // Tier 6
-  { id: 'gpu_6_perf', name: 'GeForce 4 Ti 4600', tier: 6, productionCost: 12000, baseMarketPrice: 19000, researchCost: 90000, branch: 'performance', prerequisites: ['gpu_5_perf'], specialBonus: { type: 'market', value: 18 } },
-  { id: 'gpu_6_eff', name: 'Radeon 9700 Pro', tier: 6, productionCost: 9000, baseMarketPrice: 14000, researchCost: 68000, branch: 'efficiency', prerequisites: ['gpu_5_eff'], specialBonus: { type: 'production', value: 25 } },
+  { id: 'gpu_6_perf', name: 'Shader Model 3.0', tier: 6, productionCost: 12000, baseMarketPrice: 19000, researchCost: 90000, branch: 'performance', prerequisites: ['gpu_5_perf'], specialBonus: { type: 'market', value: 18 } },
+  { id: 'gpu_6_eff', name: 'DirectX 9c GPU', tier: 6, productionCost: 9000, baseMarketPrice: 14000, researchCost: 68000, branch: 'efficiency', prerequisites: ['gpu_5_eff'], specialBonus: { type: 'production', value: 25 } },
 
   // Tier 7
-  { id: 'gpu_7_perf', name: 'GeForce 6800 Ultra', tier: 7, productionCost: 30000, baseMarketPrice: 48000, researchCost: 250000, branch: 'performance', prerequisites: ['gpu_6_perf'] },
-  { id: 'gpu_7_eff', name: 'Radeon X800 XT', tier: 7, productionCost: 22000, baseMarketPrice: 36000, researchCost: 190000, branch: 'efficiency', prerequisites: ['gpu_6_eff'] },
+  { id: 'gpu_7_perf', name: 'Unified Shader', tier: 7, productionCost: 30000, baseMarketPrice: 48000, researchCost: 250000, branch: 'performance', prerequisites: ['gpu_6_perf'] },
+  { id: 'gpu_7_eff', name: 'DirectX 10 GPU', tier: 7, productionCost: 22000, baseMarketPrice: 36000, researchCost: 190000, branch: 'efficiency', prerequisites: ['gpu_6_eff'] },
 
   // Tier 8
-  { id: 'gpu_8_perf', name: 'GeForce 8800 GTX', tier: 8, productionCost: 80000, baseMarketPrice: 130000, researchCost: 750000, branch: 'performance', prerequisites: ['gpu_7_perf'], specialBonus: { type: 'market', value: 30 } },
-  { id: 'gpu_8_eff', name: 'Radeon HD 2900 XT', tier: 8, productionCost: 58000, baseMarketPrice: 95000, researchCost: 560000, branch: 'efficiency', prerequisites: ['gpu_7_eff'], specialBonus: { type: 'production', value: 35 } },
+  { id: 'gpu_8_perf', name: 'GDDR5 High-End', tier: 8, productionCost: 80000, baseMarketPrice: 130000, researchCost: 750000, branch: 'performance', prerequisites: ['gpu_7_perf'], specialBonus: { type: 'market', value: 30 } },
+  { id: 'gpu_8_eff', name: 'GDDR5 Mid-Range', tier: 8, productionCost: 58000, baseMarketPrice: 95000, researchCost: 560000, branch: 'efficiency', prerequisites: ['gpu_7_eff'], specialBonus: { type: 'production', value: 35 } },
 
   // Tier 9: Ultimate
-  { id: 'gpu_9_perf', name: 'GeForce RTX Titan', tier: 9, productionCost: 200000, baseMarketPrice: 350000, researchCost: 2000000, branch: 'performance', prerequisites: ['gpu_8_perf'], specialBonus: { type: 'market', value: 50 } },
-  { id: 'gpu_9_eff', name: 'Radeon RX 7900 XTX', tier: 9, productionCost: 145000, baseMarketPrice: 250000, researchCost: 1500000, branch: 'efficiency', prerequisites: ['gpu_8_eff'], specialBonus: { type: 'production', value: 60 } },
+  { id: 'gpu_9_perf', name: 'Real-Time Lighting', tier: 9, productionCost: 200000, baseMarketPrice: 350000, researchCost: 2000000, branch: 'performance', prerequisites: ['gpu_8_perf'], specialBonus: { type: 'market', value: 50 } },
+  { id: 'gpu_9_eff', name: 'HBM2 Compute', tier: 9, productionCost: 145000, baseMarketPrice: 250000, researchCost: 1500000, branch: 'efficiency', prerequisites: ['gpu_8_eff'], specialBonus: { type: 'production', value: 60 } },
 ];
 
 // Fictional Companies

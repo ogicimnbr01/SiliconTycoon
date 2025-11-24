@@ -1,0 +1,279 @@
+
+export enum ProductType {
+  CPU = 'CPU',
+  GPU = 'GPU'
+}
+
+export interface DesignSpec {
+  performance: number; // 0-100
+  efficiency: number;  // 0-100
+}
+
+export enum OfficeLevel {
+  GARAGE = 0,
+  BASEMENT = 1,
+  STARTUP = 2,
+  CORPORATE = 3,
+  CAMPUS = 4,
+  HEADQUARTERS = 5
+}
+
+export type Language = 'en' | 'tr';
+export type TabType = 'factory' | 'rnd' | 'market' | 'finance' | 'marketing';
+export type GameStage = 'menu' | 'game';
+
+export interface Loan {
+  id: string;
+  amount: number;
+  interestRate: number;
+  dailyPayment: number;
+}
+
+export interface TechNode {
+  id: string;
+  name: string;
+  tier: number;
+  baseMarketPrice: number;
+  researchCost: number;
+  productionCost: number;
+  prerequisites?: string[]; // Required tech IDs to unlock this
+  branch?: 'performance' | 'efficiency' | 'balanced';
+  specialBonus?: {
+    type: 'production' | 'quality' | 'market';
+    value: number;
+  };
+}
+
+export interface Stock {
+  id: string;
+  symbol: string;
+  name: string;
+  currentPrice: number;
+  history: number[];
+  owned: number;
+  volatility: number;
+}
+
+export interface Contract {
+  id: string;
+  title: string;
+  description: string;
+  requiredProduct: ProductType;
+  requiredAmount: number;
+  fulfilledAmount: number;
+  reward: number;
+  penalty: number;
+  deadlineDay: number;
+}
+
+export interface GameEvent {
+  id: string;
+  title: string;
+  description: string;
+  effect?: (state: GameState) => Partial<GameState>;
+  type: 'positive' | 'negative' | 'neutral';
+}
+
+export interface Hero {
+  id: string;
+  name: string;
+  role: string;
+  hiringCost: number;
+  dailySalary: number;
+  description: string;
+  effectType: 'sales' | 'research' | 'stock';
+  effectValue: number;
+}
+
+export interface GameEra {
+  id: string;
+  name: string;
+  startDay: number;
+  description: string;
+  cpuDemandMod: number;
+  gpuDemandMod: number;
+}
+
+export interface MarketTrend {
+  id: string;
+  name: string;
+  description: string;
+  requiredSpec: 'performance' | 'efficiency';
+  minSpecValue: number;
+  priceBonus: number;
+  penalty: number;
+  affectedProducts: ProductType[]; // Which products this trend affects
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string; // Lucide icon name
+  condition: (state: GameState) => boolean;
+  reward?: {
+    type: 'money' | 'rp' | 'reputation';
+    value: number;
+  };
+}
+
+export interface SaveMetadata {
+  slotId: string;
+  timestamp: number;
+  companyName: string;
+  netWorth: number;
+  day: number;
+}
+
+export interface MarketingCampaign {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  duration: number; // Days
+  awarenessBoost: number; // Percentage
+  type: 'social' | 'influencer' | 'tv' | 'event';
+}
+
+export interface ActiveCampaign {
+  id: string; // Campaign ID
+  daysRemaining: number;
+}
+
+export interface Competitor {
+  id: string;
+  name: string;
+  marketShare: Record<ProductType, number>; // 0-100% for each product type
+  productQuality: Record<ProductType, number>; // 0-100 quality rating
+  aggressiveness: number; // 0-100, affects pricing and R&D investment
+  cashReserves: number;
+  techLevel: Record<ProductType, number>; // Current tech level
+}
+
+export interface FinancialSnapshot {
+  day: number;
+  money: number;
+}
+
+export interface RivalLaunch {
+  id: string;
+  companyName: string;
+  productName: string;
+  effect: number;
+  daysRemaining: number;
+}
+
+export interface TutorialState {
+  active: boolean;
+  stepIndex: number;
+  completed: boolean;
+}
+
+export interface HackingState {
+  active: boolean;
+  type: 'espionage' | 'sabotage';
+  difficulty: number;
+  targetId?: string;
+}
+
+export interface ProductionLine {
+  id: string;
+  name: string;
+  productType: ProductType;
+  activeDesignId: string | null; // ID of the design being produced
+  level: number;
+  efficiency: number; // 0-100%, degrades over time
+  dailyOutput: number;
+  status: 'idle' | 'producing' | 'maintenance' | 'no_silicon';
+  maintenanceCost: number; // Cost to restore efficiency to 100%
+  specialization?: 'speed' | 'quality' | 'efficiency'; // Line type
+  lastMaintenanceDay?: number;
+}
+
+export interface OfflineReportData {
+  elapsedSeconds: number;
+  moneyEarned: number;
+  rpEarned: number;
+}
+
+export interface GameState {
+  // System
+  stage: GameStage;
+  language: Language;
+  day: number;
+  gameSpeed: 'paused' | 'normal' | 'fast';
+  lastSaveTime: number;
+  bankruptcyTimer: number;
+
+  // Resources
+  money: number;
+  rp: number;
+  silicon: number;
+  siliconPrice: number;
+
+  // Infrastructure & Staff
+  officeLevel: OfficeLevel;
+  researchers: number;
+  hiredHeroes: string[];
+  productionLines: ProductionLine[];
+
+  // Reputation & Brand
+  reputation: number;
+  productionQuality: 'low' | 'medium' | 'high';
+
+  // Product Design (Old System)
+  designSpecs: Record<ProductType, DesignSpec>;
+
+  // Inventory & Tech
+  inventory: Record<ProductType, number>;
+  techLevels: Record<ProductType, number>;
+
+  // Market Dynamics
+  currentEraId: string;
+  marketMultiplier: number;
+  activeTrendId: string;
+  activeRivalLaunch: RivalLaunch | null;
+  financialHistory: FinancialSnapshot[];
+
+  // Contracts
+  activeContracts: Contract[];
+  availableContracts: Contract[];
+
+  // Stock Market
+  stocks: Stock[];
+  isPubliclyTraded: boolean;
+  playerCompanySharesOwned: number;
+  playerSharePrice: number;
+
+  // Legacy
+  prestigePoints: number;
+
+  // UI & Events
+  unlockedTabs: TabType[]; // Controls visual progression
+  logs: LogEntry[];
+  activeEvent: GameEvent | null;
+
+  // Mini-games
+  hacking: HackingState;
+  offlineReport: OfflineReportData | null;
+  unlockedAchievements?: string[];
+
+  loans: Loan[];
+  staffMorale: number;
+  workPolicy: 'relaxed' | 'normal' | 'crunch';
+  globalTechLevels: Record<ProductType, number>; // Dünyanın teknoloji seviyesi
+
+  // Marketing
+  activeCampaigns: ActiveCampaign[];
+  brandAwareness: Record<ProductType, number>; // 0-100
+
+  // Competitors
+  competitors: Competitor[];
+}
+
+export interface LogEntry {
+  id: number;
+  message: string;
+  type: 'success' | 'info' | 'danger' | 'warning';
+  timestamp: string;
+}

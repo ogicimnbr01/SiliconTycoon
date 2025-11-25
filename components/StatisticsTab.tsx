@@ -1,32 +1,30 @@
 import React from 'react';
-import { ProductType, Language } from '../types';
+import { ProductType, Language, GameState } from '../types';
 import { TRANSLATIONS } from '../constants';
 import { TrendingUp, DollarSign, Package, Award, Target, BarChart3 } from 'lucide-react';
 
 interface StatisticsTabProps {
-    totalRevenue: number;
-    totalProduction: Record<ProductType, number>;
-    totalSales: Record<ProductType, number>;
-    peakMoney: number;
-    peakReputation: number;
-    researchCompleted: number;
-    contractsCompleted: number;
-    achievementsUnlocked: number;
+    gameState: GameState;
     language: Language;
 }
 
 export const StatisticsTab: React.FC<StatisticsTabProps> = ({
-    totalRevenue,
-    totalProduction,
-    totalSales,
-    peakMoney,
-    peakReputation,
-    researchCompleted,
-    contractsCompleted,
-    achievementsUnlocked,
+    gameState,
     language
 }) => {
     const t = TRANSLATIONS[language];
+
+    // Derive stats from gameState
+    const totalRevenue = gameState.money; // Placeholder: Current money
+    const peakMoney = Math.max(...gameState.financialHistory.map(h => h.money), gameState.money);
+    const peakReputation = gameState.reputation;
+    const researchCompleted = Object.values(gameState.techLevels).reduce((a, b) => a + b, 0);
+    const contractsCompleted = 0; // Not currently tracked
+    const achievementsUnlocked = gameState.unlockedAchievements?.length || 0;
+
+    // Placeholder for production/sales as they are not fully tracked in GameState yet
+    const totalProduction = gameState.inventory;
+    const totalSales = { [ProductType.CPU]: 0, [ProductType.GPU]: 0 };
 
     const formatNumber = (num: number) => {
         if (num >= 1000000) return `$${(num / 1000000).toFixed(1)}M`;

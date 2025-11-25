@@ -12,7 +12,8 @@ import {
     ERAS,
     MARKET_TRENDS,
     INITIAL_STOCKS,
-    MAX_ACTIVE_LOANS
+    MAX_ACTIVE_LOANS,
+    MARKETING_CAMPAIGNS
 } from '../constants';
 import { getReputationBonuses } from '../utils/gameUtils';
 
@@ -30,9 +31,9 @@ export const useGameActions = (
         setActiveTab(tab);
     }, [setActiveTab, playSfx, vibrate]);
 
-    const handleProduce = useCallback((type: ProductType, amount: number, cost: number) => {
+    const handleProduce = useCallback((type: ProductType, amount: number, cost: number, siliconCost: number) => {
         setGameState(prev => {
-            if (prev.silicon < amount) {
+            if (prev.silicon < siliconCost) {
                 playSfx('error');
                 vibrate('error');
                 return prev;
@@ -62,7 +63,6 @@ export const useGameActions = (
             let moneyChange = -cost;
             const completedContractIds: string[] = [];
             let repGainFromContracts = 0;
-
             newContracts.forEach(c => {
                 if (c.fulfilledAmount >= c.requiredAmount) {
                     moneyChange += c.reward * bonuses.contractBonus;
@@ -80,7 +80,7 @@ export const useGameActions = (
             return {
                 ...prev,
                 money: prev.money + moneyChange,
-                silicon: prev.silicon - amount,
+                silicon: prev.silicon - siliconCost,
                 inventory: { ...prev.inventory, [type]: prev.inventory[type] + remainingAmount },
                 activeContracts: newContracts.filter(c => !completedContractIds.includes(c.id)),
                 reputation: Math.min(100, Math.max(0, prev.reputation + repChange + repGainFromContracts)),
@@ -161,7 +161,10 @@ export const useGameActions = (
             }
             playSfx('error');
             vibrate('error');
-            return prev;
+            return {
+                ...prev,
+                logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].insufficientFunds, type: 'danger' as const, timestamp: `Day ${prev.day}` }].slice(-10)
+            };
         });
     }, [setGameState, playSfx, vibrate]);
 
@@ -262,21 +265,31 @@ export const useGameActions = (
         setGameState(prev => ({ ...prev, workPolicy: policy }));
     }, [setGameState, playSfx]);
 
-    const handleBuyStock = useCallback((id: string, amt: number) => {
+    const handleBuyStock = useCallback((stockId: string, amount: number) => {
         setGameState(prev => {
-            const stock = prev.stocks.find(s => s.id === id);
-            if (!stock || prev.money < stock.currentPrice * amt) {
+            const stock = prev.stocks.find(s => s.id === stockId);
+            if (!stock) return prev;
+            const cost = stock.currentPrice * amount;
+            if (prev.money < cost) {
                 playSfx('error');
                 return prev;
             }
-            playSfx('click');
+
+            // Calculate weighted average buy price
+            const currentTotalCost = stock.owned * (stock.avgBuyPrice || 0);
+            const newTotalCost = currentTotalCost + cost;
+            const newOwned = stock.owned + amount;
+            const newAvgPrice = newTotalCost / newOwned;
+
+            playSfx('money');
+            vibrate('light');
             return {
                 ...prev,
-                money: prev.money - (stock.currentPrice * amt),
-                stocks: prev.stocks.map(s => s.id === id ? { ...s, owned: s.owned + amt } : s)
+                money: prev.money - cost,
+                stocks: prev.stocks.map(s => s.id === stockId ? { ...s, owned: newOwned, avgBuyPrice: newAvgPrice } : s)
             };
         });
-    }, [setGameState, playSfx]);
+    }, [setGameState, playSfx, vibrate]);
 
     const handleSellStock = useCallback((id: string, amt: number) => {
         setGameState(prev => {
@@ -295,9 +308,35 @@ export const useGameActions = (
     }, [setGameState, playSfx]);
 
     const handleIPO = useCallback(() => {
-        playSfx('success');
-        vibrate('success');
-        setGameState(prev => ({ ...prev, money: prev.money + 50000, isPubliclyTraded: true, playerCompanySharesOwned: 60, logs: [...prev.logs, { id: Date.now(), message: "IPO Launched! Ticker: SILC", type: 'success' as const, timestamp: `Day ${prev.day}` }].slice(-10) }));
+        setGameState(prev => {
+            // Dynamic Valuation Logic
+            const techValue = (prev.techLevels[ProductType.CPU] * 50000) + (prev.techLevels[ProductType.GPU] * 50000);
+            const rpValue = prev.rp * 10;
+            const repValue = prev.reputation * 2000;
+            const valuation = prev.money + techValue + rpValue + repValue;
+
+            // Sell 40% of the company
+            const sharesSoldPercentage = 40;
+            const cashRaised = Math.floor(valuation * (sharesSoldPercentage / 100));
+            const initialSharePrice = valuation / 10000; // Assume 10,000 total shares
+
+            playSfx('success');
+            vibrate('heavy');
+
+            return {
+                ...prev,
+                money: prev.money + cashRaised,
+                isPubliclyTraded: true,
+                playerCompanySharesOwned: 100 - sharesSoldPercentage,
+                playerSharePrice: initialSharePrice,
+                logs: [...prev.logs, {
+                    id: Date.now(),
+                    message: `IPO SUCCESS! Raised $${(cashRaised / 1000000).toFixed(2)}M at $${initialSharePrice.toFixed(2)}/share.`,
+                    type: 'success' as const,
+                    timestamp: `Day ${prev.day}`
+                }].slice(-10)
+            };
+        });
     }, [setGameState, playSfx, vibrate]);
 
     const handleCovertOpTrigger = useCallback((type: 'espionage' | 'sabotage', targetId: string) => {
@@ -443,7 +482,7 @@ export const useGameActions = (
 
     const handleLaunchCampaign = useCallback((campaignId: string, productType: ProductType) => {
         setGameState(prev => {
-            const campaign = require('../constants').MARKETING_CAMPAIGNS.find((c: any) => c.id === campaignId);
+            const campaign = MARKETING_CAMPAIGNS.find((c: any) => c.id === campaignId);
             if (!campaign || prev.money < campaign.cost) {
                 playSfx('error');
                 return prev;

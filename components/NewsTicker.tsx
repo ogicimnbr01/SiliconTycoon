@@ -36,7 +36,7 @@ const NewsTickerComponent: React.FC<NewsTickerProps> = ({ logs }) => {
                 <Bell size={14} className={currentLog.type === 'danger' ? 'animate-pulse text-red-500' : ''} />
             </div>
             <div className="flex-1 relative h-full flex items-center overflow-hidden">
-                <div key={currentLog.id + newsIndex} className="animate-in slide-in-from-bottom-2 fade-in duration-500 whitespace-nowrap flex items-center">
+                <div key={currentLog.id + newsIndex} className="transition-all duration-500 ease-out flex items-center animate-fade-in-up">
                     <span className={`text-[10px] font-bold font-mono uppercase tracking-wider ${getTextColor(currentLog.type)}`}>
                         {currentLog.timestamp && <span className="opacity-50 mr-2">[{currentLog.timestamp}]</span>}
                         {currentLog.message}

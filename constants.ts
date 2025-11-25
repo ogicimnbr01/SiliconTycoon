@@ -1,6 +1,6 @@
 import { ProductType, TechNode, Stock, OfficeLevel, GameEvent, Hero, GameEra, MarketTrend, Achievement, MarketingCampaign, Competitor } from './types';
 
-export const INITIAL_MONEY = 100000000;
+export const INITIAL_MONEY = 7500;
 export const INITIAL_RP = 0;
 export const INITIAL_RESEARCHERS = 0;
 export const INITIAL_SILICON = 200;
@@ -117,6 +117,22 @@ export const ACHIEVEMENTS: Achievement[] = [
     reward: { type: 'rp', value: 100 }
   },
   {
+    id: 'ach_decamillionaire',
+    title: 'Series A',
+    description: 'Reach $10,000,000 in cash.',
+    icon: 'Briefcase',
+    condition: (state) => state.money >= 10000000,
+    reward: { type: 'reputation', value: 10 }
+  },
+  {
+    id: 'ach_centimillionaire',
+    title: 'Big Player',
+    description: 'Reach $100,000,000 in cash.',
+    icon: 'Building2',
+    condition: (state) => state.money >= 100000000,
+    reward: { type: 'rp', value: 500 }
+  },
+  {
     id: 'ach_billionaire',
     title: 'Unicorn',
     description: 'Reach $1,000,000,000 in cash.',
@@ -125,12 +141,164 @@ export const ACHIEVEMENTS: Achievement[] = [
     reward: { type: 'reputation', value: 50 }
   },
   {
+    id: 'ach_trillionaire',
+    title: 'Global Hegemon',
+    description: 'Reach $1 Trillion in cash.',
+    icon: 'Globe',
+    condition: (state) => state.money >= 1000000000000,
+    reward: { type: 'rp', value: 5000 }
+  },
+  {
+    id: 'ach_mass_production',
+    title: 'Mass Production',
+    description: 'Produce 1,000 total units.',
+    icon: 'Package',
+    condition: (state) => (state.inventory.CPU + state.inventory.GPU) >= 1000, // Note: This checks current inventory, ideally should track lifetime production
+    reward: { type: 'money', value: 10000 }
+  },
+  {
+    id: 'ach_industrial_giant',
+    title: 'Industrial Giant',
+    description: 'Produce 10,000 total units.',
+    icon: 'Factory',
+    condition: (state) => (state.inventory.CPU + state.inventory.GPU) >= 10000,
+    reward: { type: 'rp', value: 250 }
+  },
+  {
     id: 'ach_researcher',
     title: 'Eureka!',
     description: 'Complete your first research.',
     icon: 'FlaskConical',
     condition: (state) => state.techLevels.CPU > 0 || state.techLevels.GPU > 0,
     reward: { type: 'money', value: 50000 }
+  },
+  {
+    id: 'ach_tech_pioneer',
+    title: 'Tech Pioneer',
+    description: 'Reach max CPU tech level.',
+    icon: 'Cpu',
+    condition: (state) => state.techLevels.CPU >= 5, // Assuming 5 is max for now based on earlier context
+    reward: { type: 'reputation', value: 20 }
+  },
+  {
+    id: 'ach_graphics_wizard',
+    title: 'Graphics Wizard',
+    description: 'Reach max GPU tech level.',
+    icon: 'Monitor',
+    condition: (state) => state.techLevels.GPU >= 5,
+    reward: { type: 'reputation', value: 20 }
+  },
+  {
+    id: 'ach_lab_rat',
+    title: 'Lab Rat',
+    description: 'Hire 5 Researchers.',
+    icon: 'Users',
+    condition: (state) => state.researchers >= 5,
+    reward: { type: 'rp', value: 100 }
+  },
+  {
+    id: 'ach_research_institute',
+    title: 'Research Institute',
+    description: 'Hire 20 Researchers.',
+    icon: 'Microscope',
+    condition: (state) => state.researchers >= 20,
+    reward: { type: 'rp', value: 1000 }
+  },
+  {
+    id: 'ach_headhunter',
+    title: 'Headhunter',
+    description: 'Hire a Hero character.',
+    icon: 'UserPlus',
+    condition: (state) => state.hiredHeroes.length >= 1,
+    reward: { type: 'reputation', value: 15 }
+  },
+  {
+    id: 'ach_dream_team',
+    title: 'Dream Team',
+    description: 'Hire 3 Hero characters.',
+    icon: 'Star',
+    condition: (state) => state.hiredHeroes.length >= 3,
+    reward: { type: 'rp', value: 2000 }
+  },
+  {
+    id: 'ach_garage_days',
+    title: 'Garage Days',
+    description: 'Survive 30 days.',
+    icon: 'Calendar',
+    condition: (state) => state.day >= 30,
+    reward: { type: 'money', value: 5000 }
+  },
+  {
+    id: 'ach_anniversary',
+    title: 'Anniversary',
+    description: 'Survive 365 days.',
+    icon: 'Cake',
+    condition: (state) => state.day >= 365,
+    reward: { type: 'reputation', value: 25 }
+  },
+  {
+    id: 'ach_veteran',
+    title: 'Veteran',
+    description: 'Survive 1000 days.',
+    icon: 'Medal',
+    condition: (state) => state.day >= 1000,
+    reward: { type: 'rp', value: 5000 }
+  },
+  {
+    id: 'ach_corporate_ladder',
+    title: 'Corporate Ladder',
+    description: 'Upgrade office to Corporate level.',
+    icon: 'Building',
+    condition: (state) => state.officeLevel >= OfficeLevel.CORPORATE,
+    reward: { type: 'reputation', value: 10 }
+  },
+  {
+    id: 'ach_sky_high',
+    title: 'Sky High',
+    description: 'Upgrade office to Headquarters.',
+    icon: 'Building2',
+    condition: (state) => state.officeLevel >= OfficeLevel.HEADQUARTERS,
+    reward: { type: 'reputation', value: 50 }
+  },
+  {
+    id: 'ach_famous',
+    title: 'Famous',
+    description: 'Reach 50% Brand Awareness.',
+    icon: 'Megaphone',
+    condition: (state) => state.brandAwareness.CPU >= 50 || state.brandAwareness.GPU >= 50,
+    reward: { type: 'money', value: 100000 }
+  },
+  {
+    id: 'ach_household_name',
+    title: 'Household Name',
+    description: 'Reach 100% Brand Awareness.',
+    icon: 'Radio',
+    condition: (state) => state.brandAwareness.CPU >= 100 || state.brandAwareness.GPU >= 100,
+    reward: { type: 'reputation', value: 30 }
+  },
+  {
+    id: 'ach_spy_games',
+    title: 'Spy Games',
+    description: 'Perform a successful Espionage.',
+    icon: 'Eye',
+    condition: (state) => state.logs.some(l => l.message.includes('Espionage success')),
+    reward: { type: 'rp', value: 500 }
+  },
+  {
+    id: 'ach_saboteur',
+    title: 'Saboteur',
+    description: 'Perform a successful Sabotage.',
+    icon: 'Bomb',
+    condition: (state) => state.logs.some(l => l.message.includes('Sabotage success')),
+    reward: { type: 'money', value: 50000 }
+  },
+  {
+    id: 'ach_ipo',
+    title: 'Going Public',
+    description: 'Launch an IPO.',
+    icon: 'LineChart',
+    condition: (state) => state.isPubliclyTraded,
+    reward: { type: 'money', value: 1000000 }
   },
   {
     id: 'ach_monopoly',
@@ -337,8 +505,94 @@ export const TRANSLATIONS = {
     duration: "Duration",
     boost: "Boost",
     type: "Type",
+    // Logs & Notifications
+    logRdEstablished: "R&D Dept. Established.",
+    logFinanceEstablished: "Finance Dept. Established. IPO ready.",
+    logContractFailed: "Contract FAILED! Client furious.",
+    logContractOrder: "ORDER: {0}x {1}",
+    logContractDeadline: "Deadline: {0} Days",
+    logGlobalTech: "Global Tech Advance: Competitors launched Tier {0} {1}!",
+    logEraChange: "ERA CHANGE: {0} has begun!",
+    logMarketShift: "MARKET SHIFT: {0}!",
+    logRivalAlert: "RIVAL ALERT: {0} launched a new product!",
+    logResignCritical: "CRITICAL: Toxic environment causing rapid staff turnover!",
+    logResignMass: "MASS RESIGNATION: 3 researchers quit in protest!",
+    logResignBad: "BAD MORALE: {0} researchers walked out.",
+    logResignSingle: "RESIGNATION: A researcher left for a better offer.",
+    logBankInterest: "Bank: Weekly interest deducted.",
+    logRentPaid: "Office Rent Paid.",
+    logBankRejectedLimit: "Bank rejected! Too many active loans.",
+    logBankRejectedOffice: "Bank rejected! Office too small.",
+    logLoanApproved: "Loan approved. Interest rate 1.5%",
+    logLoanRepaid: "Loan Repaid! Credit score improved.",
+    logWelcomeBack: "Welcome Back, CEO",
+    logOfflineMessage: "While you were away, your company earned {0} and gained {1} RP.",
+    selectProduct: "Select Product",
+    designSpecs: "Design Specifications",
+    production: "Production",
+    amount: "Amount",
+    insufficientFunds: "Insufficient Funds",
+    statistics: "STATISTICS",
+    // Achievements
+    ach_millionaire_title: "Seed Money",
+    ach_millionaire_desc: "Reach $1,000,000 in cash.",
+    ach_decamillionaire_title: "Series A",
+    ach_decamillionaire_desc: "Reach $10,000,000 in cash.",
+    ach_centimillionaire_title: "Big Player",
+    ach_centimillionaire_desc: "Reach $100,000,000 in cash.",
+    ach_billionaire_title: "Unicorn",
+    ach_billionaire_desc: "Reach $1,000,000,000 in cash.",
+    ach_trillionaire_title: "Global Hegemon",
+    ach_trillionaire_desc: "Reach $1 Trillion in cash.",
+    ach_mass_production_title: "Mass Production",
+    ach_mass_production_desc: "Produce 1,000 total units.",
+    ach_industrial_giant_title: "Industrial Giant",
+    ach_industrial_giant_desc: "Produce 10,000 total units.",
+    ach_researcher_title: "Eureka!",
+    ach_researcher_desc: "Complete your first research.",
+    ach_tech_pioneer_title: "Tech Pioneer",
+    ach_tech_pioneer_desc: "Reach max CPU tech level.",
+    ach_graphics_wizard_title: "Graphics Wizard",
+    ach_graphics_wizard_desc: "Reach max GPU tech level.",
+    ach_lab_rat_title: "Lab Rat",
+    ach_lab_rat_desc: "Hire 5 Researchers.",
+    ach_research_institute_title: "Research Institute",
+    ach_research_institute_desc: "Hire 20 Researchers.",
+    ach_headhunter_title: "Headhunter",
+    ach_headhunter_desc: "Hire a Hero character.",
+    ach_dream_team_title: "Dream Team",
+    ach_dream_team_desc: "Hire 3 Hero characters.",
+    ach_garage_days_title: "Garage Days",
+    ach_garage_days_desc: "Survive 30 days.",
+    ach_anniversary_title: "Anniversary",
+    ach_anniversary_desc: "Survive 365 days.",
+    ach_veteran_title: "Veteran",
+    ach_veteran_desc: "Survive 1000 days.",
+    ach_corporate_ladder_title: "Corporate Ladder",
+    ach_corporate_ladder_desc: "Upgrade office to Corporate level.",
+    ach_sky_high_title: "Sky High",
+    ach_sky_high_desc: "Upgrade office to Headquarters.",
+    ach_famous_title: "Famous",
+    ach_famous_desc: "Reach 50% Brand Awareness.",
+    ach_household_name_title: "Household Name",
+    ach_household_name_desc: "Reach 100% Brand Awareness.",
+    ach_spy_games_title: "Spy Games",
+    ach_spy_games_desc: "Perform a successful Espionage.",
+    ach_saboteur_title: "Saboteur",
+    ach_saboteur_desc: "Perform a successful Sabotage.",
+    ach_ipo_title: "Going Public",
+    ach_ipo_desc: "Launch an IPO.",
+    ach_monopoly_title: "Market Dominance",
+    ach_monopoly_desc: "Reach 90% Reputation.",
   },
   tr: {
+    logOfflineMessage: "Siz yokken şirketiniz {0} kazandı ve {1} AP elde etti.",
+    selectProduct: "Ürün Seç",
+    designSpecs: "Tasarım Özellikleri",
+    production: "Üretim",
+    amount: "Miktar",
+    insufficientFunds: "Yetersiz Bakiye",
+    statistics: "İSTATİSTİK",
     marketing: "PAZARLAMA",
     campaigns: "Kampanyalar",
     brandAwareness: "Marka Bilinirliği",
@@ -540,6 +794,79 @@ export const TRANSLATIONS = {
     specialization: "Uzmanlaşma",
     speed: "Hız",
     normal: "Normal",
+    // Logs & Notifications
+    logRdEstablished: "Ar-Ge Departmanı Kuruldu.",
+    logFinanceEstablished: "Finans Departmanı Kuruldu. Halka Arz hazır.",
+    logContractFailed: "Kontrat BAŞARISIZ! Müşteri öfkeli.",
+    logContractOrder: "SİPARİŞ: {0}x {1}",
+    logContractDeadline: "Son Gün: {0} Gün",
+    logGlobalTech: "Küresel Teknoloji: Rakipler Seviye {0} {1} piyasaya sürdü!",
+    logEraChange: "ÇAĞ DEĞİŞİMİ: {0} başladı!",
+    logMarketShift: "PAZAR DEĞİŞİMİ: {0}!",
+    logRivalAlert: "RAKİP ALARMI: {0} yeni ürün çıkardı!",
+    logResignCritical: "KRİTİK: Zehirli ortam hızlı personel kaybına yol açıyor!",
+    logResignMass: "TOPLU İSTİFA: 3 araştırmacı protesto ederek istifa etti!",
+    logResignBad: "KÖTÜ MORAL: {0} araştırmacı işi bıraktı.",
+    logResignSingle: "İSTİFA: Bir araştırmacı daha iyi bir teklif için ayrıldı.",
+    logBankInterest: "Banka: Haftalık faiz tahsil edildi.",
+    logRentPaid: "Ofis Kirası Ödendi.",
+    logBankRejectedLimit: "Banka reddetti! Çok fazla aktif kredi var.",
+    logBankRejectedOffice: "Banka reddetti! Ofis çok küçük.",
+    logLoanApproved: "Kredi onaylandı. Faiz oranı %1.5",
+    logLoanRepaid: "Kredi Ödendi! Kredi notu yükseldi.",
+    logWelcomeBack: "Tekrar Hoşgeldin, CEO",
+    // Achievements
+    ach_millionaire_title: "Çekirdek Sermaye",
+    ach_millionaire_desc: "1,000,000$ nakite ulaş.",
+    ach_decamillionaire_title: "Seri A Yatırım",
+    ach_decamillionaire_desc: "10,000,000$ nakite ulaş.",
+    ach_centimillionaire_title: "Büyük Oyuncu",
+    ach_centimillionaire_desc: "100,000,000$ nakite ulaş.",
+    ach_billionaire_title: "Unicorn",
+    ach_billionaire_desc: "1,000,000,000$ nakite ulaş.",
+    ach_trillionaire_title: "Küresel Hegemonya",
+    ach_trillionaire_desc: "1 Trilyon $ nakite ulaş.",
+    ach_mass_production_title: "Seri Üretim",
+    ach_mass_production_desc: "Toplam 1,000 birim üret.",
+    ach_industrial_giant_title: "Sanayi Devi",
+    ach_industrial_giant_desc: "Toplam 10,000 birim üret.",
+    ach_researcher_title: "Evreka!",
+    ach_researcher_desc: "İlk araştırmanı tamamla.",
+    ach_tech_pioneer_title: "Teknoloji Öncüsü",
+    ach_tech_pioneer_desc: "Maksimum CPU teknolojisine ulaş.",
+    ach_graphics_wizard_title: "Grafik Sihirbazı",
+    ach_graphics_wizard_desc: "Maksimum GPU teknolojisine ulaş.",
+    ach_lab_rat_title: "Laboratuvar Faresi",
+    ach_lab_rat_desc: "5 Araştırmacı işe al.",
+    ach_research_institute_title: "Araştırma Enstitüsü",
+    ach_research_institute_desc: "20 Araştırmacı işe al.",
+    ach_headhunter_title: "Kafa Avcısı",
+    ach_headhunter_desc: "Bir Kahraman karakter işe al.",
+    ach_dream_team_title: "Rüya Takım",
+    ach_dream_team_desc: "3 Kahraman karakter işe al.",
+    ach_garage_days_title: "Garaj Günleri",
+    ach_garage_days_desc: "30 gün hayatta kal.",
+    ach_anniversary_title: "Yıl Dönümü",
+    ach_anniversary_desc: "365 gün hayatta kal.",
+    ach_veteran_title: "Kıdemli",
+    ach_veteran_desc: "1000 gün hayatta kal.",
+    ach_corporate_ladder_title: "Kurumsal Merdiven",
+    ach_corporate_ladder_desc: "Ofisi Kurumsal seviyeye yükselt.",
+    ach_sky_high_title: "Göklerde",
+    ach_sky_high_desc: "Ofisi Genel Merkez seviyesine yükselt.",
+    ach_famous_title: "Ünlü",
+    ach_famous_desc: "%50 Marka Bilinirliğine ulaş.",
+    ach_household_name_title: "Herkesin Bildiği İsim",
+    ach_household_name_desc: "%100 Marka Bilinirliğine ulaş.",
+    ach_spy_games_title: "Casus Oyunları",
+    ach_spy_games_desc: "Başarılı bir Casusluk yap.",
+    ach_saboteur_title: "Sabotajcı",
+    ach_saboteur_desc: "Başarılı bir Sabotaj yap.",
+    ach_ipo_title: "Halka Arz",
+    ach_ipo_desc: "Borsaya açıl (IPO).",
+    ach_monopoly_title: "Pazar Hakimiyeti",
+    ach_monopoly_desc: "%90 İtibara ulaş.",
+
   }
 };
 
@@ -547,8 +874,8 @@ export const MARKET_TRENDS: MarketTrend[] = [
   // Universal Trends
   {
     id: 'trend_neutral',
-    name: 'Stable Market',
-    description: 'Balanced demand for all products.',
+    name: 'Dengeli Pazar',
+    description: 'Tüm ürünler için dengeli talep.',
     requiredSpec: 'performance',
     minSpecValue: 0,
     priceBonus: 1.0,
@@ -557,8 +884,8 @@ export const MARKET_TRENDS: MarketTrend[] = [
   },
   {
     id: 'trend_green',
-    name: 'Energy Crisis',
-    description: 'Power costs skyrocketing! Efficiency is king.',
+    name: 'Enerji Krizi',
+    description: 'Enerji maliyetleri fırladı! Verimlilik kral.',
     requiredSpec: 'efficiency',
     minSpecValue: 70,
     priceBonus: 1.6,
@@ -569,8 +896,8 @@ export const MARKET_TRENDS: MarketTrend[] = [
   // CPU-Specific Trends
   {
     id: 'trend_servers',
-    name: 'Server Boom',
-    description: 'Data centers expanding! Need efficient CPUs.',
+    name: 'Sunucu Patlaması',
+    description: 'Veri merkezleri genişliyor! Verimli CPU gerek.',
     requiredSpec: 'efficiency',
     minSpecValue: 65,
     priceBonus: 1.8,
@@ -579,8 +906,8 @@ export const MARKET_TRENDS: MarketTrend[] = [
   },
   {
     id: 'trend_cloud',
-    name: 'Cloud Computing Surge',
-    description: 'Cloud providers buying CPUs in bulk!',
+    name: 'Bulut Bilişim Dalgası',
+    description: 'Bulut sağlayıcıları toplu CPU alıyor!',
     requiredSpec: 'efficiency',
     minSpecValue: 60,
     priceBonus: 1.5,
@@ -589,8 +916,8 @@ export const MARKET_TRENDS: MarketTrend[] = [
   },
   {
     id: 'trend_office',
-    name: 'Corporate Refresh',
-    description: 'Companies upgrading office computers.',
+    name: 'Kurumsal Yenileme',
+    description: 'Şirketler ofis bilgisayarlarını yeniliyor.',
     requiredSpec: 'efficiency',
     minSpecValue: 50,
     priceBonus: 1.3,
@@ -601,8 +928,8 @@ export const MARKET_TRENDS: MarketTrend[] = [
   // GPU-Specific Trends
   {
     id: 'trend_ai',
-    name: 'AI Revolution',
-    description: 'Machine learning boom! GPUs in high demand!',
+    name: 'Yapay Zeka Devrimi',
+    description: 'Makine öğrenmesi patlaması! GPU talebi çok yüksek!',
     requiredSpec: 'performance',
     minSpecValue: 75,
     priceBonus: 2.0,
@@ -611,8 +938,8 @@ export const MARKET_TRENDS: MarketTrend[] = [
   },
   {
     id: 'trend_gaming',
-    name: 'Gaming Craze',
-    description: 'New AAA games released! Gamers need power!',
+    name: 'Oyun Çılgınlığı',
+    description: 'Yeni AAA oyunlar çıktı! Oyuncular güç istiyor!',
     requiredSpec: 'performance',
     minSpecValue: 80,
     priceBonus: 1.9,
@@ -621,8 +948,8 @@ export const MARKET_TRENDS: MarketTrend[] = [
   },
   {
     id: 'trend_crypto',
-    name: 'Crypto Mining Boom',
-    description: 'Bitcoin surging! Miners buying all GPUs!',
+    name: 'Kripto Madenciliği',
+    description: 'Bitcoin yükseliyor! Madenciler tüm GPU\'ları alıyor!',
     requiredSpec: 'performance',
     minSpecValue: 70,
     priceBonus: 2.2,
@@ -631,8 +958,8 @@ export const MARKET_TRENDS: MarketTrend[] = [
   },
   {
     id: 'trend_vr',
-    name: 'VR/AR Explosion',
-    description: 'Virtual reality going mainstream!',
+    name: 'VR/AR Patlaması',
+    description: 'Sanal gerçeklik ana akıma giriyor!',
     requiredSpec: 'performance',
     minSpecValue: 75,
     priceBonus: 1.7,
@@ -641,8 +968,8 @@ export const MARKET_TRENDS: MarketTrend[] = [
   },
   {
     id: 'trend_streaming',
-    name: 'Content Creator Boom',
-    description: 'Streamers and creators need powerful GPUs!',
+    name: 'İçerik Üreticisi Patlaması',
+    description: 'Yayıncılar ve içerik üreticileri güçlü GPU istiyor!',
     requiredSpec: 'performance',
     minSpecValue: 65,
     priceBonus: 1.5,
@@ -656,25 +983,25 @@ export const MARKET_TRENDS: MarketTrend[] = [
 export const ERAS: GameEra[] = [
   {
     id: 'era_pc',
-    name: 'PC REVOLUTION',
+    name: 'PC DEVRİMİ',
     startDay: 0,
-    description: 'The dawn of personal computing. CPUs are king.',
+    description: 'Kişisel bilgisayarların şafağı. CPU\'lar kral.',
     cpuDemandMod: 1.2,
     gpuDemandMod: 0.8
   },
   {
     id: 'era_mobile',
-    name: 'MOBILE ERA',
+    name: 'MOBİL ÇAĞI',
     startDay: 150,
-    description: 'Smartphones everywhere. Efficiency matters.',
+    description: 'Her yerde akıllı telefonlar. Verimlilik önemli.',
     cpuDemandMod: 0.9,
     gpuDemandMod: 1.1
   },
   {
     id: 'era_ai',
-    name: 'AI SINGULARITY',
+    name: 'YAPAY ZEKA TEKİLLİĞİ',
     startDay: 365,
-    description: 'Generative AI boom. Insane GPU demand.',
+    description: 'Üretken yapay zeka patlaması. İnanılmaz GPU talebi.',
     cpuDemandMod: 1.0,
     gpuDemandMod: 2.0
   }
@@ -685,30 +1012,30 @@ export const HEROES: Hero[] = [
   {
     id: 'hero_steve',
     name: 'Steve W.',
-    role: 'Marketing Guru',
+    role: 'Pazarlama Gurusu',
     hiringCost: 50000,
     dailySalary: 500,
-    description: 'Boosts sales prices by 20%. Very demanding.',
+    description: 'Satış fiyatlarını %20 artırır. Çok talepkar.',
     effectType: 'sales',
     effectValue: 0.2
   },
   {
     id: 'hero_linus',
     name: 'Linus T.',
-    role: 'Kernel Architect',
+    role: 'Çekirdek Mimarı',
     hiringCost: 30000,
     dailySalary: 300,
-    description: 'Doubles RP generation from all researchers.',
+    description: 'Tüm araştırmacılardan gelen RP üretimini ikiye katlar.',
     effectType: 'research',
     effectValue: 1.0 // +100%
   },
   {
     id: 'hero_elon',
     name: 'Elon M.',
-    role: 'Visionary',
+    role: 'Vizyoner',
     hiringCost: 100000,
     dailySalary: 1000,
-    description: 'Increases company valuation & stock volatility.',
+    description: 'Şirket değerlemesini ve hisse volatilitesini artırır.',
     effectType: 'stock',
     effectValue: 0.5
   }
@@ -716,52 +1043,52 @@ export const HEROES: Hero[] = [
 
 export const OFFICE_CONFIGS = {
   [OfficeLevel.GARAGE]: {
-    name: "Mom's Garage",
+    name: "Annemin Garajı",
     rent: 0,
     maxResearchers: 2,
     siliconCap: 200,
     upgradeCost: 25000,
-    description: "Free but tiny. Maximum 2 staff."
+    description: "Bedava ama minik. Maksimum 2 personel."
   },
   [OfficeLevel.BASEMENT]: {
-    name: "Basement Lab",
+    name: "Bodrum Laboratuvarı",
     rent: 200,
     maxResearchers: 5,
     siliconCap: 1000,
-    upgradeCost: 100000, // İkinci adım pahalı
-    description: "Cheap underground space. Poor ventilation."
+    upgradeCost: 100000,
+    description: "Ucuz yeraltı alanı. Kötü havalandırma."
   },
   [OfficeLevel.STARTUP]: {
-    name: "Startup Office",
+    name: "Startup Ofisi",
     rent: 1000,
     maxResearchers: 15,
     siliconCap: 5000,
     upgradeCost: 500000,
-    description: "Real business starts here."
+    description: "Gerçek iş buradan başlıyor."
   },
   [OfficeLevel.CORPORATE]: {
-    name: "Corporate Floor",
+    name: "Kurumsal Kat",
     rent: 5000,
     maxResearchers: 40,
     siliconCap: 20000,
-    upgradeCost: 2500000, // 2.5 Milyon
-    description: "Professional environment with amenities."
+    upgradeCost: 2500000,
+    description: "Olanaklarla profesyonel ortam."
   },
   [OfficeLevel.CAMPUS]: {
-    name: "Tech Campus",
-    rent: 20000,
+    name: "Teknoloji Kampüsü",
+    rent: 15000,
     maxResearchers: 100,
     siliconCap: 100000,
-    upgradeCost: 10000000, // 10 Milyon
-    description: "Massive production capability."
+    upgradeCost: 10000000,
+    description: "Devasa üretim kapasitesi."
   },
   [OfficeLevel.HEADQUARTERS]: {
-    name: "Silicon HQ",
+    name: "Silikon Merkezi",
     rent: 50000,
     maxResearchers: 300,
     siliconCap: 1000000,
     upgradeCost: 0,
-    description: "Global dominance."
+    description: "Küresel hakimiyet."
   }
 };
 
@@ -832,10 +1159,10 @@ export const GPU_TECH_TREE: TechNode[] = [
 
 // Fictional Companies
 export const INITIAL_STOCKS: Stock[] = [
-  { id: 'stk_1', symbol: 'NBL', name: 'Nebula Systems', currentPrice: 50, history: [48, 49, 50], owned: 0, volatility: 0.05 },
-  { id: 'stk_2', symbol: 'GIG', name: 'GigaWeb Corp', currentPrice: 120, history: [115, 118, 120], owned: 0, volatility: 0.08 },
-  { id: 'stk_3', symbol: 'FRT', name: 'Fruit Computers', currentPrice: 450, history: [440, 445, 450], owned: 0, volatility: 0.03 },
-  { id: 'stk_4', symbol: 'OMN', name: 'OmniDynamics', currentPrice: 15, history: [14, 16, 15], owned: 0, volatility: 0.15 }
+  { id: 'stk_1', symbol: 'NBL', name: 'Nebula Systems', currentPrice: 50, history: [48, 49, 50], owned: 0, avgBuyPrice: 0, volatility: 0.05 },
+  { id: 'stk_2', symbol: 'GIG', name: 'GigaWeb Corp', currentPrice: 120, history: [115, 118, 120], owned: 0, avgBuyPrice: 0, volatility: 0.08 },
+  { id: 'stk_3', symbol: 'FRT', name: 'Fruit Computers', currentPrice: 450, history: [440, 445, 450], owned: 0, avgBuyPrice: 0, volatility: 0.03 },
+  { id: 'stk_4', symbol: 'OMN', name: 'OmniDynamics', currentPrice: 15, history: [14, 16, 15], owned: 0, avgBuyPrice: 0, volatility: 0.15 }
 ];
 
 // Random Events
@@ -872,34 +1199,68 @@ export const POTENTIAL_EVENTS: GameEvent[] = [
 
 // --- HİKAYE & ATMOSFER METİNLERİ ---
 export const FLAVOR_TEXTS = {
-  siliconSpike: [
-    "BREAKING: Earthquake in Taiwan halts chip production!",
-    "NEWS: Cargo ship stuck in canal. Supply chain frozen.",
-    "ALERT: Trade war escalates! Tariffs on raw silicon increased.",
-    "MARKET: Tech giant buys 40% of global silicon supply."
-  ],
-  siliconDrop: [
-    "NEWS: New massive silicon deposit found in Africa.",
-    "MARKET: Trade restrictions lifted. Materials flowing freely.",
-    "UPDATE: Recycling breakthrough lowers material costs.",
-    "NEWS: Competitor bankruptcy floods market with cheap supply."
-  ],
-  marketBoom: [
-    "WALL ST: Tech stocks hit all-time high! Investors frenzy.",
-    "TREND: VR Headsets are the new hype! Everyone needs chips.",
-    "NEWS: Government announces digital infrastructure stimulus.",
-    "ANALYSIS: Crypto miners buying every GPU in sight!"
-  ],
-  marketCrash: [
-    "PANIC: Global recession fears trigger sell-off!",
-    "NEWS: Tech bubble bursts? Analysts advise caution.",
-    "SCANDAL: Major bank collapse shakes tech sector.",
-    "MARKET: Consumer spending drops to 10-year low."
-  ],
-  staffResign: [
-    "MAIL: 'I can't take this stress anymore. I quit.'",
-    "MAIL: 'My health is more important than this deadline. Goodbye.'",
-    "HR ALERT: Lead researcher poached by rival company.",
-    "MAIL: 'This toxic environment is destroying me. I'm leaving.'"
-  ]
+  en: {
+    siliconSpike: [
+      "BREAKING: Earthquake in Taiwan halts chip production!",
+      "NEWS: Cargo ship stuck in canal. Supply chain frozen.",
+      "ALERT: Trade war escalates! Tariffs on raw silicon increased.",
+      "MARKET: Tech giant buys 40% of global silicon supply."
+    ],
+    siliconDrop: [
+      "NEWS: New massive silicon deposit found in Africa.",
+      "MARKET: Trade restrictions lifted. Materials flowing freely.",
+      "UPDATE: Recycling breakthrough lowers material costs.",
+      "NEWS: Competitor bankruptcy floods market with cheap supply."
+    ],
+    marketBoom: [
+      "WALL STREET: Tech stocks rallying! Investors are euphoric.",
+      "NEWS: Government announces massive tech subsidies.",
+      "REPORT: Global demand for electronics hits all-time high.",
+      "ANALYSIS: 'Golden Age of Silicon' declared by experts."
+    ],
+    marketCrash: [
+      "PANIC: Global recession fears trigger sell-off!",
+      "NEWS: Tech bubble bursts? Analysts advise caution.",
+      "SCANDAL: Major bank collapse shakes tech sector.",
+      "MARKET: Consumer spending drops to 10-year low."
+    ],
+    staffResign: [
+      "MAIL: 'I can't take this stress anymore. I quit.'",
+      "MAIL: 'My health is more important than this deadline. Goodbye.'",
+      "HR ALERT: Lead researcher poached by rival company.",
+      "MAIL: 'This toxic environment is destroying me. I'm leaving.'"
+    ]
+  },
+  tr: {
+    siliconSpike: [
+      "SON DAKİKA: Tayvan'da deprem! Çip üretimi durdu!",
+      "HABER: Kargo gemisi kanalda sıkıştı. Tedarik zinciri dondu.",
+      "UYARI: Ticaret savaşı kızışıyor! Ham silikon vergileri arttı.",
+      "PAZAR: Teknoloji devi küresel silikon arzının %40'ını satın aldı."
+    ],
+    siliconDrop: [
+      "HABER: Afrika'da devasa yeni silikon rezervi bulundu.",
+      "PAZAR: Ticaret kısıtlamaları kaldırıldı. Malzeme akışı rahatladı.",
+      "GÜNCELLEME: Geri dönüşüm teknolojisinde devrim maliyetleri düşürdü.",
+      "HABER: Rakip firmanın iflası piyasayı ucuz silikona boğdu."
+    ],
+    marketBoom: [
+      "BORSA: Teknoloji hisseleri uçuşta! Yatırımcılar coşkulu.",
+      "HABER: Hükümet devasa teknoloji teşvikleri açıkladı.",
+      "RAPOR: Elektroniğe olan küresel talep tüm zamanların zirvesinde.",
+      "ANALİZ: Uzmanlar 'Silikonun Altın Çağı'nı ilan etti."
+    ],
+    marketCrash: [
+      "PANİK: Küresel resesyon korkusu satış dalgası yarattı!",
+      "HABER: Teknoloji balonu patladı mı? Analistler uyarıyor.",
+      "SKANDAL: Büyük banka çöküşü teknoloji sektörünü sarstı.",
+      "PAZAR: Tüketici harcamaları son 10 yılın en düşüğünde."
+    ],
+    staffResign: [
+      "POSTA: 'Bu strese daha fazla dayanamıyorum. İstifa ediyorum.'",
+      "POSTA: 'Sağlığım bu teslim tarihinden daha önemli. Hoşçakalın.'",
+      "İK UYARISI: Baş araştırmacı rakip firma tarafından transfer edildi.",
+      "POSTA: 'Bu zehirli ortam beni bitiriyor. Gidiyorum.'"
+    ]
+  }
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Trophy, Lock, CheckCircle2, Cpu, DollarSign, TrendingUp, FlaskConical, Crown } from 'lucide-react';
+import { X, Trophy, Lock, CheckCircle2, Cpu, DollarSign, TrendingUp, FlaskConical, Crown, Briefcase, Building2, Globe, Package, Factory, Monitor, Users, Microscope, UserPlus, Star, Calendar, Cake, Medal, Building, Megaphone, Radio, Eye, Bomb, LineChart } from 'lucide-react';
 import { ACHIEVEMENTS, TRANSLATIONS } from '../constants';
 import { Language } from '../types';
 
@@ -15,7 +15,26 @@ const iconMap: Record<string, any> = {
     DollarSign,
     TrendingUp,
     FlaskConical,
-    Crown
+    Crown,
+    Briefcase,
+    Building2,
+    Globe,
+    Package,
+    Factory,
+    Monitor,
+    Users,
+    Microscope,
+    UserPlus,
+    Star,
+    Calendar,
+    Cake,
+    Medal,
+    Building,
+    Megaphone,
+    Radio,
+    Eye,
+    Bomb,
+    LineChart
 };
 
 export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose, unlockedAchievements, language }) => {
@@ -53,13 +72,15 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
                     {ACHIEVEMENTS.map((ach) => {
                         const isUnlocked = unlockedSet.has(ach.id);
                         const Icon = iconMap[ach.icon] || Trophy;
+                        const title = t[`${ach.id}_title` as keyof typeof t] || ach.title;
+                        const description = t[`${ach.id}_desc` as keyof typeof t] || ach.description;
 
                         return (
                             <div
                                 key={ach.id}
                                 className={`relative p-4 rounded-xl border transition-all duration-300 ${isUnlocked
-                                        ? 'bg-slate-800/50 border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.1)]'
-                                        : 'bg-slate-900/50 border-slate-800 opacity-70 grayscale'
+                                    ? 'bg-slate-800/50 border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.1)]'
+                                    : 'bg-slate-900/50 border-slate-800 opacity-70 grayscale'
                                     }`}
                             >
                                 <div className="flex items-start gap-4">
@@ -71,12 +92,12 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
                                             <h3 className={`font-bold truncate ${isUnlocked ? 'text-white' : 'text-slate-500'}`}>
-                                                {ach.title}
+                                                {title}
                                             </h3>
                                             {isUnlocked && <CheckCircle2 size={16} className="text-emerald-500" />}
                                         </div>
                                         <p className="text-sm text-slate-400 leading-relaxed">
-                                            {ach.description}
+                                            {description}
                                         </p>
                                         {ach.reward && (
                                             <div className="mt-2 text-xs font-mono text-emerald-400/80 flex items-center gap-1">

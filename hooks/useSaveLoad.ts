@@ -100,7 +100,7 @@ export const useSaveLoad = (
     const handleNewGame = useCallback(() => {
         playSfx('success');
         vibrate('success');
-        setActiveSlotId(null); // New game starts unsaved
+        setActiveSlotId('autosave'); // Auto-save slot for new games
         setGameState(prev => ({
             ...prev,
             stage: 'game',
@@ -116,16 +116,17 @@ export const useSaveLoad = (
         setActiveTab('factory');
     }, [setGameState, setActiveTab, playSfx, vibrate]);
 
-    // Auto-save loop (only if active slot exists)
+    // Auto-save on day change or interval
     useEffect(() => {
         if (!activeSlotId || gameState.stage !== 'game') return;
 
-        const saveInterval = setInterval(() => {
+        const saveCurrentState = () => {
             const stateToSave = { ...gameState, lastSaveTime: Date.now() };
             localStorage.setItem(`${SAVE_PREFIX}${activeSlotId}`, JSON.stringify(stateToSave));
-        }, 30000);
-        return () => clearInterval(saveInterval);
-    }, [gameState, activeSlotId]);
+        };
+
+        saveCurrentState();
+    }, [gameState.day, activeSlotId]); // Save whenever day changes
 
     return {
         handleNewGame,

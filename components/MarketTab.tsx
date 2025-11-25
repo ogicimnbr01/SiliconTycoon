@@ -162,14 +162,19 @@ const MarketTab: React.FC<MarketTabProps> = ({
     const PillButton = ({ id, label, icon: Icon, locked }: { id: typeof view, label: string, icon: any, locked?: boolean }) => (
         <button
             onClick={() => !locked && setView(id)}
-            className={`flex items-center gap-2 px-5 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-all flex-1 justify-center ${locked
+            className={`flex items-center gap-2 px-5 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-all flex-1 justify-center relative group ${locked
                 ? 'bg-slate-950 text-slate-700 border border-slate-800 cursor-not-allowed'
                 : view === id
                     ? 'bg-white text-black shadow-lg shadow-white/10 scale-105'
                     : 'bg-slate-900 text-slate-400 border border-slate-800'
                 }`}
         >
-            {locked && <Lock size={12} className="absolute top-1 right-1" />}
+            {locked && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10 rounded-full backdrop-blur-[1px]">
+                    <Lock size={12} className="text-slate-500 mr-1" />
+                    <span className="text-[8px] font-bold text-slate-400">LOCKED</span>
+                </div>
+            )}
             <Icon size={14} />
             {label}
         </button>
@@ -306,18 +311,52 @@ const MarketTab: React.FC<MarketTabProps> = ({
                             </div>
                         </div>
 
-                        {gameState.stocks.map(stock => (
-                            <div key={stock.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-md">
-                                <div className="flex justify-between items-center mb-4">
-                                    <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center font-black text-slate-500 text-sm">{stock.symbol}</div><div><div className="font-bold text-white">{stock.name}</div><div className="text-xs font-mono text-slate-400">${stock.currentPrice.toFixed(2)}</div></div></div>
-                                    <div className="text-right"><div className="text-[10px] text-slate-500 uppercase font-bold">{t.owned}</div><div className="font-mono font-bold text-white text-lg">{stock.owned}</div></div>
+                        {gameState.stocks.map(stock => {
+                            const avgPrice = stock.avgBuyPrice || 0;
+                            const totalCost = avgPrice * stock.owned;
+                            const currentValue = stock.currentPrice * stock.owned;
+                            const profitLoss = currentValue - totalCost;
+                            const profitLossPercent = totalCost > 0 ? (profitLoss / totalCost) * 100 : 0;
+                            const isProfitable = profitLoss >= 0;
+
+                            return (
+                                <div key={stock.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-md">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center font-black text-slate-500 text-sm">{stock.symbol}</div>
+                                            <div>
+                                                <div className="font-bold text-white">{stock.name}</div>
+                                                <div className="text-xs font-mono text-slate-400">${stock.currentPrice.toFixed(2)}</div>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-[10px] text-slate-500 uppercase font-bold">{t.owned}</div>
+                                            <div className="font-mono font-bold text-white text-lg">{stock.owned}</div>
+                                        </div>
+                                    </div>
+
+                                    {stock.owned > 0 && (
+                                        <div className="grid grid-cols-2 gap-4 mb-4 bg-slate-950/50 p-3 rounded-xl border border-slate-800/50">
+                                            <div>
+                                                <div className="text-[9px] text-slate-500 uppercase font-bold mb-0.5">Avg Cost</div>
+                                                <div className="font-mono text-xs text-slate-300">${avgPrice.toFixed(2)}</div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[9px] text-slate-500 uppercase font-bold mb-0.5">P/L</div>
+                                                <div className={`font-mono text-xs font-bold ${isProfitable ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                    {isProfitable ? '+' : ''}{profitLoss.toFixed(0)} ({isProfitable ? '+' : ''}{profitLossPercent.toFixed(1)}%)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <Button size="sm" variant="secondary" onClick={() => onBuyStock(stock.id, stockTradeAmount)} disabled={gameState.money < stock.currentPrice * stockTradeAmount} className="border-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-400"><Plus size={14} className="mr-1" /> {t.buy} {stockTradeAmount}</Button>
+                                        <Button size="sm" variant="secondary" onClick={() => onSellStock(stock.id, stockTradeAmount)} disabled={stock.owned < stockTradeAmount} className="border-red-500/20 hover:bg-red-500/10 hover:text-red-400"><Minus size={14} className="mr-1" /> {t.sell} {stockTradeAmount}</Button>
+                                    </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <Button size="sm" variant="secondary" onClick={() => onBuyStock(stock.id, stockTradeAmount)} disabled={gameState.money < stock.currentPrice * stockTradeAmount} className="border-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-400"><Plus size={14} className="mr-1" /> {t.buy} {stockTradeAmount}</Button>
-                                    <Button size="sm" variant="secondary" onClick={() => onSellStock(stock.id, stockTradeAmount)} disabled={stock.owned < stockTradeAmount} className="border-red-500/20 hover:bg-red-500/10 hover:text-red-400"><Minus size={14} className="mr-1" /> {t.sell} {stockTradeAmount}</Button>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 

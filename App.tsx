@@ -24,13 +24,14 @@ import { NewsTicker } from './components/NewsTicker';
 import { HackingMinigame } from './components/HackingMinigame';
 import { OfflineReport } from './components/ui/OfflineReport';
 import { MainMenu } from './components/MainMenu';
-import { LayoutGrid, FlaskConical, LineChart, AlertTriangle, Loader2, Pause, Play, LogOut, Landmark, Skull, MailWarning, Lock } from 'lucide-react';
+import { LayoutGrid, FlaskConical, LineChart, AlertTriangle, Loader2, Pause, Play, LogOut, Landmark, Skull, MailWarning, Lock, Megaphone, BarChart } from 'lucide-react';
 import { playSfx, setSoundEnabled } from './utils/SoundManager';
 import { SettingsModal } from './components/SettingsModal';
 import { AchievementsModal } from './components/AchievementsModal';
 import { SaveLoadModal } from './components/SaveLoadModal';
 
 import { MarketingTab } from './components/MarketingTab';
+import { StatisticsTab } from './components/StatisticsTab';
 import { useSaveLoad } from './hooks/useSaveLoad';
 import { useGameLoop } from './hooks/useGameLoop';
 import { useGameActions } from './hooks/useGameActions';
@@ -141,9 +142,23 @@ const App: React.FC = () => {
 
     const TabButton = useCallback(({ id, label, icon: Icon }: { id: TabType, label: string, icon: any }) => {
         const isLocked = !gameState.unlockedTabs.includes(id);
+        let lockReason = "";
+        if (id === 'rnd') lockReason = "$10k";
+        if (id === 'finance') lockReason = "$50k";
+        if (id === 'marketing') lockReason = "$100k";
+        if (id === 'statistics') lockReason = "$1k";
+
         return (
-            <button onClick={() => { if (!isLocked) actions.handleTabSwitch(id); }} className={`flex flex-col items-center justify-center py-1 flex-1 transition-all active:scale-95 touch-manipulation relative ${activeTab === id ? 'text-corp-accent bg-slate-800/80 rounded-xl mx-2 shadow-[0_0_15px_rgba(14,165,233,0.2)]' : isLocked ? 'opacity-50' : 'text-slate-500'}`}>
-                {isLocked && (<div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 rounded-xl"><Lock size={12} className="text-slate-400" /></div>)}
+            <button
+                onClick={() => { if (!isLocked) actions.handleTabSwitch(id); }}
+                className={`flex flex-col items-center justify-center py-1 flex-1 transition-all active:scale-95 touch-manipulation relative ${activeTab === id ? 'text-corp-accent bg-slate-800/80 rounded-xl mx-2 shadow-[0_0_15px_rgba(14,165,233,0.2)]' : isLocked ? 'opacity-50' : 'text-slate-500'}`}
+            >
+                {isLocked && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-10 rounded-xl backdrop-blur-[1px]">
+                        <Lock size={12} className="text-slate-400 mb-0.5" />
+                        {lockReason && <span className="text-[8px] font-bold text-slate-300 bg-slate-800 px-1 rounded">{lockReason}</span>}
+                    </div>
+                )}
                 <Icon size={26} className={`mb-1 ${activeTab === id ? 'stroke-2' : 'stroke-1'}`} />
                 <span className="text-[9px] font-mono font-bold tracking-widest">{t[id as keyof typeof t] || label}</span>
             </button>
@@ -325,6 +340,13 @@ const App: React.FC = () => {
                         />
                     </Suspense>
                 )}
+
+                {activeTab === 'statistics' && (
+                    <StatisticsTab
+                        gameState={gameState}
+                        language={gameState.language}
+                    />
+                )}
             </div>
 
             <div className="absolute bottom-0 w-full z-40 flex flex-col safe-area-pb">
@@ -336,6 +358,8 @@ const App: React.FC = () => {
                     <TabButton id="rnd" label="R&D" icon={FlaskConical} />
                     <TabButton id="market" label="MARKET" icon={LineChart} />
                     <TabButton id="finance" label="FINANCE" icon={Landmark} />
+                    <TabButton id="marketing" label="MARKETING" icon={Megaphone} />
+                    <TabButton id="statistics" label="STATISTICS" icon={BarChart} />
                 </div>
             </div>
 

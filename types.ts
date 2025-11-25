@@ -19,7 +19,7 @@ export enum OfficeLevel {
 }
 
 export type Language = 'en' | 'tr';
-export type TabType = 'factory' | 'rnd' | 'market' | 'finance' | 'marketing';
+export type TabType = 'factory' | 'rnd' | 'market' | 'finance' | 'marketing' | 'statistics';
 export type GameStage = 'menu' | 'game';
 
 export interface Loan {
@@ -51,6 +51,7 @@ export interface Stock {
   currentPrice: number;
   history: number[];
   owned: number;
+  avgBuyPrice: number;
   volatility: number;
 }
 

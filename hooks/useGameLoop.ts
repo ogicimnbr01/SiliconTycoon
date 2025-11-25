@@ -131,11 +131,23 @@ export const useGameLoop = (
 
                 if (newMultiplier > 1.4 && prev.marketMultiplier <= 1.4) {
                     const msg = flavor.marketBoom[Math.floor(Math.random() * flavor.marketBoom.length)];
+                    activeEvent = {
+                        id: `boom_${Date.now()}`,
+                        title: "MARKET BOOM!",
+                        description: msg,
+                        type: "positive"
+                    };
                     newLogs.push({ id: Date.now(), message: msg, type: 'success', timestamp: `${t.day} ${newDay}` });
                     vibrate('success');
                 }
                 if (newMultiplier < 0.7 && prev.marketMultiplier >= 0.7) {
                     const msg = flavor.marketCrash[Math.floor(Math.random() * flavor.marketCrash.length)];
+                    activeEvent = {
+                        id: `crash_${Date.now()}`,
+                        title: "MARKET CRASH!",
+                        description: msg,
+                        type: "negative"
+                    };
                     newLogs.push({ id: Date.now(), message: msg, type: 'danger', timestamp: `${t.day} ${newDay}` });
                     vibrate('error');
                 }
@@ -155,6 +167,12 @@ export const useGameLoop = (
 
                 if (newSiliconPrice > 50 && prev.siliconPrice <= 50) {
                     const msg = flavor.siliconSpike[Math.floor(Math.random() * flavor.siliconSpike.length)];
+                    activeEvent = {
+                        id: `spike_${Date.now()}`,
+                        title: "SILICON SHORTAGE!",
+                        description: msg,
+                        type: "negative"
+                    };
                     newLogs.push({ id: Date.now(), message: msg, type: 'warning', timestamp: `${t.day} ${newDay}` });
                 }
 
@@ -373,6 +391,7 @@ export const useGameLoop = (
                         reward: Math.floor(reward),
                         penalty: Math.floor(reward * 0.4),
                         deadlineDay: newDay + 10,
+                        duration: 10,
                     });
                     if (availableContracts.length > 3) availableContracts.shift();
                 }

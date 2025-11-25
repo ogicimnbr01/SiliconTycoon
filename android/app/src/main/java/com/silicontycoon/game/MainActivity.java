@@ -19,7 +19,7 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
-    private void hideSystemUI() {
+    private void hideSystemUI() {  
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY

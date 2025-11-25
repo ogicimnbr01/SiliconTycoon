@@ -145,6 +145,24 @@ const MarketTab: React.FC<MarketTabProps> = ({
                     </div>
                 </div>
 
+                {/* PROFIT BREAKDOWN */}
+                <div className="mt-2 bg-slate-950/50 p-3 rounded-xl border border-slate-800/50 text-xs">
+                    <div className="flex justify-between mb-1">
+                        <span className="text-slate-500">Est. Unit Cost</span>
+                        <span className="text-slate-300 font-mono">${(tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice)).toFixed(0)}</span>
+                    </div>
+                    <div className="flex justify-between mb-1">
+                        <span className="text-slate-500">Silicon Cost</span>
+                        <span className="text-slate-400 font-mono">${(tech.productionCost / 10 * gameState.siliconPrice).toFixed(0)}</span>
+                    </div>
+                    <div className="border-t border-slate-800 my-1 pt-1 flex justify-between font-bold">
+                        <span className="text-slate-400">Net Profit</span>
+                        <span className={`font-mono ${currentPrice - (tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice)) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {currentPrice - (tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice)) >= 0 ? '+' : ''}${(currentPrice - (tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice))).toFixed(0)} ({((currentPrice - (tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice))) / currentPrice * 100).toFixed(0)}%)
+                        </span>
+                    </div>
+                </div>
+
                 <Button
                     variant="success"
                     size="lg"

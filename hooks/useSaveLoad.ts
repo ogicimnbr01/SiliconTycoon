@@ -4,6 +4,7 @@ import {
     INITIAL_MONEY,
     INITIAL_RP,
     INITIAL_SILICON,
+    INITIAL_GAME_STATE
 } from '../constants';
 
 const SAVE_PREFIX = 'siliconTycoon_save_';
@@ -102,16 +103,11 @@ export const useSaveLoad = (
         vibrate('success');
         setActiveSlotId('autosave'); // Auto-save slot for new games
         setGameState(prev => ({
-            ...prev,
+            ...INITIAL_GAME_STATE,
             stage: 'game',
-            day: 1,
             gameSpeed: 'paused',
-            money: INITIAL_MONEY + (prev.prestigePoints * 1000),
-            rp: INITIAL_RP,
-            researchers: 0,
-            unlockedTabs: ['factory', 'market'],
-            brandAwareness: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
-            competitors: []
+            money: INITIAL_GAME_STATE.money + (prev.prestigePoints * 1000),
+            prestigePoints: prev.prestigePoints, // Keep accumulated prestige
         }));
         setActiveTab('factory');
     }, [setGameState, setActiveTab, playSfx, vibrate]);

@@ -188,37 +188,42 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                                 <button
                                     onClick={() => onBuySilicon(1)}
                                     disabled={gameState.money < siliconPrice * 1}
-                                    className="py-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold rounded text-blue-300 transition-colors disabled:opacity-50"
+                                    className="py-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold rounded text-blue-300 transition-colors disabled:opacity-50 flex flex-col items-center justify-center leading-none"
                                 >
-                                    +1
+                                    <span>+1</span>
+                                    <span className="text-[8px] opacity-60 font-mono mt-0.5">${(siliconPrice * 1).toFixed(0)}</span>
                                 </button>
                                 <button
                                     onClick={() => onBuySilicon(10)}
                                     disabled={gameState.money < siliconPrice * 10}
-                                    className="py-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold rounded text-blue-300 transition-colors disabled:opacity-50"
+                                    className="py-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold rounded text-blue-300 transition-colors disabled:opacity-50 flex flex-col items-center justify-center leading-none"
                                 >
-                                    +10
+                                    <span>+10</span>
+                                    <span className="text-[8px] opacity-60 font-mono mt-0.5">${(siliconPrice * 10).toFixed(0)}</span>
                                 </button>
                                 <button
                                     onClick={() => onBuySilicon(100)}
                                     disabled={gameState.money < siliconPrice * 100}
-                                    className="py-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold rounded text-blue-300 transition-colors disabled:opacity-50"
+                                    className="py-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold rounded text-blue-300 transition-colors disabled:opacity-50 flex flex-col items-center justify-center leading-none"
                                 >
-                                    +100
+                                    <span>+100</span>
+                                    <span className="text-[8px] opacity-60 font-mono mt-0.5">${(siliconPrice * 100).toFixed(0)}</span>
                                 </button>
                                 <button
                                     onClick={() => onBuySilicon(1000)}
                                     disabled={gameState.money < siliconPrice * 1000}
-                                    className="py-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold rounded text-blue-300 transition-colors disabled:opacity-50"
+                                    className="py-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold rounded text-blue-300 transition-colors disabled:opacity-50 flex flex-col items-center justify-center leading-none"
                                 >
-                                    +1k
+                                    <span>+1k</span>
+                                    <span className="text-[8px] opacity-60 font-mono mt-0.5">${(siliconPrice * 1000).toFixed(0)}</span>
                                 </button>
                                 <button
                                     onClick={() => onBuySilicon(10000)}
                                     disabled={gameState.money < siliconPrice * 10000}
-                                    className="py-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold rounded text-blue-300 transition-colors disabled:opacity-50"
+                                    className="py-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold rounded text-blue-300 transition-colors disabled:opacity-50 flex flex-col items-center justify-center leading-none"
                                 >
-                                    +10k
+                                    <span>+10k</span>
+                                    <span className="text-[8px] opacity-60 font-mono mt-0.5">${(siliconPrice * 10000).toFixed(0)}</span>
                                 </button>
                             </div>
                         </div>

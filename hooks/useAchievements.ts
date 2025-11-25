@@ -6,7 +6,8 @@ export const useAchievements = (
     gameState: GameState,
     setGameState: React.Dispatch<React.SetStateAction<GameState>>,
     playSfx: (sfx: any) => void,
-    vibrate: (type: any) => void
+    vibrate: (type: any) => void,
+    onUnlock?: (achievement: any) => void
 ) => {
     useEffect(() => {
         if (gameState.stage !== 'game') return;
@@ -44,6 +45,7 @@ export const useAchievements = (
             newUnlocks.forEach(id => {
                 const ach = ACHIEVEMENTS.find(a => a.id === id);
                 if (ach) {
+                    if (onUnlock) onUnlock(ach);
                     newLogs.push({
                         id: Date.now() + Math.random(),
                         message: `${t.achievementUnlocked} ${ach.title}`,

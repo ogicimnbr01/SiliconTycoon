@@ -13,7 +13,8 @@ import {
     MARKET_TRENDS,
     INITIAL_STOCKS,
     MAX_ACTIVE_LOANS,
-    MARKETING_CAMPAIGNS
+    MARKETING_CAMPAIGNS,
+    INITIAL_GAME_STATE
 } from '../constants';
 import { getReputationBonuses } from '../utils/gameUtils';
 
@@ -34,6 +35,11 @@ export const useGameActions = (
     const handleProduce = useCallback((type: ProductType, amount: number, cost: number, siliconCost: number) => {
         setGameState(prev => {
             if (prev.silicon < siliconCost) {
+                playSfx('error');
+                vibrate('error');
+                return prev;
+            }
+            if (prev.money < cost) {
                 playSfx('error');
                 vibrate('error');
                 return prev;
@@ -173,9 +179,10 @@ export const useGameActions = (
         setGameState(prev => {
             const contract = prev.availableContracts.find(c => c.id === contractId);
             if (!contract) return prev;
+            const activeContract = { ...contract, deadlineDay: prev.day + contract.duration };
             return {
                 ...prev,
-                activeContracts: [...prev.activeContracts, contract],
+                activeContracts: [...prev.activeContracts, activeContract],
                 availableContracts: prev.availableContracts.filter(c => c.id !== contractId)
             };
         });
@@ -393,28 +400,11 @@ export const useGameActions = (
             const companyValuation = prev.money + (prev.techLevels[ProductType.CPU] * 5000) + (prev.techLevels[ProductType.GPU] * 5000);
             const gainedPoints = Math.floor(companyValuation / 10000);
             return {
-                stage: 'game', language: prev.language, day: 1, gameSpeed: 'paused', lastSaveTime: Date.now(),
-                money: INITIAL_MONEY + (gainedPoints * 1000), rp: INITIAL_RP, researchers: 0, hiredHeroes: [],
-                officeLevel: OfficeLevel.GARAGE, silicon: INITIAL_SILICON, siliconPrice: BASE_SILICON_PRICE, reputation: INITIAL_REPUTATION, productionQuality: 'medium',
-                designSpecs: {
-                    [ProductType.CPU]: { performance: 50, efficiency: 50 },
-                    [ProductType.GPU]: { performance: 50, efficiency: 50 }
-                },
-                inventory: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
-                techLevels: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
-                currentEraId: ERAS[0].id, marketMultiplier: 1.0, activeTrendId: MARKET_TRENDS[0].id, activeRivalLaunch: null, financialHistory: [{ day: 1, money: INITIAL_MONEY + (gainedPoints * 1000) }],
-                activeContracts: [], availableContracts: [], stocks: INITIAL_STOCKS, isPubliclyTraded: false, playerCompanySharesOwned: 100, playerSharePrice: 10.0,
-                prestigePoints: prev.prestigePoints + gainedPoints, activeEvent: null, productionLines: [],
-                globalTechLevels: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
-                unlockedTabs: ['factory', 'market'],
+                ...INITIAL_GAME_STATE,
+                stage: 'game',
+                money: INITIAL_GAME_STATE.money + (gainedPoints * 1000),
+                prestigePoints: prev.prestigePoints + gainedPoints,
                 logs: [{ id: Date.now(), message: `${TRANSLATIONS[prev.language].newRun} ${prev.prestigePoints + gainedPoints}`, type: 'info' as const, timestamp: `${TRANSLATIONS[prev.language].day} 1` }],
-                loans: [], staffMorale: 100, workPolicy: 'normal', bankruptcyTimer: 0,
-
-                hacking: { active: false, type: 'espionage', difficulty: 1 },
-                offlineReport: null,
-                activeCampaigns: [],
-                brandAwareness: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
-                competitors: []
             };
         });
     }, [setGameState, playSfx]);

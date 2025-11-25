@@ -58,7 +58,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
             <div className="bg-gradient-to-br from-purple-900 to-slate-900 rounded-2xl p-6 border border-purple-500/30 shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
                 <div className="flex items-center justify-between mb-6 relative z-10">
-                    <div><div className="flex items-center gap-2 text-purple-300 mb-1"><Microscope size={20} /><span className="text-xs font-bold uppercase tracking-wider">{t.rndDept}</span></div><div className="text-3xl font-black text-white">{gameState.rp} <span className="text-sm text-purple-300 font-medium">RP</span></div></div>
+                    <div><div className="flex items-center gap-2 text-purple-300 mb-1"><Microscope size={20} /><span className="text-xs font-bold uppercase tracking-wider">{t.rndDept}</span></div><div className="text-3xl font-black text-white">{Math.floor(gameState.rp)} <span className="text-sm text-purple-300 font-medium">RP</span></div></div>
                     <div className="text-right bg-black/20 p-3 rounded-xl backdrop-blur-sm border border-white/5"><div className="text-[10px] text-purple-200 uppercase font-bold">{t.dailyOutput}</div><div className="font-mono font-bold text-white text-lg">+{dailyOutput}</div></div>
                 </div>
                 <div className="flex items-center justify-between bg-black/20 p-4 rounded-xl mb-4 border border-white/5 relative z-10">

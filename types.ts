@@ -65,6 +65,7 @@ export interface Contract {
   reward: number;
   penalty: number;
   deadlineDay: number;
+  duration: number;
 }
 
 export interface GameEvent {

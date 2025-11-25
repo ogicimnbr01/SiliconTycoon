@@ -1,21 +1,22 @@
-import { ProductType, TechNode, Stock, OfficeLevel, GameEvent, Hero, GameEra, MarketTrend, Achievement, MarketingCampaign, Competitor } from './types';
+import { ProductType, TechNode, Stock, OfficeLevel, GameEvent, Hero, GameEra, MarketTrend, Achievement, MarketingCampaign, Competitor, GameState } from './types';
 
-export const INITIAL_MONEY = 7500;
+export const INITIAL_MONEY = 10000;
 export const INITIAL_RP = 0;
 export const INITIAL_RESEARCHERS = 0;
 export const INITIAL_SILICON = 200;
-export const INITIAL_REPUTATION = 0;
+export const INITIAL_REPUTATION = 10;
 
 // Simulation Constants
-export const TICK_RATE_MS = 1500;
+export const TICK_RATE_MS = 1500; // 1.5 seconds per day
 export const RESEARCHER_BASE_COST = 1000;
 export const RESEARCHER_COST_GROWTH = 1.5;
-export const RESEARCHER_DAILY_SALARY = 100;
-export const RP_PER_RESEARCHER_PER_DAY = 5;
+export const RESEARCHER_DAILY_SALARY = 150;
+export const RP_PER_RESEARCHER_PER_DAY = 10;
 export const IPO_THRESHOLD_VALUATION = 100000;
+export const MAX_ACTIVE_LOANS = 3;
 
 // Silicon Market
-export const BASE_SILICON_PRICE = 10;
+export const BASE_SILICON_PRICE = 4;
 
 
 // Marketing Constants
@@ -154,7 +155,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Produce 1,000 total units.',
     icon: 'Package',
     condition: (state) => (state.inventory.CPU + state.inventory.GPU) >= 1000, // Note: This checks current inventory, ideally should track lifetime production
-    reward: { type: 'money', value: 10000 }
+    reward: { type: 'rp', value: 100 }
   },
   {
     id: 'ach_industrial_giant',
@@ -170,7 +171,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Complete your first research.',
     icon: 'FlaskConical',
     condition: (state) => state.techLevels.CPU > 0 || state.techLevels.GPU > 0,
-    reward: { type: 'money', value: 50000 }
+    reward: { type: 'rp', value: 250 }
   },
   {
     id: 'ach_tech_pioneer',
@@ -226,7 +227,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Survive 30 days.',
     icon: 'Calendar',
     condition: (state) => state.day >= 30,
-    reward: { type: 'money', value: 5000 }
+    reward: { type: 'rp', value: 50 }
   },
   {
     id: 'ach_anniversary',
@@ -266,7 +267,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Reach 50% Brand Awareness.',
     icon: 'Megaphone',
     condition: (state) => state.brandAwareness.CPU >= 50 || state.brandAwareness.GPU >= 50,
-    reward: { type: 'money', value: 100000 }
+    reward: { type: 'rp', value: 500 }
   },
   {
     id: 'ach_household_name',
@@ -290,7 +291,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Perform a successful Sabotage.',
     icon: 'Bomb',
     condition: (state) => state.logs.some(l => l.message.includes('Sabotage success')),
-    reward: { type: 'money', value: 50000 }
+    reward: { type: 'rp', value: 250 }
   },
   {
     id: 'ach_ipo',
@@ -298,7 +299,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Launch an IPO.',
     icon: 'LineChart',
     condition: (state) => state.isPubliclyTraded,
-    reward: { type: 'money', value: 1000000 }
+    reward: { type: 'rp', value: 1000 }
   },
   {
     id: 'ach_monopoly',
@@ -311,7 +312,7 @@ export const ACHIEVEMENTS: Achievement[] = [
 ];
 
 // --- TRANSLATIONS ---
-export const MAX_ACTIVE_LOANS = 3;
+
 
 // --- TRANSLATIONS ---
 export const TRANSLATIONS = {
@@ -1094,10 +1095,10 @@ export const OFFICE_CONFIGS = {
 
 // Tech Tree for CPUs (10 TIERS with Branching)
 export const CPU_TECH_TREE: TechNode[] = [
-  { id: 'cpu_0', name: '8-bit Processor', tier: 0, productionCost: 25, baseMarketPrice: 32, researchCost: 0, branch: 'balanced' },
-  { id: 'cpu_1', name: '16-bit Processor', tier: 1, productionCost: 55, baseMarketPrice: 70, researchCost: 100, branch: 'balanced', prerequisites: ['cpu_0'] },
-  { id: 'cpu_2', name: '32-bit RISC', tier: 2, productionCost: 140, baseMarketPrice: 180, researchCost: 500, branch: 'balanced', prerequisites: ['cpu_1'] },
-  { id: 'cpu_3', name: '32-bit CISC', tier: 3, productionCost: 450, baseMarketPrice: 550, researchCost: 2000, branch: 'balanced', prerequisites: ['cpu_2'] },
+  { id: 'cpu_0', name: '8-bit Processor', tier: 0, productionCost: 25, baseMarketPrice: 60, researchCost: 0, branch: 'balanced' },
+  { id: 'cpu_1', name: '16-bit Processor', tier: 1, productionCost: 55, baseMarketPrice: 130, researchCost: 100, branch: 'balanced', prerequisites: ['cpu_0'] },
+  { id: 'cpu_2', name: '32-bit RISC', tier: 2, productionCost: 140, baseMarketPrice: 320, researchCost: 500, branch: 'balanced', prerequisites: ['cpu_1'] },
+  { id: 'cpu_3', name: '32-bit CISC', tier: 3, productionCost: 450, baseMarketPrice: 950, researchCost: 2000, branch: 'balanced', prerequisites: ['cpu_2'] },
 
   // Tier 4: Branching starts
   { id: 'cpu_4_perf', name: '64-bit High-Freq', tier: 4, productionCost: 1200, baseMarketPrice: 1800, researchCost: 8000, branch: 'performance', prerequisites: ['cpu_3'], specialBonus: { type: 'market', value: 10 } },
@@ -1127,10 +1128,10 @@ export const CPU_TECH_TREE: TechNode[] = [
 
 // Tech Tree for GPUs (10 TIERS with Branching)
 export const GPU_TECH_TREE: TechNode[] = [
-  { id: 'gpu_0', name: 'VGA Graphics', tier: 0, productionCost: 40, baseMarketPrice: 50, researchCost: 0, branch: 'balanced' },
-  { id: 'gpu_1', name: 'SVGA Graphics', tier: 1, productionCost: 90, baseMarketPrice: 120, researchCost: 250, branch: 'balanced', prerequisites: ['gpu_0'] },
-  { id: 'gpu_2', name: '3D Accelerator', tier: 2, productionCost: 220, baseMarketPrice: 290, researchCost: 800, branch: 'balanced', prerequisites: ['gpu_1'] },
-  { id: 'gpu_3', name: 'T&L GPU', tier: 3, productionCost: 700, baseMarketPrice: 900, researchCost: 3000, branch: 'balanced', prerequisites: ['gpu_2'] },
+  { id: 'gpu_0', name: 'VGA Graphics', tier: 0, productionCost: 40, baseMarketPrice: 90, researchCost: 0, branch: 'balanced' },
+  { id: 'gpu_1', name: 'SVGA Graphics', tier: 1, productionCost: 90, baseMarketPrice: 200, researchCost: 250, branch: 'balanced', prerequisites: ['gpu_0'] },
+  { id: 'gpu_2', name: '3D Accelerator', tier: 2, productionCost: 220, baseMarketPrice: 480, researchCost: 800, branch: 'balanced', prerequisites: ['gpu_1'] },
+  { id: 'gpu_3', name: 'T&L GPU', tier: 3, productionCost: 700, baseMarketPrice: 1500, researchCost: 3000, branch: 'balanced', prerequisites: ['gpu_2'] },
 
   // Tier 4: Branching starts
   { id: 'gpu_4_perf', name: 'Shader Model 1.0', tier: 4, productionCost: 2000, baseMarketPrice: 3200, researchCost: 10000, branch: 'performance', prerequisites: ['gpu_3'], specialBonus: { type: 'market', value: 12 } },
@@ -1263,4 +1264,54 @@ export const FLAVOR_TEXTS = {
       "POSTA: 'Bu zehirli ortam beni bitiriyor. Gidiyorum.'"
     ]
   }
+};
+
+export const INITIAL_GAME_STATE: GameState = {
+  stage: 'menu',
+  language: 'en',
+  day: 1,
+  gameSpeed: 'paused',
+  lastSaveTime: Date.now(),
+  money: INITIAL_MONEY,
+  rp: INITIAL_RP,
+  researchers: 0,
+  hiredHeroes: [],
+  officeLevel: OfficeLevel.GARAGE,
+  silicon: INITIAL_SILICON,
+  siliconPrice: BASE_SILICON_PRICE,
+  reputation: INITIAL_REPUTATION,
+  productionQuality: 'medium',
+  designSpecs: {
+    [ProductType.CPU]: { performance: 50, efficiency: 50 },
+    [ProductType.GPU]: { performance: 50, efficiency: 50 }
+  },
+  inventory: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
+  techLevels: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
+  globalTechLevels: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
+  currentEraId: ERAS[0].id,
+  marketMultiplier: 1.0,
+  activeTrendId: MARKET_TRENDS[0].id,
+  activeRivalLaunch: null,
+  financialHistory: [{ day: 1, money: INITIAL_MONEY }],
+  activeContracts: [],
+  availableContracts: [],
+  stocks: INITIAL_STOCKS,
+  isPubliclyTraded: false,
+  playerCompanySharesOwned: 100,
+  playerSharePrice: 10.0,
+  prestigePoints: 0,
+  activeEvent: null,
+  unlockedTabs: ['factory', 'market'],
+  logs: [],
+  hacking: { active: false, type: 'espionage', difficulty: 1 },
+  offlineReport: null,
+  unlockedAchievements: [],
+  activeCampaigns: [],
+  brandAwareness: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
+  competitors: [],
+  loans: [],
+  staffMorale: 100,
+  workPolicy: 'normal',
+  bankruptcyTimer: 0,
+  productionLines: []
 };

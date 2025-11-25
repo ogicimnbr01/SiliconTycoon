@@ -15,7 +15,8 @@ import {
     MARKET_TRENDS,
     INITIAL_STOCKS,
     TRANSLATIONS,
-    OFFICE_CONFIGS
+    OFFICE_CONFIGS,
+    INITIAL_GAME_STATE
 } from './constants';
 import { FactoryTab } from './components/FactoryTab';
 import { ResearchTab } from './components/ResearchTab';
@@ -28,6 +29,7 @@ import { LayoutGrid, FlaskConical, LineChart, AlertTriangle, Loader2, Pause, Pla
 import { playSfx, setSoundEnabled } from './utils/SoundManager';
 import { SettingsModal } from './components/SettingsModal';
 import { AchievementsModal } from './components/AchievementsModal';
+import { AchievementPopup } from './components/AchievementPopup';
 import { SaveLoadModal } from './components/SaveLoadModal';
 
 import { MarketingTab } from './components/MarketingTab';
@@ -53,6 +55,7 @@ const App: React.FC = () => {
         const saved = localStorage.getItem('siliconTycoonSettings');
         return saved ? JSON.parse(saved).vibration : true;
     });
+    const [activeAchievement, setActiveAchievement] = useState<any>(null);
 
     useEffect(() => {
         setSoundEnabled(soundEnabled);
@@ -71,55 +74,7 @@ const App: React.FC = () => {
         hideSystemBars();
     }, []);
 
-    const [gameState, setGameState] = useState<GameState>({
-        stage: 'menu',
-        language: 'en',
-        day: 1,
-        gameSpeed: 'paused',
-        lastSaveTime: Date.now(),
-        money: INITIAL_MONEY,
-        rp: INITIAL_RP,
-        researchers: 0,
-        hiredHeroes: [],
-        officeLevel: OfficeLevel.GARAGE,
-        silicon: INITIAL_SILICON,
-        siliconPrice: BASE_SILICON_PRICE,
-        reputation: INITIAL_REPUTATION,
-        productionQuality: 'medium',
-        designSpecs: {
-            [ProductType.CPU]: { performance: 50, efficiency: 50 },
-            [ProductType.GPU]: { performance: 50, efficiency: 50 }
-        },
-        inventory: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
-        techLevels: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
-        globalTechLevels: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
-        currentEraId: ERAS[0].id,
-        marketMultiplier: 1.0,
-        activeTrendId: MARKET_TRENDS[0].id,
-        activeRivalLaunch: null,
-        financialHistory: [{ day: 1, money: INITIAL_MONEY }],
-        activeContracts: [],
-        availableContracts: [],
-        stocks: INITIAL_STOCKS,
-        isPubliclyTraded: false,
-        playerCompanySharesOwned: 100,
-        playerSharePrice: 10.0,
-        prestigePoints: 0,
-        activeEvent: null,
-        unlockedTabs: ['factory', 'market'],
-        logs: [],
-        hacking: { active: false, type: 'espionage', difficulty: 1 },
-        offlineReport: null,
-        unlockedAchievements: [],
-        activeCampaigns: [],
-        brandAwareness: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
-        competitors: [],
-        loans: [],
-        staffMorale: 100,
-        workPolicy: 'normal',
-        bankruptcyTimer: 0,
-        productionLines: []
-    });
+    const [gameState, setGameState] = useState<GameState>(INITIAL_GAME_STATE);
 
     const t = TRANSLATIONS[gameState.language];
 
@@ -137,7 +92,9 @@ const App: React.FC = () => {
     // Hooks
     const { handleNewGame, loadGame, saveGame, deleteSave, getSlots, hasAnySave } = useSaveLoad(gameState, setGameState, setActiveTab, playSfx, vibrate);
     useGameLoop(gameState, setGameState, playSfx, vibrate);
-    useAchievements(gameState, setGameState, playSfx, vibrate);
+    useAchievements(gameState, setGameState, playSfx, vibrate, (ach) => {
+        setActiveAchievement(ach);
+    });
     const actions = useGameActions(gameState, setGameState, setActiveTab, playSfx, vibrate);
 
     const TabButton = useCallback(({ id, label, icon: Icon }: { id: TabType, label: string, icon: any }) => {
@@ -385,6 +342,10 @@ const App: React.FC = () => {
                 onClose={() => setShowAchievements(false)}
                 unlockedAchievements={gameState.unlockedAchievements || []}
                 language={gameState.language}
+            />
+            <AchievementPopup
+                achievement={activeAchievement}
+                onClose={() => setActiveAchievement(null)}
             />
             <SaveLoadModal
                 isOpen={showSaveLoad}

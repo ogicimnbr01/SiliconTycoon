@@ -211,7 +211,7 @@ const App: React.FC = () => {
                 </div>
             )}
 
-            {gameState.hacking.active && (<HackingMinigame type={gameState.hacking.type} difficulty={gameState.hacking.difficulty} onComplete={actions.handleHackingComplete} onCancel={() => setGameState(prev => ({ ...prev, hacking: { ...prev.hacking, active: false } }))} />)}
+            {gameState.hacking.active && (<HackingMinigame type={gameState.hacking.type} difficulty={gameState.hacking.difficulty} onComplete={actions.handleHackingComplete} onCancel={() => setGameState(prev => ({ ...prev, hacking: { ...prev.hacking, active: false } }))} language={gameState.language} />)}
             {gameState.offlineReport && (<OfflineReport data={gameState.offlineReport} language={gameState.language} onDismiss={() => setGameState(prev => ({ ...prev, money: prev.money + prev.offlineReport!.moneyEarned, rp: prev.rp + prev.offlineReport!.rpEarned, offlineReport: null }))} />)}
 
             {gameState.gameSpeed === 'paused' && gameState.stage === 'game' && (

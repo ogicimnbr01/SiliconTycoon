@@ -48,6 +48,18 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
 
         if (!nextOffice) return null;
 
+        const getOfficeName = (level: number) => {
+            const keys = [
+                'office_garage_name',
+                'office_basement_name',
+                'office_startup_name',
+                'office_corporate_name',
+                'office_campus_name',
+                'office_hq_name'
+            ];
+            return t[keys[level] as keyof typeof t] || OFFICE_CONFIGS[level as any].name;
+        };
+
         return (
             <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
                 <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-in zoom-in-95 duration-200">
@@ -60,17 +72,17 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
 
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         <div className="space-y-2">
-                            <div className="text-xs font-bold text-slate-500 uppercase text-center">Current</div>
+                            <div className="text-xs font-bold text-slate-500 uppercase text-center">{t.current}</div>
                             <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center">
-                                <div className="font-bold text-white mb-1">{currentOffice.name}</div>
+                                <div className="font-bold text-white mb-1">{getOfficeName(gameState.officeLevel)}</div>
                                 <div className="text-[10px] text-slate-400">Cap: {currentOffice.siliconCap}</div>
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <div className="text-xs font-bold text-emerald-500 uppercase text-center">Next Level</div>
+                            <div className="text-xs font-bold text-emerald-500 uppercase text-center">{t.nextLevel}</div>
                             <div className="bg-slate-950 p-3 rounded-xl border border-emerald-500/30 text-center relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-3 h-3 bg-emerald-500 rounded-bl-lg"></div>
-                                <div className="font-bold text-emerald-400 mb-1">{nextOffice.name}</div>
+                                <div className="font-bold text-emerald-400 mb-1">{getOfficeName(gameState.officeLevel + 1)}</div>
                                 <div className="text-[10px] text-emerald-300/70">Cap: {nextOffice.siliconCap}</div>
                             </div>
                         </div>
@@ -78,7 +90,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
 
                     <div className="space-y-3 mb-6">
                         <div className="flex justify-between text-sm border-b border-slate-800 pb-2">
-                            <span className="text-slate-400">Rent</span>
+                            <span className="text-slate-400">{t.rent}</span>
                             <div className="flex items-center gap-2">
                                 <span className="text-slate-300">${currentOffice.rent}</span>
                                 <span className="text-slate-600">→</span>
@@ -86,7 +98,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                             </div>
                         </div>
                         <div className="flex justify-between text-sm border-b border-slate-800 pb-2">
-                            <span className="text-slate-400">Max Researchers</span>
+                            <span className="text-slate-400">{t.maxResearchers}</span>
                             <div className="flex items-center gap-2">
                                 <span className="text-slate-300">{currentOffice.maxResearchers}</span>
                                 <span className="text-slate-600">→</span>
@@ -94,7 +106,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                             </div>
                         </div>
                         <div className="flex justify-between text-sm pb-2">
-                            <span className="text-slate-400">Upgrade Cost</span>
+                            <span className="text-slate-400">{t.upgradeCost}</span>
                             <span className="text-emerald-400 font-bold font-mono">${currentOffice.upgradeCost.toLocaleString()}</span>
                         </div>
                     </div>

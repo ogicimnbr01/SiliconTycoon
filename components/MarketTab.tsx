@@ -148,15 +148,15 @@ const MarketTab: React.FC<MarketTabProps> = ({
                 {/* PROFIT BREAKDOWN */}
                 <div className="mt-2 bg-slate-950/50 p-3 rounded-xl border border-slate-800/50 text-xs">
                     <div className="flex justify-between mb-1">
-                        <span className="text-slate-500">Est. Unit Cost</span>
+                        <span className="text-slate-500">{t.estUnitCost}</span>
                         <span className="text-slate-300 font-mono">${(tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice)).toFixed(0)}</span>
                     </div>
                     <div className="flex justify-between mb-1">
-                        <span className="text-slate-500">Silicon Cost</span>
+                        <span className="text-slate-500">{t.siliconCost}</span>
                         <span className="text-slate-400 font-mono">${(tech.productionCost / 10 * gameState.siliconPrice).toFixed(0)}</span>
                     </div>
                     <div className="border-t border-slate-800 my-1 pt-1 flex justify-between font-bold">
-                        <span className="text-slate-400">Net Profit</span>
+                        <span className="text-slate-400">{t.netProfit}</span>
                         <span className={`font-mono ${currentPrice - (tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice)) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                             {currentPrice - (tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice)) >= 0 ? '+' : ''}${(currentPrice - (tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice))).toFixed(0)} ({((currentPrice - (tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice))) / currentPrice * 100).toFixed(0)}%)
                         </span>
@@ -190,7 +190,7 @@ const MarketTab: React.FC<MarketTabProps> = ({
             {locked && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10 rounded-full backdrop-blur-[1px]">
                     <Lock size={12} className="text-slate-500 mr-1" />
-                    <span className="text-[8px] font-bold text-slate-400">LOCKED</span>
+                    <span className="text-[8px] font-bold text-slate-400">{t.locked}</span>
                 </div>
             )}
             <Icon size={14} />
@@ -356,11 +356,11 @@ const MarketTab: React.FC<MarketTabProps> = ({
                                     {stock.owned > 0 && (
                                         <div className="grid grid-cols-2 gap-4 mb-4 bg-slate-950/50 p-3 rounded-xl border border-slate-800/50">
                                             <div>
-                                                <div className="text-[9px] text-slate-500 uppercase font-bold mb-0.5">Avg Cost</div>
+                                                <div className="text-[9px] text-slate-500 uppercase font-bold mb-0.5">{t.avgCost}</div>
                                                 <div className="font-mono text-xs text-slate-300">${avgPrice.toFixed(2)}</div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="text-[9px] text-slate-500 uppercase font-bold mb-0.5">P/L</div>
+                                                <div className="text-[9px] text-slate-500 uppercase font-bold mb-0.5">{t.pl}</div>
                                                 <div className={`font-mono text-xs font-bold ${isProfitable ? 'text-emerald-400' : 'text-red-400'}`}>
                                                     {isProfitable ? '+' : ''}{profitLoss.toFixed(0)} ({isProfitable ? '+' : ''}{profitLossPercent.toFixed(1)}%)
                                                 </div>

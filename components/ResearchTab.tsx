@@ -116,7 +116,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
                                 : 'bg-slate-950 text-slate-500 border-slate-800 hover:border-slate-600'
                                 }`}
                         >
-                            {policy === 'relaxed' ? 'RELAXED' : policy === 'normal' ? 'NORMAL' : 'CRUNCH'}
+                            {policy === 'relaxed' ? t.policyRelaxedName : policy === 'normal' ? t.policyNormalName : t.policyCrunchName}
                         </button>
                     ))}
                 </div>

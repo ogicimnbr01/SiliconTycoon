@@ -14,7 +14,9 @@ import {
     INITIAL_STOCKS,
     MAX_ACTIVE_LOANS,
     MARKETING_CAMPAIGNS,
-    INITIAL_GAME_STATE
+    INITIAL_GAME_STATE,
+    CPU_TECH_TREE,
+    GPU_TECH_TREE
 } from '../constants';
 import { getReputationBonuses } from '../utils/gameUtils';
 
@@ -47,13 +49,23 @@ export const useGameActions = (
             playSfx('click');
             vibrate('light');
 
-            const spec = prev.designSpecs[type];
-            const defectChance = prev.productionQuality === 'high' ? 0.01 : prev.productionQuality === 'medium' ? 0.05 : 0.20;
-            const defectiveAmount = Math.floor(amount * Math.random() * defectChance);
-            const successfulAmount = amount - defectiveAmount;
-            let repChange = 0;
-            if (defectiveAmount > 0) repChange -= 1;
-            if (prev.productionQuality === 'high') repChange += 0.5;
+            // Yield Rate Logic
+            const techTree = type === ProductType.CPU ? CPU_TECH_TREE : GPU_TECH_TREE;
+            const currentLevel = prev.techLevels[type];
+            const node = techTree.find(n => n.tier === currentLevel) || techTree[0];
+            const yieldRate = node.yield || 100;
+
+            // Calculate success vs waste
+            // Random fluctuation: +/- 5% based on production quality
+            const qualityMod = prev.productionQuality === 'high' ? 5 : prev.productionQuality === 'medium' ? 0 : -5;
+            const actualYield = Math.min(100, Math.max(10, yieldRate + qualityMod));
+
+            const successfulAmount = Math.floor(amount * (actualYield / 100));
+            const wasteAmount = amount - successfulAmount;
+
+            // Binning: Sell waste as "Budget/Scrap" immediately
+            // Value is 20% of base price
+            const scrapValue = Math.floor(wasteAmount * (node.baseMarketPrice * 0.2));
 
             let remainingAmount = successfulAmount;
             const newContracts = prev.activeContracts.map(c => {
@@ -66,7 +78,7 @@ export const useGameActions = (
             });
 
             const bonuses = getReputationBonuses(prev.reputation);
-            let moneyChange = -cost;
+            let moneyChange = -cost + scrapValue; // Add scrap revenue
             const completedContractIds: string[] = [];
             let repGainFromContracts = 0;
             newContracts.forEach(c => {
@@ -80,8 +92,15 @@ export const useGameActions = (
             });
 
             let newLogs = [...prev.logs];
-            if (defectiveAmount > 0) newLogs.push({ id: Date.now(), message: `${defectiveAmount} defects reported.`, type: 'danger' as const, timestamp: `Day ${prev.day}` });
-            if (completedContractIds.length > 0) newLogs.push({ id: Date.now(), message: `Contract Fulfilled! Payment received.`, type: 'success' as const, timestamp: `Day ${prev.day}` });
+            if (wasteAmount > 0) {
+                newLogs.push({
+                    id: Date.now(),
+                    message: `Yield: ${actualYield}%. ${wasteAmount} defects sold as budget chips for $${scrapValue}.`,
+                    type: 'warning' as const,
+                    timestamp: `Day ${prev.day}`
+                });
+            }
+            if (completedContractIds.length > 0) newLogs.push({ id: Date.now() + 1, message: `Contract Fulfilled! Payment received.`, type: 'success' as const, timestamp: `Day ${prev.day}` });
 
             return {
                 ...prev,
@@ -89,7 +108,7 @@ export const useGameActions = (
                 silicon: prev.silicon - siliconCost,
                 inventory: { ...prev.inventory, [type]: prev.inventory[type] + remainingAmount },
                 activeContracts: newContracts.filter(c => !completedContractIds.includes(c.id)),
-                reputation: Math.min(100, Math.max(0, prev.reputation + repChange + repGainFromContracts)),
+                reputation: Math.min(100, Math.max(0, prev.reputation + repGainFromContracts)),
                 logs: newLogs.slice(-10)
             };
         });
@@ -483,6 +502,11 @@ export const useGameActions = (
             const newBrandAwareness = { ...prev.brandAwareness };
             newBrandAwareness[productType] = Math.min(100, newBrandAwareness[productType] + campaign.awarenessBoost);
 
+            const t = TRANSLATIONS[prev.language];
+            const nameKey = `${campaign.id}_name` as keyof typeof t;
+            const campaignName = t[nameKey] || campaign.name;
+            const message = t.logCampaignLaunched.replace('{0}', campaignName).replace('{1}', productType);
+
             return {
                 ...prev,
                 money: prev.money - campaign.cost,
@@ -490,7 +514,7 @@ export const useGameActions = (
                 brandAwareness: newBrandAwareness,
                 logs: [...prev.logs, {
                     id: Date.now(),
-                    message: `Launched ${campaign.name} for ${productType}!`,
+                    message: message,
                     type: 'success' as const,
                     timestamp: `Day ${prev.day}`
                 }].slice(-10)

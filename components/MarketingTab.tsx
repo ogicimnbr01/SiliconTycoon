@@ -58,11 +58,13 @@ export const MarketingTab: React.FC<MarketingTabProps> = ({
                         {activeCampaigns.map((ac, idx) => {
                             const campaign = MARKETING_CAMPAIGNS.find(c => c.id === ac.id);
                             if (!campaign) return null;
+                            const nameKey = `${campaign.id}_name` as keyof typeof t;
+                            const descKey = `${campaign.id}_desc` as keyof typeof t;
                             return (
                                 <div key={idx} className="bg-slate-900/50 rounded-lg p-3 flex justify-between items-center">
                                     <div>
-                                        <div className="font-bold text-white">{campaign.name}</div>
-                                        <div className="text-xs text-slate-400">{campaign.description}</div>
+                                        <div className="font-bold text-white">{t[nameKey] || campaign.name}</div>
+                                        <div className="text-xs text-slate-400">{t[descKey] || campaign.description}</div>
                                     </div>
                                     <div className="text-right">
                                         <div className="text-sm font-bold text-indigo-400">{ac.daysRemaining} {t.days}</div>
@@ -81,55 +83,59 @@ export const MarketingTab: React.FC<MarketingTabProps> = ({
                     {t.campaigns}
                 </h2>
                 <div className="space-y-3">
-                    {MARKETING_CAMPAIGNS.map(campaign => (
-                        <div key={campaign.id} className="bg-slate-900/50 border border-slate-700 rounded-lg p-4">
-                            <div className="flex justify-between items-start mb-3">
-                                <div>
-                                    <h3 className="font-bold text-white text-lg">{campaign.name}</h3>
-                                    <p className="text-xs text-slate-400 mt-1">{campaign.description}</p>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-emerald-400 font-bold">${(campaign.cost / 1000).toFixed(0)}k</div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
-                                <div className="bg-slate-800 rounded p-2">
-                                    <div className="text-slate-500">{t.duration}</div>
-                                    <div className="text-white font-bold flex items-center gap-1">
-                                        <Clock size={12} /> {campaign.duration}d
+                    {MARKETING_CAMPAIGNS.map(campaign => {
+                        const nameKey = `${campaign.id}_name` as keyof typeof t;
+                        const descKey = `${campaign.id}_desc` as keyof typeof t;
+                        return (
+                            <div key={campaign.id} className="bg-slate-900/50 border border-slate-700 rounded-lg p-4">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h3 className="font-bold text-white text-lg">{t[nameKey] || campaign.name}</h3>
+                                        <p className="text-xs text-slate-400 mt-1">{t[descKey] || campaign.description}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-emerald-400 font-bold">${(campaign.cost / 1000).toFixed(0)}k</div>
                                     </div>
                                 </div>
-                                <div className="bg-slate-800 rounded p-2">
-                                    <div className="text-slate-500">{t.boost}</div>
-                                    <div className="text-indigo-400 font-bold">+{campaign.awarenessBoost}%</div>
-                                </div>
-                                <div className="bg-slate-800 rounded p-2">
-                                    <div className="text-slate-500">{t.type}</div>
-                                    <div className="text-white font-bold capitalize">{campaign.type}</div>
-                                </div>
-                            </div>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button
-                                    variant="primary"
-                                    onClick={() => onLaunchCampaign(campaign.id, ProductType.CPU)}
-                                    disabled={money < campaign.cost}
-                                    className="text-xs"
-                                >
-                                    {t.launch} (CPU)
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    onClick={() => onLaunchCampaign(campaign.id, ProductType.GPU)}
-                                    disabled={money < campaign.cost}
-                                    className="text-xs"
-                                >
-                                    {t.launch} (GPU)
-                                </Button>
+                                <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
+                                    <div className="bg-slate-800 rounded p-2">
+                                        <div className="text-slate-500">{t.duration}</div>
+                                        <div className="text-white font-bold flex items-center gap-1">
+                                            <Clock size={12} /> {campaign.duration}d
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-800 rounded p-2">
+                                        <div className="text-slate-500">{t.boost}</div>
+                                        <div className="text-indigo-400 font-bold">+{campaign.awarenessBoost}%</div>
+                                    </div>
+                                    <div className="bg-slate-800 rounded p-2">
+                                        <div className="text-slate-500">{t.type}</div>
+                                        <div className="text-white font-bold capitalize">{campaign.type}</div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button
+                                        variant="primary"
+                                        onClick={() => onLaunchCampaign(campaign.id, ProductType.CPU)}
+                                        disabled={money < campaign.cost}
+                                        className="text-xs"
+                                    >
+                                        {t.launch} (CPU)
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        onClick={() => onLaunchCampaign(campaign.id, ProductType.GPU)}
+                                        disabled={money < campaign.cost}
+                                        className="text-xs"
+                                    >
+                                        {t.launch} (GPU)
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </div>

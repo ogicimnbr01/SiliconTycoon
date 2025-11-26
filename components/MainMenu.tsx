@@ -77,7 +77,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             onClick={onOpenSettings}
             className="w-full h-16 text-lg border-slate-700"
           >
-            <Settings size={24} /> {t.settings || "SETTINGS"}
+            <Settings size={24} /> {t.settings}
           </Button>
 
           <Button
@@ -86,11 +86,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             onClick={onOpenAchievements}
             className="w-full h-16 text-lg border-slate-700"
           >
-            <Trophy size={24} /> {t.achievements || "ACHIEVEMENTS"}
+            <Trophy size={24} /> {t.achievements}
           </Button>
         </div>
 
-        <div className="mt-12 text-slate-600 font-mono text-sm">v1.0.0 • Early Access</div>
+        <div className="mt-12 text-slate-600 font-mono text-sm">{t.version}</div>
 
         {/* Language Toggle */}
         <div className="flex items-center gap-4 mt-8 bg-slate-900/50 p-2 rounded-full border border-slate-800">

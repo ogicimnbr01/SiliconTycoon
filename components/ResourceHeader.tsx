@@ -33,13 +33,13 @@ const ResourceHeaderComponent: React.FC<ResourceHeaderProps> = ({ gameState, onS
             {/* LEFT: Money & RP (Compact) */}
             <div className="flex flex-col gap-0.5 shrink-0">
                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-slate-500 w-8">CASH</span>
+                  <span className="text-[10px] font-bold text-slate-500 w-8">{t.cash}</span>
                   <span className="font-mono font-black text-emerald-400 text-sm shadow-black drop-shadow-md">
                      ${gameState.money >= 1000000 ? (gameState.money / 1000000).toFixed(2) + 'M' : gameState.money >= 1000 ? (gameState.money / 1000).toFixed(1) + 'k' : Math.floor(gameState.money)}
                   </span>
                </div>
                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-slate-500 w-8">R&D</span>
+                  <span className="text-[10px] font-bold text-slate-500 w-8">{t.rndAcronym}</span>
                   <span className="font-mono font-black text-purple-400 text-sm shadow-black drop-shadow-md">
                      {gameState.rp >= 1000 ? (gameState.rp / 1000).toFixed(1) + 'k' : Math.floor(gameState.rp)}
                   </span>
@@ -52,14 +52,14 @@ const ResourceHeaderComponent: React.FC<ResourceHeaderProps> = ({ gameState, onS
                className="flex flex-col items-center justify-center bg-slate-900/80 border border-slate-700/50 rounded-lg px-3 py-1 active:scale-95 transition-all"
             >
                <div className="text-[9px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                  <Calendar size={10} /> Day {gameState.day}
+                  <Calendar size={10} /> {t.day} {gameState.day}
                </div>
                <div className="text-xs font-bold text-blue-100 truncate max-w-[100px]">
                   {currentEra.name}
                </div>
                {nextEra && (
                   <div className="text-[8px] font-bold text-blue-400 mt-0.5">
-                     Next Era: {Math.round(progress)}%
+                     {t.nextEra}: {Math.round(progress)}%
                   </div>
                )}
             </button>
@@ -82,7 +82,7 @@ const ResourceHeaderComponent: React.FC<ResourceHeaderProps> = ({ gameState, onS
             <div className="h-4 w-px bg-slate-800"></div>
 
             <div className="flex items-center gap-2 flex-1 min-w-0">
-               <span className="text-[9px] font-bold text-slate-500 uppercase">REP</span>
+               <span className="text-[9px] font-bold text-slate-500 uppercase">{t.repAcronym}</span>
                <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-blue-600 to-emerald-400 transition-all duration-700" style={{ width: `${gameState.reputation}%` }}></div>
                </div>
@@ -107,13 +107,13 @@ const ResourceHeaderComponent: React.FC<ResourceHeaderProps> = ({ gameState, onS
                   <p className="text-xs text-slate-400 leading-relaxed mb-4">{currentEra.description}</p>
                   {/* ... rest of tooltip content ... */}
                   <div className="space-y-2 bg-slate-950/50 p-3 rounded-xl border border-slate-800/50">
-                     <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Market Modifiers</div>
+                     <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">{t.marketModifiers}</div>
                      <div className="flex justify-between text-xs items-center">
-                        <span className="text-slate-400">CPU Demand</span>
+                        <span className="text-slate-400">{t.cpuDemand}</span>
                         <div className={`font-bold px-2 py-0.5 rounded ${currentEra.cpuDemandMod > 1 ? "bg-emerald-500/10 text-emerald-400" : currentEra.cpuDemandMod < 1 ? "bg-red-500/10 text-red-400" : "text-slate-400"}`}>{Math.round(currentEra.cpuDemandMod * 100)}%</div>
                      </div>
                      <div className="flex justify-between text-xs items-center">
-                        <span className="text-slate-400">GPU Demand</span>
+                        <span className="text-slate-400">{t.gpuDemand}</span>
                         <div className={`font-bold px-2 py-0.5 rounded ${currentEra.gpuDemandMod > 1 ? "bg-emerald-500/10 text-emerald-400" : currentEra.gpuDemandMod < 1 ? "bg-red-500/10 text-red-400" : "text-slate-400"}`}>{Math.round(currentEra.gpuDemandMod * 100)}%</div>
                      </div>
                   </div>

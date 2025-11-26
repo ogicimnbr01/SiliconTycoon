@@ -387,7 +387,7 @@ export const TRANSLATIONS = {
     basePrice: "Base Price",
     researchBtn: "RESEARCH",
     techMastered: "Technology Mastered",
-    locked: "Locked",
+
     rndDept: "R&D Department",
     dailyOutput: "Daily Output",
     researchers: "Researchers",
@@ -506,6 +506,82 @@ export const TRANSLATIONS = {
     duration: "Duration",
     boost: "Boost",
     type: "Type",
+    // General UI
+    version: "v1.0.0 • Early Access",
+    cash: "CASH",
+    rndAcronym: "R&D",
+    repAcronym: "REP",
+    nextEra: "Next Era",
+    marketModifiers: "Market Modifiers",
+    cpuDemand: "CPU Demand",
+    gpuDemand: "GPU Demand",
+    locked: "LOCKED",
+
+    // Market Tab
+    estUnitCost: "Est. Unit Cost",
+    siliconCost: "Silicon Cost",
+    netProfit: "Net Profit",
+    avgCost: "Avg Cost",
+    pl: "P/L",
+
+    // Research Tab
+    policyRelaxedName: "RELAXED",
+    policyNormalName: "NORMAL",
+    policyCrunchName: "CRUNCH",
+
+    // Hacking Minigame
+    hackProtocol: "BREACH PROTOCOL",
+    hackLocked: "LOCKED",
+    hackGranted: "ACCESS GRANTED",
+    hackDetected: "DETECTED",
+    hackInstruction: "Stop the cursor inside the highlighted zone to bypass security firewall.",
+    hackExecute: "EXECUTE HACK",
+    hackUploading: "UPLOADING VIRUS...",
+    hackLost: "CONNECTION LOST",
+
+
+
+    // Marketing Campaigns
+    camp_social_name: "Social Media Ads",
+    camp_social_desc: "Targeted ads on popular platforms.",
+    camp_influencer_name: "Tech Influencer Review",
+    camp_influencer_desc: "Send products to top tech YouTubers.",
+    camp_tv_name: "TV Commercial",
+    camp_tv_desc: "Prime time slot on national TV.",
+    camp_event_name: "Tech Expo Booth",
+    camp_event_desc: "Major presence at the annual Tech Expo.",
+
+    // Office Names & Descs
+    office_garage_name: "Mom's Garage",
+    office_garage_desc: "Free but tiny. Max 2 staff.",
+    office_basement_name: "Basement Lab",
+    office_basement_desc: "Cheap underground space. Poor ventilation.",
+    office_startup_name: "Startup Office",
+    office_startup_desc: "Real business starts here.",
+    office_corporate_name: "Corporate Floor",
+    office_corporate_desc: "Professional environment with amenities.",
+    office_campus_name: "Tech Campus",
+    office_campus_desc: "Massive production capacity.",
+    office_hq_name: "Silicon HQ",
+    office_hq_desc: "Global dominance.",
+
+    // Factory UI
+    nextLevel: "Next Level",
+    rent: "Rent",
+    maxResearchers: "Max Researchers",
+    upgradeCost: "Upgrade Cost",
+
+    // Competitors (NEW)
+    competitors: "Competitors",
+    marketShare: "Market Share",
+    quality: "Quality",
+
+    // Production (NEW)
+    maintenance: "Maintenance",
+    maintain: "MAINTAIN",
+    specialization: "Specialization",
+    speed: "Speed",
+    normal: "Normal",
     // Logs & Notifications
     logRdEstablished: "R&D Dept. Established.",
     logFinanceEstablished: "Finance Dept. Established. IPO ready.",
@@ -527,6 +603,7 @@ export const TRANSLATIONS = {
     logLoanApproved: "Loan approved. Interest rate 1.5%",
     logLoanRepaid: "Loan Repaid! Credit score improved.",
     logWelcomeBack: "Welcome Back, CEO",
+    logCampaignLaunched: "Launched {0} for {1}!",
     logOfflineMessage: "While you were away, your company earned {0} and gained {1} RP.",
     selectProduct: "Select Product",
     designSpecs: "Design Specifications",
@@ -603,6 +680,67 @@ export const TRANSLATIONS = {
     duration: "Süre",
     boost: "Artış",
     type: "Tür",
+    // General UI
+    version: "v1.0.0 • Erken Erişim",
+    cash: "NAKİT",
+    rndAcronym: "AR-GE",
+    repAcronym: "İTB",
+    nextEra: "Sonraki Çağ",
+    marketModifiers: "Pazar Etkileri",
+    cpuDemand: "CPU Talebi",
+    gpuDemand: "GPU Talebi",
+    locked: "KİLİTLİ",
+
+    // Market Tab
+    estUnitCost: "Tahmini Birim Maliyet",
+    siliconCost: "Silikon Maliyeti",
+    netProfit: "Net Kâr",
+    avgCost: "Ort. Maliyet",
+    pl: "K/Z",
+
+    // Research Tab
+    policyRelaxedName: "RAHAT",
+    policyNormalName: "NORMAL",
+    policyCrunchName: "AĞIR MESAİ",
+
+    // Hacking Minigame
+    hackProtocol: "GÜVENLİK PROTOKOLÜ",
+    hackLocked: "KİLİTLİ",
+    hackGranted: "ERİŞİM BAŞARILI",
+    hackDetected: "TESPİT EDİLDİ",
+    hackInstruction: "Güvenlik duvarını aşmak için imleci işaretli alanda durdur.",
+    hackExecute: "HACKLE",
+    hackUploading: "VİRÜS YÜKLENİYOR...",
+    hackLost: "BAĞLANTI KOPTU",
+    // Marketing Campaigns
+    camp_social_name: "Sosyal Medya Reklamları",
+    camp_social_desc: "Popüler platformlarda hedefli reklamlar.",
+    camp_influencer_name: "Fenomen İncelemesi",
+    camp_influencer_desc: "Ürünleri ünlü teknoloji YouTuber'larına gönder.",
+    camp_tv_name: "TV Reklamı",
+    camp_tv_desc: "Ulusal kanallarda prime-time reklamı.",
+    camp_event_name: "Teknoloji Fuarı Standı",
+    camp_event_desc: "Yıllık Teknoloji Fuarı'nda büyük bir stant.",
+
+    // Office Names & Descs
+    office_garage_name: "Annemin Garajı",
+    office_garage_desc: "Bedava ama minik. Maksimum 2 personel.",
+    office_basement_name: "Bodrum Laboratuvarı",
+    office_basement_desc: "Ucuz yeraltı alanı. Kötü havalandırma.",
+    office_startup_name: "Startup Ofisi",
+    office_startup_desc: "Gerçek iş buradan başlıyor.",
+    office_corporate_name: "Kurumsal Kat",
+    office_corporate_desc: "Olanaklarla profesyonel ortam.",
+    office_campus_name: "Teknoloji Kampüsü",
+    office_campus_desc: "Devasa üretim kapasitesi.",
+    office_hq_name: "Silikon Merkezi",
+    office_hq_desc: "Küresel hakimiyet.",
+
+    // Factory UI
+    nextLevel: "Sonraki Seviye",
+    rent: "Kira",
+    maxResearchers: "Maks. Araştırmacı",
+    upgradeCost: "Yükseltme Maliyeti",
     achievements: "BAŞARIMLAR",
     achievementUnlocked: "Başarım Açıldı!",
     repUnknown: "Bilinmiyor",
@@ -675,7 +813,7 @@ export const TRANSLATIONS = {
     basePrice: "Baz Fiyat",
     researchBtn: "ARAŞTIR",
     techMastered: "Teknoloji Tamamlandı",
-    locked: "Kilitli",
+
     rndDept: "Ar-Ge Departmanı",
     dailyOutput: "Günlük Üretim",
     researchers: "Araştırmacı",
@@ -796,18 +934,19 @@ export const TRANSLATIONS = {
     speed: "Hız",
     normal: "Normal",
     // Logs & Notifications
+    // Logs & Notifications
     logRdEstablished: "Ar-Ge Departmanı Kuruldu.",
     logFinanceEstablished: "Finans Departmanı Kuruldu. Halka Arz hazır.",
     logContractFailed: "Kontrat BAŞARISIZ! Müşteri öfkeli.",
     logContractOrder: "SİPARİŞ: {0}x {1}",
     logContractDeadline: "Son Gün: {0} Gün",
-    logGlobalTech: "Küresel Teknoloji: Rakipler Seviye {0} {1} piyasaya sürdü!",
+    logGlobalTech: "Küresel Teknoloji: Rakipler Tier {0} {1} piyasaya sürdü!",
     logEraChange: "ÇAĞ DEĞİŞİMİ: {0} başladı!",
     logMarketShift: "PAZAR DEĞİŞİMİ: {0}!",
     logRivalAlert: "RAKİP ALARMI: {0} yeni ürün çıkardı!",
-    logResignCritical: "KRİTİK: Zehirli ortam hızlı personel kaybına yol açıyor!",
-    logResignMass: "TOPLU İSTİFA: 3 araştırmacı protesto ederek istifa etti!",
-    logResignBad: "KÖTÜ MORAL: {0} araştırmacı işi bıraktı.",
+    logResignCritical: "KRİTİK: Toksik ortam hızlı istifalara yol açıyor!",
+    logResignMass: "TOPLU İSTİFA: 3 araştırmacı protesto ederek ayrıldı!",
+    logResignBad: "DÜŞÜK MORAL: {0} araştırmacı işi bıraktı.",
     logResignSingle: "İSTİFA: Bir araştırmacı daha iyi bir teklif için ayrıldı.",
     logBankInterest: "Banka: Haftalık faiz tahsil edildi.",
     logRentPaid: "Ofis Kirası Ödendi.",
@@ -816,17 +955,19 @@ export const TRANSLATIONS = {
     logLoanApproved: "Kredi onaylandı. Faiz oranı %1.5",
     logLoanRepaid: "Kredi Ödendi! Kredi notu yükseldi.",
     logWelcomeBack: "Tekrar Hoşgeldin, CEO",
+    logCampaignLaunched: "{1} için {0} başlatıldı!",
+
     // Achievements
-    ach_millionaire_title: "Çekirdek Sermaye",
-    ach_millionaire_desc: "1,000,000$ nakite ulaş.",
-    ach_decamillionaire_title: "Seri A Yatırım",
-    ach_decamillionaire_desc: "10,000,000$ nakite ulaş.",
+    ach_millionaire_title: "Çekirdek Para",
+    ach_millionaire_desc: "$1,000,000 nakite ulaş.",
+    ach_decamillionaire_title: "Seri A",
+    ach_decamillionaire_desc: "$10,000,000 nakite ulaş.",
     ach_centimillionaire_title: "Büyük Oyuncu",
-    ach_centimillionaire_desc: "100,000,000$ nakite ulaş.",
+    ach_centimillionaire_desc: "$100,000,000 nakite ulaş.",
     ach_billionaire_title: "Unicorn",
-    ach_billionaire_desc: "1,000,000,000$ nakite ulaş.",
-    ach_trillionaire_title: "Küresel Hegemonya",
-    ach_trillionaire_desc: "1 Trilyon $ nakite ulaş.",
+    ach_billionaire_desc: "$1,000,000,000 nakite ulaş.",
+    ach_trillionaire_title: "Küresel Hegemon",
+    ach_trillionaire_desc: "$1 Trilyon nakite ulaş.",
     ach_mass_production_title: "Seri Üretim",
     ach_mass_production_desc: "Toplam 1,000 birim üret.",
     ach_industrial_giant_title: "Sanayi Devi",
@@ -849,12 +990,12 @@ export const TRANSLATIONS = {
     ach_garage_days_desc: "30 gün hayatta kal.",
     ach_anniversary_title: "Yıl Dönümü",
     ach_anniversary_desc: "365 gün hayatta kal.",
-    ach_veteran_title: "Kıdemli",
+    ach_veteran_title: "Emektar",
     ach_veteran_desc: "1000 gün hayatta kal.",
     ach_corporate_ladder_title: "Kurumsal Merdiven",
     ach_corporate_ladder_desc: "Ofisi Kurumsal seviyeye yükselt.",
     ach_sky_high_title: "Göklerde",
-    ach_sky_high_desc: "Ofisi Genel Merkez seviyesine yükselt.",
+    ach_sky_high_desc: "Ofisi Genel Merkez seviyeye yükselt.",
     ach_famous_title: "Ünlü",
     ach_famous_desc: "%50 Marka Bilinirliğine ulaş.",
     ach_household_name_title: "Herkesin Bildiği İsim",
@@ -1095,67 +1236,67 @@ export const OFFICE_CONFIGS = {
 
 // Tech Tree for CPUs (10 TIERS with Branching)
 export const CPU_TECH_TREE: TechNode[] = [
-  { id: 'cpu_0', name: '8-bit Processor', tier: 0, productionCost: 25, baseMarketPrice: 60, researchCost: 0, branch: 'balanced' },
-  { id: 'cpu_1', name: '16-bit Processor', tier: 1, productionCost: 55, baseMarketPrice: 130, researchCost: 100, branch: 'balanced', prerequisites: ['cpu_0'] },
-  { id: 'cpu_2', name: '32-bit RISC', tier: 2, productionCost: 140, baseMarketPrice: 320, researchCost: 500, branch: 'balanced', prerequisites: ['cpu_1'] },
-  { id: 'cpu_3', name: '32-bit CISC', tier: 3, productionCost: 450, baseMarketPrice: 950, researchCost: 2000, branch: 'balanced', prerequisites: ['cpu_2'] },
+  { id: 'cpu_0', name: '8-bit Processor', tier: 0, productionCost: 25, baseMarketPrice: 60, researchCost: 0, branch: 'balanced', yield: 100 },
+  { id: 'cpu_1', name: '16-bit Processor', tier: 1, productionCost: 55, baseMarketPrice: 130, researchCost: 100, branch: 'balanced', prerequisites: ['cpu_0'], yield: 95 },
+  { id: 'cpu_2', name: '32-bit RISC', tier: 2, productionCost: 140, baseMarketPrice: 320, researchCost: 500, branch: 'balanced', prerequisites: ['cpu_1'], yield: 90 },
+  { id: 'cpu_3', name: '32-bit CISC', tier: 3, productionCost: 450, baseMarketPrice: 950, researchCost: 2000, branch: 'balanced', prerequisites: ['cpu_2'], yield: 85 },
 
   // Tier 4: Branching starts
-  { id: 'cpu_4_perf', name: '64-bit High-Freq', tier: 4, productionCost: 1200, baseMarketPrice: 1800, researchCost: 8000, branch: 'performance', prerequisites: ['cpu_3'], specialBonus: { type: 'market', value: 10 } },
-  { id: 'cpu_4_eff', name: '64-bit Low-Power', tier: 4, productionCost: 900, baseMarketPrice: 1200, researchCost: 6000, branch: 'efficiency', prerequisites: ['cpu_3'], specialBonus: { type: 'production', value: 15 } },
+  { id: 'cpu_4_perf', name: '64-bit High-Freq', tier: 4, productionCost: 1200, baseMarketPrice: 1800, researchCost: 8000, branch: 'performance', prerequisites: ['cpu_3'], specialBonus: { type: 'market', value: 10 }, yield: 75 },
+  { id: 'cpu_4_eff', name: '64-bit Low-Power', tier: 4, productionCost: 900, baseMarketPrice: 1200, researchCost: 6000, branch: 'efficiency', prerequisites: ['cpu_3'], specialBonus: { type: 'production', value: 15 }, yield: 80 },
 
   // Tier 5
-  { id: 'cpu_5_perf', name: 'Dual-Core HT', tier: 5, productionCost: 3000, baseMarketPrice: 4500, researchCost: 25000, branch: 'performance', prerequisites: ['cpu_4_perf'] },
-  { id: 'cpu_5_eff', name: 'Dual-Core Budget', tier: 5, productionCost: 2200, baseMarketPrice: 3000, researchCost: 18000, branch: 'efficiency', prerequisites: ['cpu_4_eff'] },
+  { id: 'cpu_5_perf', name: 'Dual-Core HT', tier: 5, productionCost: 3000, baseMarketPrice: 4500, researchCost: 25000, branch: 'performance', prerequisites: ['cpu_4_perf'], yield: 70 },
+  { id: 'cpu_5_eff', name: 'Dual-Core Budget', tier: 5, productionCost: 2200, baseMarketPrice: 3000, researchCost: 18000, branch: 'efficiency', prerequisites: ['cpu_4_eff'], yield: 75 },
 
   // Tier 6
-  { id: 'cpu_6_perf', name: 'Quad-Core 3GHz', tier: 6, productionCost: 7500, baseMarketPrice: 11000, researchCost: 75000, branch: 'performance', prerequisites: ['cpu_5_perf'], specialBonus: { type: 'market', value: 15 } },
-  { id: 'cpu_6_eff', name: 'Quad-Core 2GHz', tier: 6, productionCost: 5500, baseMarketPrice: 8000, researchCost: 55000, branch: 'efficiency', prerequisites: ['cpu_5_eff'], specialBonus: { type: 'production', value: 20 } },
+  { id: 'cpu_6_perf', name: 'Quad-Core 3GHz', tier: 6, productionCost: 7500, baseMarketPrice: 11000, researchCost: 75000, branch: 'performance', prerequisites: ['cpu_5_perf'], specialBonus: { type: 'market', value: 15 }, yield: 65 },
+  { id: 'cpu_6_eff', name: 'Quad-Core 2GHz', tier: 6, productionCost: 5500, baseMarketPrice: 8000, researchCost: 55000, branch: 'efficiency', prerequisites: ['cpu_5_eff'], specialBonus: { type: 'production', value: 20 }, yield: 70 },
 
   // Tier 7
-  { id: 'cpu_7_perf', name: 'Hexa-Core Turbo', tier: 7, productionCost: 18000, baseMarketPrice: 28000, researchCost: 200000, branch: 'performance', prerequisites: ['cpu_6_perf'] },
-  { id: 'cpu_7_eff', name: 'Hexa-Core ECO', tier: 7, productionCost: 13000, baseMarketPrice: 20000, researchCost: 150000, branch: 'efficiency', prerequisites: ['cpu_6_eff'] },
+  { id: 'cpu_7_perf', name: 'Hexa-Core Turbo', tier: 7, productionCost: 18000, baseMarketPrice: 28000, researchCost: 200000, branch: 'performance', prerequisites: ['cpu_6_perf'], yield: 60 },
+  { id: 'cpu_7_eff', name: 'Hexa-Core ECO', tier: 7, productionCost: 13000, baseMarketPrice: 20000, researchCost: 150000, branch: 'efficiency', prerequisites: ['cpu_6_eff'], yield: 65 },
 
   // Tier 8
-  { id: 'cpu_8_perf', name: 'Octa-Core 5GHz', tier: 8, productionCost: 45000, baseMarketPrice: 70000, researchCost: 500000, branch: 'performance', prerequisites: ['cpu_7_perf'], specialBonus: { type: 'market', value: 25 } },
-  { id: 'cpu_8_eff', name: 'Octa-Core 3GHz', tier: 8, productionCost: 32000, baseMarketPrice: 50000, researchCost: 380000, branch: 'efficiency', prerequisites: ['cpu_7_eff'], specialBonus: { type: 'production', value: 30 } },
+  { id: 'cpu_8_perf', name: 'Octa-Core 5GHz', tier: 8, productionCost: 45000, baseMarketPrice: 70000, researchCost: 500000, branch: 'performance', prerequisites: ['cpu_7_perf'], specialBonus: { type: 'market', value: 25 }, yield: 50 },
+  { id: 'cpu_8_eff', name: 'Octa-Core 3GHz', tier: 8, productionCost: 32000, baseMarketPrice: 50000, researchCost: 380000, branch: 'efficiency', prerequisites: ['cpu_7_eff'], specialBonus: { type: 'production', value: 30 }, yield: 60 },
 
   // Tier 9: Ultimate
-  { id: 'cpu_9_perf', name: '16-Core Extreme', tier: 9, productionCost: 120000, baseMarketPrice: 200000, researchCost: 1500000, branch: 'performance', prerequisites: ['cpu_8_perf'], specialBonus: { type: 'market', value: 40 } },
-  { id: 'cpu_9_eff', name: '32-Core Workstation', tier: 9, productionCost: 85000, baseMarketPrice: 140000, researchCost: 1100000, branch: 'efficiency', prerequisites: ['cpu_8_eff'], specialBonus: { type: 'production', value: 50 } },
+  { id: 'cpu_9_perf', name: '16-Core Extreme', tier: 9, productionCost: 120000, baseMarketPrice: 200000, researchCost: 1500000, branch: 'performance', prerequisites: ['cpu_8_perf'], specialBonus: { type: 'market', value: 40 }, yield: 40 },
+  { id: 'cpu_9_eff', name: '32-Core Workstation', tier: 9, productionCost: 85000, baseMarketPrice: 140000, researchCost: 1100000, branch: 'efficiency', prerequisites: ['cpu_8_eff'], specialBonus: { type: 'production', value: 50 }, yield: 50 },
 ];
 
 
 // Tech Tree for GPUs (10 TIERS with Branching)
 export const GPU_TECH_TREE: TechNode[] = [
-  { id: 'gpu_0', name: 'VGA Graphics', tier: 0, productionCost: 40, baseMarketPrice: 90, researchCost: 0, branch: 'balanced' },
-  { id: 'gpu_1', name: 'SVGA Graphics', tier: 1, productionCost: 90, baseMarketPrice: 200, researchCost: 250, branch: 'balanced', prerequisites: ['gpu_0'] },
-  { id: 'gpu_2', name: '3D Accelerator', tier: 2, productionCost: 220, baseMarketPrice: 480, researchCost: 800, branch: 'balanced', prerequisites: ['gpu_1'] },
-  { id: 'gpu_3', name: 'T&L GPU', tier: 3, productionCost: 700, baseMarketPrice: 1500, researchCost: 3000, branch: 'balanced', prerequisites: ['gpu_2'] },
+  { id: 'gpu_0', name: 'VGA Graphics', tier: 0, productionCost: 40, baseMarketPrice: 90, researchCost: 0, branch: 'balanced', yield: 100 },
+  { id: 'gpu_1', name: 'SVGA Graphics', tier: 1, productionCost: 90, baseMarketPrice: 200, researchCost: 250, branch: 'balanced', prerequisites: ['gpu_0'], yield: 95 },
+  { id: 'gpu_2', name: '3D Accelerator', tier: 2, productionCost: 220, baseMarketPrice: 480, researchCost: 800, branch: 'balanced', prerequisites: ['gpu_1'], yield: 90 },
+  { id: 'gpu_3', name: 'T&L GPU', tier: 3, productionCost: 700, baseMarketPrice: 1500, researchCost: 3000, branch: 'balanced', prerequisites: ['gpu_2'], yield: 85 },
 
   // Tier 4: Branching starts
-  { id: 'gpu_4_perf', name: 'Shader Model 1.0', tier: 4, productionCost: 2000, baseMarketPrice: 3200, researchCost: 10000, branch: 'performance', prerequisites: ['gpu_3'], specialBonus: { type: 'market', value: 12 } },
-  { id: 'gpu_4_eff', name: 'Budget Shader', tier: 4, productionCost: 1500, baseMarketPrice: 2200, researchCost: 7500, branch: 'efficiency', prerequisites: ['gpu_3'], specialBonus: { type: 'production', value: 18 } },
+  { id: 'gpu_4_perf', name: 'Shader Model 1.0', tier: 4, productionCost: 2000, baseMarketPrice: 3200, researchCost: 10000, branch: 'performance', prerequisites: ['gpu_3'], specialBonus: { type: 'market', value: 12 }, yield: 75 },
+  { id: 'gpu_4_eff', name: 'Budget Shader', tier: 4, productionCost: 1500, baseMarketPrice: 2200, researchCost: 7500, branch: 'efficiency', prerequisites: ['gpu_3'], specialBonus: { type: 'production', value: 18 }, yield: 80 },
 
   // Tier 5
-  { id: 'gpu_5_perf', name: 'Shader Model 2.0', tier: 5, productionCost: 5000, baseMarketPrice: 8000, researchCost: 35000, branch: 'performance', prerequisites: ['gpu_4_perf'] },
-  { id: 'gpu_5_eff', name: 'DirectX 8.1 GPU', tier: 5, productionCost: 3800, baseMarketPrice: 5800, researchCost: 26000, branch: 'efficiency', prerequisites: ['gpu_4_eff'] },
+  { id: 'gpu_5_perf', name: 'Shader Model 2.0', tier: 5, productionCost: 5000, baseMarketPrice: 8000, researchCost: 35000, branch: 'performance', prerequisites: ['gpu_4_perf'], yield: 70 },
+  { id: 'gpu_5_eff', name: 'DirectX 8.1 GPU', tier: 5, productionCost: 3800, baseMarketPrice: 5800, researchCost: 26000, branch: 'efficiency', prerequisites: ['gpu_4_eff'], yield: 75 },
 
   // Tier 6
-  { id: 'gpu_6_perf', name: 'Shader Model 3.0', tier: 6, productionCost: 12000, baseMarketPrice: 19000, researchCost: 90000, branch: 'performance', prerequisites: ['gpu_5_perf'], specialBonus: { type: 'market', value: 18 } },
-  { id: 'gpu_6_eff', name: 'DirectX 9c GPU', tier: 6, productionCost: 9000, baseMarketPrice: 14000, researchCost: 68000, branch: 'efficiency', prerequisites: ['gpu_5_eff'], specialBonus: { type: 'production', value: 25 } },
+  { id: 'gpu_6_perf', name: 'Shader Model 3.0', tier: 6, productionCost: 12000, baseMarketPrice: 19000, researchCost: 90000, branch: 'performance', prerequisites: ['gpu_5_perf'], specialBonus: { type: 'market', value: 18 }, yield: 65 },
+  { id: 'gpu_6_eff', name: 'DirectX 9c GPU', tier: 6, productionCost: 9000, baseMarketPrice: 14000, researchCost: 68000, branch: 'efficiency', prerequisites: ['gpu_5_eff'], specialBonus: { type: 'production', value: 25 }, yield: 70 },
 
   // Tier 7
-  { id: 'gpu_7_perf', name: 'Unified Shader', tier: 7, productionCost: 30000, baseMarketPrice: 48000, researchCost: 250000, branch: 'performance', prerequisites: ['gpu_6_perf'] },
-  { id: 'gpu_7_eff', name: 'DirectX 10 GPU', tier: 7, productionCost: 22000, baseMarketPrice: 36000, researchCost: 190000, branch: 'efficiency', prerequisites: ['gpu_6_eff'] },
+  { id: 'gpu_7_perf', name: 'Unified Shader', tier: 7, productionCost: 30000, baseMarketPrice: 48000, researchCost: 250000, branch: 'performance', prerequisites: ['gpu_6_perf'], yield: 60 },
+  { id: 'gpu_7_eff', name: 'DirectX 10 GPU', tier: 7, productionCost: 22000, baseMarketPrice: 36000, researchCost: 190000, branch: 'efficiency', prerequisites: ['gpu_6_eff'], yield: 65 },
 
   // Tier 8
-  { id: 'gpu_8_perf', name: 'GDDR5 High-End', tier: 8, productionCost: 80000, baseMarketPrice: 130000, researchCost: 750000, branch: 'performance', prerequisites: ['gpu_7_perf'], specialBonus: { type: 'market', value: 30 } },
-  { id: 'gpu_8_eff', name: 'GDDR5 Mid-Range', tier: 8, productionCost: 58000, baseMarketPrice: 95000, researchCost: 560000, branch: 'efficiency', prerequisites: ['gpu_7_eff'], specialBonus: { type: 'production', value: 35 } },
+  { id: 'gpu_8_perf', name: 'GDDR5 High-End', tier: 8, productionCost: 80000, baseMarketPrice: 130000, researchCost: 750000, branch: 'performance', prerequisites: ['gpu_7_perf'], specialBonus: { type: 'market', value: 30 }, yield: 50 },
+  { id: 'gpu_8_eff', name: 'GDDR5 Mid-Range', tier: 8, productionCost: 58000, baseMarketPrice: 95000, researchCost: 560000, branch: 'efficiency', prerequisites: ['gpu_7_eff'], specialBonus: { type: 'production', value: 35 }, yield: 60 },
 
   // Tier 9: Ultimate
-  { id: 'gpu_9_perf', name: 'Real-Time Lighting', tier: 9, productionCost: 200000, baseMarketPrice: 350000, researchCost: 2000000, branch: 'performance', prerequisites: ['gpu_8_perf'], specialBonus: { type: 'market', value: 50 } },
-  { id: 'gpu_9_eff', name: 'HBM2 Compute', tier: 9, productionCost: 145000, baseMarketPrice: 250000, researchCost: 1500000, branch: 'efficiency', prerequisites: ['gpu_8_eff'], specialBonus: { type: 'production', value: 60 } },
+  { id: 'gpu_9_perf', name: 'Real-Time Lighting', tier: 9, productionCost: 200000, baseMarketPrice: 350000, researchCost: 2000000, branch: 'performance', prerequisites: ['gpu_8_perf'], specialBonus: { type: 'market', value: 50 }, yield: 40 },
+  { id: 'gpu_9_eff', name: 'HBM2 Compute', tier: 9, productionCost: 145000, baseMarketPrice: 250000, researchCost: 1500000, branch: 'efficiency', prerequisites: ['gpu_8_eff'], specialBonus: { type: 'production', value: 60 }, yield: 50 },
 ];
 
 // Fictional Companies

@@ -42,6 +42,7 @@ export interface TechNode {
     type: 'production' | 'quality' | 'market';
     value: number;
   };
+  yield?: number; // 0-100, default 100 if undefined
 }
 
 export interface Stock {

@@ -36,7 +36,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-indigo-500/30 bg-indigo-900/20">
-                    <h2 className="text-xl font-bold text-white tracking-widest uppercase">{t.settings || "SETTINGS"}</h2>
+                    <h2 className="text-xl font-bold text-white tracking-widest uppercase">{t.settings}</h2>
                     <button
                         onClick={onClose}
                         className="p-2 text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-white/10"
@@ -55,8 +55,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 {soundEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
                             </div>
                             <div>
-                                <h3 className="text-white font-bold">{t.soundEffects || "Sound Effects"}</h3>
-                                <p className="text-xs text-slate-400">{t.soundDesc || "Enable game audio"}</p>
+                                <h3 className="text-white font-bold">{t.soundEffects}</h3>
+                                <p className="text-xs text-slate-400">{t.soundDesc}</p>
                             </div>
                         </div>
                         <div
@@ -74,8 +74,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 {vibrationEnabled ? <SmartphoneNfc size={24} /> : <Smartphone size={24} />}
                             </div>
                             <div>
-                                <h3 className="text-white font-bold">{t.vibration || "Vibration"}</h3>
-                                <p className="text-xs text-slate-400">{t.vibrationDesc || "Haptic feedback"}</p>
+                                <h3 className="text-white font-bold">{t.vibration}</h3>
+                                <p className="text-xs text-slate-400">{t.vibrationDesc}</p>
                             </div>
                         </div>
                         <div
@@ -91,7 +91,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {/* Footer */}
                 <div className="p-4 bg-slate-950/50 border-t border-slate-800 flex justify-end">
                     <Button variant="primary" onClick={onClose} className="w-full sm:w-auto">
-                        {t.close || "CLOSE"}
+                        {t.close}
                     </Button>
                 </div>
 

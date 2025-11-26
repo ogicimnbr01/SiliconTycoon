@@ -224,11 +224,32 @@ export const useGameActions = (
         setGameState(prev => {
             if (prev.activeEvent?.effect) {
                 const changes = prev.activeEvent.effect(prev);
+
+                // Calculate differences for floating text
+                if (onShowFloatingText) {
+                    if (changes.money !== undefined) {
+                        const diff = changes.money - prev.money;
+                        if (diff !== 0) onShowFloatingText(diff > 0 ? `+$${diff}` : `-$${Math.abs(diff)}`, diff > 0 ? 'income' : 'expense');
+                    }
+                    if (changes.rp !== undefined) {
+                        const diff = changes.rp - prev.rp;
+                        if (diff !== 0) onShowFloatingText(diff > 0 ? `+${diff} RP` : `${diff} RP`, 'rp');
+                    }
+                    if (changes.reputation !== undefined) {
+                        const diff = changes.reputation - prev.reputation;
+                        if (diff !== 0) onShowFloatingText(diff > 0 ? `+${diff} REP` : `${diff} REP`, 'reputation');
+                    }
+                    if (changes.siliconPrice !== undefined) {
+                        // Price change isn't a direct player gain/loss, maybe skip or show neutral?
+                        // Let's skip for now as it's a market condition, not a transaction.
+                    }
+                }
+
                 return { ...prev, ...changes, activeEvent: null };
             }
             return { ...prev, activeEvent: null };
         });
-    }, [setGameState, playSfx]);
+    }, [setGameState, playSfx, onShowFloatingText]);
 
     const handleResearch = useCallback((type: ProductType, nextLevelIndex: number, cost: number) => {
         setGameState(prev => {

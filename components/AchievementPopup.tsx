@@ -52,7 +52,7 @@ export const AchievementPopup: React.FC<AchievementPopupProps> = ({ achievement,
             const timer = setTimeout(() => {
                 setVisible(false);
                 setTimeout(onClose, 300); // Wait for exit animation
-            }, 4000);
+            }, 2500);
             return () => clearTimeout(timer);
         }
     }, [achievement, onClose]);

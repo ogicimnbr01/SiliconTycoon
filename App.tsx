@@ -114,7 +114,7 @@ const App: React.FC = () => {
 
     // Hooks
     const { handleNewGame, loadGame, saveGame, deleteSave, getSlots, hasAnySave } = useSaveLoad(gameState, setGameState, setActiveTab, playSfx, vibrate);
-    useGameLoop(gameState, setGameState, playSfx, vibrate);
+    useGameLoop(gameState, setGameState, playSfx, vibrate, handleShowFloatingText);
     useAchievements(gameState, setGameState, playSfx, vibrate, (ach) => {
         setActiveAchievement(ach);
     });

@@ -25,7 +25,7 @@ const ResourceHeaderComponent: React.FC<ResourceHeaderProps> = ({ gameState, onS
 
    return (
 
-      <div className="flex flex-col w-full bg-slate-950/95 backdrop-blur-md border-b border-slate-800/80 shadow-2xl z-50 relative pt-[env(safe-area-inset-top)]">
+      <div className="flex flex-col w-full bg-slate-950/95 backdrop-blur-md border-b border-slate-800/80 shadow-2xl z-50 relative" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 8px)' }}>
 
          {/* MAIN HEADER ROW */}
          <div className="px-3 py-2 flex items-center justify-between gap-2">

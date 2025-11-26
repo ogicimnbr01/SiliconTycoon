@@ -1,6 +1,6 @@
 import { ProductType, TechNode, Stock, OfficeLevel, GameEvent, Hero, GameEra, MarketTrend, Achievement, MarketingCampaign, Competitor, GameState } from './types';
 
-export const INITIAL_MONEY = 10000;
+export const INITIAL_MONEY = 5000;
 export const INITIAL_RP = 0;
 export const INITIAL_RESEARCHERS = 0;
 export const INITIAL_SILICON = 200;

@@ -29,7 +29,8 @@ export const useGameLoop = (
     gameState: GameState,
     setGameState: React.Dispatch<React.SetStateAction<GameState>>,
     playSfx: (sfx: any) => void,
-    vibrate: (type: any) => void
+    vibrate: (type: any) => void,
+    onShowFloatingText?: (text: string, type: 'income' | 'expense' | 'rp' | 'reputation' | 'neutral', x?: number, y?: number) => void
 ) => {
     useEffect(() => {
         if (gameState.gameSpeed === 'paused') return;
@@ -87,6 +88,7 @@ export const useGameLoop = (
                         type: 'info',
                         timestamp: `${t.day} ${newDay}`,
                     });
+                    if (onShowFloatingText) onShowFloatingText(`-$${dailyLoanCost * 7}`, 'expense');
                 }
                 newMoney -= dailyLoanCost;
 
@@ -105,6 +107,18 @@ export const useGameLoop = (
 
                 const totalDailyExpenses = staffCost + heroSalary;
                 newMoney -= totalDailyExpenses;
+                if (totalDailyExpenses > 0 && onShowFloatingText) {
+                    // Show daily salary expense occasionally or aggregated to avoid spam?
+                    // For now, let's show it daily but maybe small?
+                    // Actually, daily spam might be annoying. Let's show it weekly or if it's significant.
+                    // Or just show it. It's a "tick" based game.
+                    if (newDay % 7 === 0) { // Weekly summary for salaries to reduce noise?
+                        // No, user asked for "invisible" expenses. Daily salary is invisible.
+                        // But daily tick is 1.5s.
+                        onShowFloatingText(`-$${totalDailyExpenses.toFixed(0)}`, 'expense');
+                    }
+                }
+
 
                 // Office rent (weekly)
                 const office = OFFICE_CONFIGS[prev.officeLevel];
@@ -116,6 +130,7 @@ export const useGameLoop = (
                         type: 'info',
                         timestamp: `${t.day} ${newDay}`,
                     });
+                    if (onShowFloatingText) onShowFloatingText(`-$${office.rent}`, 'expense');
                 }
 
                 // Trim logs
@@ -370,6 +385,10 @@ export const useGameLoop = (
                         playSfx('error');
                         vibrate('error');
                         newLogs.push({ id: Date.now(), message: t.logContractFailed, type: 'danger', timestamp: `${t.day} ${newDay}` });
+                        if (onShowFloatingText) {
+                            onShowFloatingText(`-$${contract.penalty}`, 'expense');
+                            onShowFloatingText(`-10 REP`, 'reputation');
+                        }
                     } else {
                         keptContracts.push(contract);
                     }
@@ -549,5 +568,6 @@ export const useGameLoop = (
         setGameState,
         playSfx,
         vibrate,
+        onShowFloatingText
     ]);
 };

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Trophy, Cpu, DollarSign, TrendingUp, FlaskConical, Crown, Briefcase, Building2, Globe, Package, Factory, Monitor, Users, Microscope, UserPlus, Star, Calendar, Cake, Medal, Building, Megaphone, Radio, Eye, Bomb, LineChart } from 'lucide-react';
+import { TRANSLATIONS } from '../constants';
+import { Language } from '../types';
 
 interface AchievementPopupProps {
     achievement: {
@@ -10,6 +12,7 @@ interface AchievementPopupProps {
         reward?: { type: string, value: number };
     } | null;
     onClose: () => void;
+    language: Language;
 }
 
 const iconMap: Record<string, any> = {
@@ -39,8 +42,9 @@ const iconMap: Record<string, any> = {
     LineChart
 };
 
-export const AchievementPopup: React.FC<AchievementPopupProps> = ({ achievement, onClose }) => {
+export const AchievementPopup: React.FC<AchievementPopupProps> = ({ achievement, onClose, language }) => {
     const [visible, setVisible] = useState(false);
+    const t = TRANSLATIONS[language];
 
     useEffect(() => {
         if (achievement) {
@@ -57,19 +61,38 @@ export const AchievementPopup: React.FC<AchievementPopupProps> = ({ achievement,
 
     const Icon = (achievement && iconMap[achievement.icon]) || Trophy;
 
+    // Get translated title/desc if available
+    const titleKey = `${achievement?.id}_title` as keyof typeof t;
+    const descKey = `${achievement?.id}_desc` as keyof typeof t;
+
+    const title = achievement ? (t[titleKey] || achievement.title) : '';
+    // const description = achievement ? (t[descKey] || achievement.description) : ''; // Optional: Show desc in popup?
+
     return (
-        <div className={`fixed top-0 left-0 right-0 z-[200] flex justify-center pointer-events-none transition-all duration-300 ${visible ? 'translate-y-4 opacity-100' : '-translate-y-full opacity-0'}`}>
-            <div className="bg-slate-900/90 backdrop-blur-md border border-yellow-500/30 rounded-2xl p-4 shadow-[0_0_30px_rgba(234,179,8,0.2)] flex items-center gap-4 max-w-md w-full mx-4 pointer-events-auto">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center flex-shrink-0 animate-bounce">
-                    <Icon className="text-yellow-500" size={24} />
+        <div className={`fixed top-8 left-0 right-0 z-[200] flex justify-center pointer-events-none transition-all duration-500 transform ${visible ? 'translate-y-0 opacity-100' : '-translate-y-12 opacity-0'}`}>
+            <div className="bg-slate-900/95 backdrop-blur-xl border border-amber-500/50 rounded-full pl-2 pr-8 py-2 shadow-[0_0_40px_rgba(245,158,11,0.4)] flex items-center gap-4 min-w-[320px] pointer-events-auto relative overflow-hidden group">
+
+                {/* Shine Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]" />
+
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-amber-300">
+                    <Icon className="text-white drop-shadow-md" size={24} />
                 </div>
-                <div className="flex-1 min-w-0">
-                    <h4 className="text-yellow-500 font-bold text-xs tracking-widest uppercase mb-0.5">Achievement Unlocked!</h4>
-                    <h3 className="text-white font-bold text-lg truncate">{achievement?.title}</h3>
+
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <div className="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em] mb-0.5 animate-pulse">
+                        {t.achievementUnlocked}
+                    </div>
+                    <div className="text-white font-bold text-lg leading-none truncate drop-shadow-sm">
+                        {title}
+                    </div>
                     {achievement?.reward && (
-                        <p className="text-emerald-400 text-xs font-mono mt-1">
-                            REWARD: +{achievement.reward.value} {achievement.reward.type.toUpperCase()}
-                        </p>
+                        <div className="text-emerald-400 text-[10px] font-mono font-bold mt-1 flex items-center gap-1">
+                            <span>REWARD:</span>
+                            <span className="bg-emerald-500/20 px-1.5 py-0.5 rounded text-emerald-300">
+                                +{achievement.reward.value} {achievement.reward.type === 'rp' ? t.rndAcronym : t.repAcronym}
+                            </span>
+                        </div>
                     )}
                 </div>
             </div>

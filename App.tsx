@@ -39,6 +39,9 @@ import { useGameLoop } from './hooks/useGameLoop';
 import { useGameActions } from './hooks/useGameActions';
 import { useAchievements } from './hooks/useAchievements';
 
+import { FloatingTextLayer } from './components/ui/FloatingTextLayer';
+import { FloatingTextItem } from './components/ui/FloatingText';
+
 const MarketTab = React.lazy(() => import('./components/MarketTab'));
 
 const App: React.FC = () => {
@@ -56,6 +59,7 @@ const App: React.FC = () => {
         return saved ? JSON.parse(saved).vibration : true;
     });
     const [activeAchievement, setActiveAchievement] = useState<any>(null);
+    const [floatingTexts, setFloatingTexts] = useState<FloatingTextItem[]>([]);
 
     useEffect(() => {
         setSoundEnabled(soundEnabled);
@@ -89,13 +93,32 @@ const App: React.FC = () => {
         } catch (e) { console.warn("Haptics not supported"); }
     }, [vibrationEnabled]);
 
+    const handleShowFloatingText = useCallback((text: string, type: 'income' | 'expense' | 'rp' | 'reputation' | 'neutral', x?: number, y?: number) => {
+        const id = Date.now().toString() + Math.random().toString();
+        // Default position: Center of screen + random offset
+        const defaultX = window.innerWidth / 2 + (Math.random() * 40 - 20);
+        const defaultY = window.innerHeight / 2 - 100 + (Math.random() * 40 - 20);
+
+        setFloatingTexts(prev => [...prev, {
+            id,
+            text,
+            type,
+            x: x || defaultX,
+            y: y || defaultY
+        }]);
+    }, []);
+
+    const handleFloatingTextComplete = useCallback((id: string) => {
+        setFloatingTexts(prev => prev.filter(item => item.id !== id));
+    }, []);
+
     // Hooks
     const { handleNewGame, loadGame, saveGame, deleteSave, getSlots, hasAnySave } = useSaveLoad(gameState, setGameState, setActiveTab, playSfx, vibrate);
     useGameLoop(gameState, setGameState, playSfx, vibrate);
     useAchievements(gameState, setGameState, playSfx, vibrate, (ach) => {
         setActiveAchievement(ach);
     });
-    const actions = useGameActions(gameState, setGameState, setActiveTab, playSfx, vibrate);
+    const actions = useGameActions(gameState, setGameState, setActiveTab, playSfx, vibrate, handleShowFloatingText);
 
     const TabButton = useCallback(({ id, label, icon: Icon }: { id: TabType, label: string, icon: any }) => {
         const isLocked = !gameState.unlockedTabs.includes(id);
@@ -346,6 +369,7 @@ const App: React.FC = () => {
             <AchievementPopup
                 achievement={activeAchievement}
                 onClose={() => setActiveAchievement(null)}
+                language={gameState.language}
             />
             <SaveLoadModal
                 isOpen={showSaveLoad}
@@ -357,6 +381,7 @@ const App: React.FC = () => {
                 onDelete={deleteSave}
                 language={gameState.language}
             />
+            <FloatingTextLayer items={floatingTexts} onComplete={handleFloatingTextComplete} />
         </div>
     );
 };

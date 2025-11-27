@@ -23,7 +23,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
     onSetWorkPolicy, // <-- BURAYA ALDIK
     onFireResearcher
 }) => {
-    const t = TRANSLATIONS[language];
+    const t = TRANSLATIONS[language] || TRANSLATIONS['en'];
     const nextHireCost = Math.floor(RESEARCHER_BASE_COST * Math.pow(RESEARCHER_COST_GROWTH, gameState.researchers));
     const dailyOutput = gameState.researchers * RP_PER_RESEARCHER_PER_DAY;
 

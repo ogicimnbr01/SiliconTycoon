@@ -13,7 +13,7 @@ const ResourceHeaderComponent: React.FC<ResourceHeaderProps> = ({ gameState, onS
    const currentEraIndex = ERAS.findIndex(e => e.id === gameState.currentEraId);
    const currentEra = ERAS[currentEraIndex] || ERAS[0];
    const nextEra = ERAS[currentEraIndex + 1];
-   const t = TRANSLATIONS[gameState.language];
+   const t = TRANSLATIONS[gameState.language] || TRANSLATIONS['en'];
 
    // Calculate Era Progress
    let progress = 100;

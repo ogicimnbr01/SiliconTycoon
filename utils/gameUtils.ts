@@ -6,3 +6,10 @@ export const getReputationBonuses = (rep: number) => {
         researchBonus: rep >= 80 ? 1.25 : 1.0
     };
 };
+
+// Helper for string formatting
+export const format = (str: string, ...args: any[]) => {
+    return str.replace(/{(\d+)}/g, (match, number) =>
+        typeof args[number] !== 'undefined' ? args[number] : match
+    );
+};

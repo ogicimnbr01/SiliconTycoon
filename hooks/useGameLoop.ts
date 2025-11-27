@@ -1,6 +1,6 @@
 // Game Loop Hook
 import { useEffect } from 'react';
-import { GameState, ProductType, Contract } from '../types';
+import { GameState, ProductType, Contract, BoardMission } from '../types';
 import {
     TRANSLATIONS,
     RESEARCHER_DAILY_SALARY,
@@ -16,14 +16,7 @@ import {
     RP_PER_RESEARCHER_PER_DAY,
     TICK_RATE_MS,
 } from '../constants';
-import { getReputationBonuses } from '../utils/gameUtils';
-
-// Helper for string formatting
-const format = (str: string, ...args: any[]) => {
-    return str.replace(/{(\d+)}/g, (match, number) =>
-        typeof args[number] !== 'undefined' ? args[number] : match
-    );
-};
+import { getReputationBonuses, format } from '../utils/gameUtils';
 
 export const useGameLoop = (
     gameState: GameState,
@@ -337,7 +330,8 @@ export const useGameLoop = (
                     (0.5 + moraleEfficiency * 0.5);
 
                 // Stock market update
-                const volMult = prev.hiredHeroes.includes('hero_elon') ? 2.0 : 1.0;
+                // Increased volatility for high risk/reward
+                const volMult = prev.hiredHeroes.includes('hero_elon') ? 4.0 : 2.5;
                 const newStocks = prev.stocks.map(stock => {
                     const change = (Math.random() - 0.5) * stock.volatility * volMult;
                     let price = stock.currentPrice * (1 + change);
@@ -345,6 +339,83 @@ export const useGameLoop = (
                     const history = [...stock.history, price].slice(-10);
                     return { ...stock, currentPrice: price, history };
                 });
+
+                // Board Missions Logic
+                let boardMissions = [...(prev.boardMissions || [])];
+                let prestigePenalty = 0;
+
+                // Check active missions
+                const remainingMissions: BoardMission[] = [];
+                boardMissions.forEach(mission => {
+                    if (newDay > mission.deadlineDay) {
+                        // Mission Failed
+                        prestigePenalty += mission.penalty;
+                        newLogs.push({
+                            id: Date.now(),
+                            message: format(t.mission_penalty, mission.penalty),
+                            type: 'danger',
+                            timestamp: `${t.day} ${newDay}`
+                        });
+                        playSfx('error');
+                        vibrate('heavy');
+                    } else {
+                        // Check completion
+                        let completed = false;
+                        if (mission.type === 'profit' && newMoney >= mission.targetValue) completed = true;
+                        if (mission.type === 'prestige' && prev.reputation >= mission.targetValue) completed = true;
+                        if (mission.type === 'quality') {
+                            const avgQuality = (prev.techLevels[ProductType.CPU] + prev.techLevels[ProductType.GPU]) * 5 + 50; // Rough estimate
+                            if (avgQuality >= mission.targetValue) completed = true;
+                        }
+
+                        if (completed) {
+                            newLogs.push({
+                                id: Date.now(),
+                                message: "Board Mission Completed! Reputation Secured.",
+                                type: 'success',
+                                timestamp: `${t.day} ${newDay}`
+                            });
+                            playSfx('success');
+                        } else {
+                            remainingMissions.push(mission);
+                        }
+                    }
+                });
+                boardMissions = remainingMissions;
+
+                // Generate new mission if ownership < 50%
+                if (prev.playerCompanySharesOwned < 50 && boardMissions.length === 0 && Math.random() < 0.1) {
+                    const missionType = ['profit', 'quality', 'prestige'][Math.floor(Math.random() * 3)] as 'profit' | 'quality' | 'prestige';
+                    let target = 0;
+                    let desc = "";
+
+                    if (missionType === 'profit') {
+                        target = Math.floor(newMoney * 1.5) + 10000;
+                        desc = format(t.mission_profit, target);
+                    } else if (missionType === 'quality') {
+                        target = 70 + Math.floor(Math.random() * 20);
+                        desc = format(t.mission_quality, target);
+                    } else {
+                        target = Math.min(100, prev.reputation + 10);
+                        desc = format(t.mission_prestige, target);
+                    }
+
+                    boardMissions.push({
+                        id: `bm_${Date.now()}`,
+                        description: desc,
+                        type: missionType,
+                        targetValue: target,
+                        deadlineDay: newDay + 30,
+                        penalty: 30
+                    });
+
+                    newLogs.push({
+                        id: Date.now(),
+                        message: "BOARD INTERVENTION: New Mission Assigned!",
+                        type: 'warning',
+                        timestamp: `${t.day} ${newDay}`
+                    });
+                }
 
                 // Unlock new tabs (R&D, Finance)
                 let currentUnlocked = [...prev.unlockedTabs];
@@ -354,24 +425,22 @@ export const useGameLoop = (
                     newLogs.push({ id: Date.now(), message: t.logRdEstablished, type: 'success', timestamp: `${t.day} ${newDay}` });
                     newTabUnlocked = true;
                 }
-                if (!currentUnlocked.includes('finance') && newMoney >= 50000) {
+                if (!currentUnlocked.includes('finance') && newMoney >= 0) {
                     currentUnlocked.push('finance');
                     newLogs.push({ id: Date.now(), message: t.logFinanceEstablished, type: 'success', timestamp: `${t.day} ${newDay}` });
+                    newTabUnlocked = true;
+                }
+                if (!currentUnlocked.includes('statistics') && newMoney >= 0) {
+                    currentUnlocked.push('statistics');
                     newTabUnlocked = true;
                 }
                 if (!currentUnlocked.includes('marketing') && newMoney >= 100000) {
                     currentUnlocked.push('marketing');
                     newLogs.push({ id: Date.now(), message: "Marketing Dept. Established", type: 'success', timestamp: `${t.day} ${newDay}` });
-                    newTabUnlocked = true;
-                }
-                if (!currentUnlocked.includes('statistics') && newMoney >= 1000) {
-                    currentUnlocked.push('statistics');
-                    newLogs.push({ id: Date.now(), message: "Analytics Dept. Established", type: 'success', timestamp: `${t.day} ${newDay}` });
-                    newTabUnlocked = true;
-                }
-                if (newTabUnlocked) {
-                    playSfx('success');
-                    vibrate('medium');
+                    if (newTabUnlocked) {
+                        playSfx('success');
+                        vibrate('medium');
+                    }
                 }
 
                 // Contracts handling
@@ -398,8 +467,30 @@ export const useGameLoop = (
                 if (Math.random() < 0.2) {
                     const type = Math.random() > 0.5 ? ProductType.CPU : ProductType.GPU;
                     const amount = Math.floor(Math.random() * 50) + 10;
-                    const techLevel = Math.min(prev.techLevels[type], 2);
-                    const reward = amount * (type === ProductType.CPU ? CPU_TECH_TREE[techLevel].baseMarketPrice : GPU_TECH_TREE[techLevel].baseMarketPrice) * 1.3;
+                    const techLevel = Math.max(0, prev.techLevels[type] - Math.floor(Math.random() * 2));
+                    const basePrice = type === ProductType.CPU ? CPU_TECH_TREE[techLevel].baseMarketPrice : GPU_TECH_TREE[techLevel].baseMarketPrice;
+
+                    // Scale reward based on Office Level to make late-game contracts viable
+                    const officeScaling = 1 + (prev.officeLevel * 0.5); // +50% per office level
+                    const totalReward = Math.floor(amount * basePrice * 1.3 * officeScaling);
+
+                    // Requirements
+                    let minPerformance: number | undefined;
+                    let minEfficiency: number | undefined;
+
+                    if (type === ProductType.CPU) {
+                        // CPU contracts care about Performance
+                        minPerformance = 30 + (techLevel * 15) + Math.floor(Math.random() * 10);
+                    } else {
+                        // GPU contracts care about Efficiency (or Performance too)
+                        // Let's say 50% chance for either
+                        if (Math.random() > 0.5) {
+                            minEfficiency = 30 + (techLevel * 15) + Math.floor(Math.random() * 10);
+                        } else {
+                            minPerformance = 30 + (techLevel * 15) + Math.floor(Math.random() * 10);
+                        }
+                    }
+
                     availableContracts.push({
                         id: `cnt_${Date.now()}`,
                         title: format(t.logContractOrder, amount, type),
@@ -407,26 +498,29 @@ export const useGameLoop = (
                         requiredProduct: type,
                         requiredAmount: amount,
                         fulfilledAmount: 0,
-                        reward: Math.floor(reward),
-                        penalty: Math.floor(reward * 0.4),
+                        reward: totalReward,
+                        upfrontPayment: Math.floor(totalReward * 0.4),
+                        completionPayment: Math.floor(totalReward * 0.6),
+                        minPerformance,
+                        minEfficiency,
+                        penalty: Math.floor(totalReward * 0.4),
                         deadlineDay: newDay + 10,
                         duration: 10,
                     });
                     if (availableContracts.length > 3) availableContracts.shift();
                 }
 
-                // Random events
-                const isActivePlayer = prev.inventory.CPU > 0 || prev.inventory.GPU > 0;
-                if (!activeEvent && isActivePlayer && Math.random() < 0.02) {
-                    const ev = POTENTIAL_EVENTS[Math.floor(Math.random() * POTENTIAL_EVENTS.length)];
-                    activeEvent = ev;
-                    playSfx('error');
-                    vibrate('medium');
-                }
-
                 // Production logic
                 let productionSiliconConsumed = 0;
                 const productionOutput: Record<ProductType, number> = { [ProductType.CPU]: 0, [ProductType.GPU]: 0 };
+
+                // Marketing Bonus: Brand Awareness boosts demand (sales speed)
+                // 100% Awareness = 2x Sales Speed
+                const brandBonus = {
+                    [ProductType.CPU]: 1 + (prev.brandAwareness[ProductType.CPU] / 100),
+                    [ProductType.GPU]: 1 + (prev.brandAwareness[ProductType.GPU] / 100)
+                };
+
                 const updatedProductionLines = prev.productionLines.map(line => {
                     if (line.status === 'producing') {
                         const degradation = Math.random() * 1 + 1; // 1‑2%
@@ -435,6 +529,12 @@ export const useGameLoop = (
                         let baseOutput = line.dailyOutput;
                         if (line.specialization === 'speed') baseOutput = Math.floor(baseOutput * 1.5);
                         else if (line.specialization === 'quality') baseOutput = Math.floor(baseOutput * 0.7);
+
+                        // Apply Brand Bonus to effective output (simulating higher demand clearing stock faster)
+                        // Note: This is a simplification. Ideally, demand should be separate.
+                        // For now, we assume production is the bottleneck, but high demand allows selling more if we had it?
+                        // Actually, let's keep production as is, but sales logic below should use brandBonus.
+
                         const actualOutput = Math.floor(baseOutput * (newEfficiency / 100));
                         const siliconNeeded = actualOutput * siliconPerUnit;
                         if (prev.silicon >= productionSiliconConsumed + siliconNeeded) {
@@ -467,45 +567,71 @@ export const useGameLoop = (
                     });
                 }
 
-                // Competitor simulation (every 5 days)
+                // Competitor Simulation (Daily)
                 let competitors = [...prev.competitors];
+
+                // 1. Competitor Earnings
+                competitors = competitors.map(comp => {
+                    let dailyRevenue = 0;
+                    Object.values(ProductType).forEach(type => {
+                        // Revenue based on market share. 
+                        // Base market size approx $10M/day distributed.
+                        const marketSize = 10000000;
+                        const share = comp.marketShare[type] / 100;
+                        dailyRevenue += marketSize * share * 0.01; // 1% profit margin for simplicity
+                    });
+
+                    const newMoney = comp.money + dailyRevenue;
+                    const newHistory = [...(comp.history || []), newMoney].slice(-30); // Keep last 30 days
+
+                    return { ...comp, money: newMoney, history: newHistory };
+                });
+
+                // 2. Competitor Actions (Every 5 days)
                 if (newDay % 5 === 0 && competitors.length > 0) {
                     competitors = competitors.map(comp => {
                         const newComp = { ...comp };
-                        // Quality improvement
-                        Object.keys(newComp.productQuality).forEach(k => {
-                            const t = k as ProductType;
-                            const inc = (newComp.aggressiveness / 100) * 0.5 + 0.3;
-                            newComp.productQuality[t] = Math.min(100, newComp.productQuality[t] + inc);
-                        });
-                        // Rare tech upgrade
-                        if (Math.random() < 0.05) {
-                            Object.keys(newComp.techLevel).forEach(k => {
-                                const prodType = k as ProductType;
-                                if (newComp.techLevel[prodType] < prev.globalTechLevels[prodType]) {
-                                    newComp.techLevel[prodType] += 1;
-                                    newLogs.push({
-                                        id: Date.now() + Math.random(),
-                                        message: format(t.logGlobalTech, newComp.name, prodType),
-                                        type: 'warning',
-                                        timestamp: `${t.day} ${newDay}`,
-                                    });
-                                }
-                            });
+
+                        // Check for Product Release
+                        // Needs: Money > $1M, Time since last release > 30 days
+                        const daysSinceRelease = newDay - (newComp.lastReleaseDay || -999);
+                        if (newComp.money > 1000000 && daysSinceRelease > 30) {
+                            // Release Logic
+                            if (Math.random() < 0.3) { // 30% chance if conditions met
+                                newComp.money -= 1000000; // Cost of launch
+                                newComp.lastReleaseDay = newDay;
+
+                                // Pick a product type to upgrade
+                                const type = Math.random() > 0.5 ? ProductType.CPU : ProductType.GPU;
+                                newComp.productQuality[type] = Math.min(100, newComp.productQuality[type] + 5);
+                                newComp.techLevel[type] += 1;
+
+                                newLogs.push({
+                                    id: Date.now() + Math.random(),
+                                    message: `${newComp.name} released a new ${type} generation!`,
+                                    type: 'warning',
+                                    timestamp: `${t.day} ${newDay}`,
+                                });
+                            }
                         }
+
                         return newComp;
                     });
+
                     // Recalculate market share
                     Object.values(ProductType).forEach(type => {
                         const playerQuality = prev.techLevels[type] * 10 + 50;
                         const playerAwareness = brandAwareness[type] || 0;
-                        const playerScore = playerQuality * (1 + playerAwareness / 100);
+                        // Brand Awareness significantly boosts player score now
+                        const playerScore = playerQuality * (1 + playerAwareness / 50);
+
                         let totalScore = playerScore;
                         const competitorScores = competitors.map(comp => {
                             const score = comp.productQuality[type] * (1 + comp.marketShare[type] / 200);
                             totalScore += score;
                             return { id: comp.id, score };
                         });
+
                         if (totalScore > 0) {
                             competitors = competitors.map(comp => {
                                 const data = competitorScores.find(c => c.id === comp.id);
@@ -547,6 +673,7 @@ export const useGameLoop = (
                     brandAwareness,
                     competitors,
                     productionLines: updatedProductionLines,
+                    boardMissions,
                 };
             });
         };

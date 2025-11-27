@@ -30,7 +30,9 @@ import { playSfx, setSoundEnabled } from './utils/SoundManager';
 import { SettingsModal } from './components/SettingsModal';
 import { AchievementsModal } from './components/AchievementsModal';
 import { AchievementPopup } from './components/AchievementPopup';
+
 import { SaveLoadModal } from './components/SaveLoadModal';
+import { HackingResultModal } from './components/HackingResultModal';
 
 import { MarketingTab } from './components/MarketingTab';
 import { StatisticsTab } from './components/StatisticsTab';
@@ -43,6 +45,8 @@ import { FloatingTextLayer } from './components/ui/FloatingTextLayer';
 import { FloatingTextItem } from './components/ui/FloatingText';
 
 const MarketTab = React.lazy(() => import('./components/MarketTab'));
+
+import { loadGlobalAchievements } from './utils/achievementManager';
 
 const App: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabType>('factory');
@@ -78,9 +82,15 @@ const App: React.FC = () => {
         hideSystemBars();
     }, []);
 
-    const [gameState, setGameState] = useState<GameState>(INITIAL_GAME_STATE);
+    const [gameState, setGameState] = useState<GameState>(() => {
+        const globalAchievements = loadGlobalAchievements();
+        return {
+            ...INITIAL_GAME_STATE,
+            unlockedAchievements: globalAchievements
+        };
+    });
 
-    const t = TRANSLATIONS[gameState.language];
+    const t = TRANSLATIONS[gameState.language] || TRANSLATIONS['en'];
 
     const vibrate = useCallback(async (type: 'light' | 'medium' | 'heavy' | 'success' | 'error') => {
         if (!vibrationEnabled) return;
@@ -112,6 +122,10 @@ const App: React.FC = () => {
         setFloatingTexts(prev => prev.filter(item => item.id !== id));
     }, []);
 
+    const handleAchievementClose = useCallback(() => {
+        setActiveAchievement(null);
+    }, []);
+
     // Hooks
     const { handleNewGame, loadGame, saveGame, deleteSave, getSlots, hasAnySave } = useSaveLoad(gameState, setGameState, setActiveTab, playSfx, vibrate);
     useGameLoop(gameState, setGameState, playSfx, vibrate, handleShowFloatingText);
@@ -126,7 +140,7 @@ const App: React.FC = () => {
         if (id === 'rnd') lockReason = "$10k";
         if (id === 'finance') lockReason = "$50k";
         if (id === 'marketing') lockReason = "$100k";
-        if (id === 'statistics') lockReason = "$1k";
+        // if (id === 'statistics') lockReason = "$1k";
 
         return (
             <button
@@ -227,9 +241,9 @@ const App: React.FC = () => {
                         <div className={`w-20 h-20 rounded-full mb-6 mx-auto flex items-center justify-center animate-bounce ${gameState.activeEvent.type === 'negative' ? 'bg-red-500/20 text-red-500' : 'bg-emerald-500/20 text-emerald-500'}`}>
                             {gameState.activeEvent.id.includes('resign') ? <MailWarning size={40} /> : <AlertTriangle size={40} />}
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-2">{gameState.activeEvent.title}</h2>
-                        <p className="text-slate-400 mb-8 leading-relaxed">{gameState.activeEvent.description}</p>
-                        <button onClick={actions.handleEventDismiss} className="w-full py-4 bg-white text-black font-bold rounded-xl uppercase tracking-widest shadow-[0_0_20px_rgba(255,255,255,0.3)] active:scale-95 transition-transform">ACKNOWLEDGE</button>
+                        <h2 className="text-2xl font-bold text-white mb-2">{t[`${gameState.activeEvent.id}_title` as keyof typeof t] || gameState.activeEvent.title}</h2>
+                        <p className="text-slate-400 mb-8 leading-relaxed">{t[`${gameState.activeEvent.id}_desc` as keyof typeof t] || gameState.activeEvent.description}</p>
+                        <button onClick={actions.handleEventDismiss} className="w-full py-4 bg-white text-black font-bold rounded-xl uppercase tracking-widest shadow-[0_0_20px_rgba(255,255,255,0.3)] active:scale-95 transition-transform">{t.confirm}</button>
                     </div>
                 </div>
             )}
@@ -253,7 +267,7 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto overscroll-none px-4 pb-32 pt-4 scroll-smooth no-scrollbar w-full">
-                {activeTab === 'factory' && (<FactoryTab gameState={gameState} language={gameState.language} onProduce={actions.handleProduce} onBuySilicon={actions.handleBuySilicon} onUpgradeOffice={actions.handleUpgradeOffice} onSetStrategy={(s) => setGameState(prev => ({ ...prev, productionQuality: s }))} onUpdateDesignSpec={actions.handleUpdateDesignSpec} />)}
+                {activeTab === 'factory' && (<FactoryTab gameState={gameState} language={gameState.language} onProduce={actions.handleProduce} onBuySilicon={actions.handleBuySilicon} onUpgradeOffice={actions.handleUpgradeOffice} onDowngradeOffice={actions.handleDowngradeOffice} onSetStrategy={(s) => setGameState(prev => ({ ...prev, productionQuality: s }))} onUpdateDesignSpec={actions.handleUpdateDesignSpec} />)}
 
                 {activeTab === 'rnd' && (
                     <ResearchTab
@@ -368,7 +382,7 @@ const App: React.FC = () => {
             />
             <AchievementPopup
                 achievement={activeAchievement}
-                onClose={() => setActiveAchievement(null)}
+                onClose={handleAchievementClose}
                 language={gameState.language}
             />
             <SaveLoadModal
@@ -379,6 +393,11 @@ const App: React.FC = () => {
                 onSave={saveGame}
                 onLoad={loadGame}
                 onDelete={deleteSave}
+                language={gameState.language}
+            />
+            <HackingResultModal
+                result={gameState.hackingResult}
+                onClose={() => setGameState(prev => ({ ...prev, hackingResult: null }))}
                 language={gameState.language}
             />
             <FloatingTextLayer items={floatingTexts} onComplete={handleFloatingTextComplete} />

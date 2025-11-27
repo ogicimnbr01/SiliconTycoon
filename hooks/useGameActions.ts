@@ -73,6 +73,11 @@ export const useGameActions = (
             let remainingAmount = successfulAmount;
             const newContracts = prev.activeContracts.map(c => {
                 if (c.requiredProduct === type && remainingAmount > 0 && c.fulfilledAmount < c.requiredAmount) {
+                    // Check requirements
+                    const spec = prev.designSpecs[type];
+                    if (c.minPerformance && spec.performance < c.minPerformance) return c;
+                    if (c.minEfficiency && spec.efficiency < c.minEfficiency) return c;
+
                     const take = Math.min(remainingAmount, c.requiredAmount - c.fulfilledAmount);
                     remainingAmount -= take;
                     return { ...c, fulfilledAmount: c.fulfilledAmount + take };
@@ -86,13 +91,14 @@ export const useGameActions = (
             let repGainFromContracts = 0;
             newContracts.forEach(c => {
                 if (c.fulfilledAmount >= c.requiredAmount) {
-                    moneyChange += c.reward * bonuses.contractBonus;
+                    const payment = c.completionPayment || Math.floor(c.reward * 0.6); // Fallback if old contract
+                    moneyChange += payment * bonuses.contractBonus;
                     completedContractIds.push(c.id);
                     repGainFromContracts += 5;
                     playSfx('success');
                     vibrate('success');
                     if (onShowFloatingText) {
-                        onShowFloatingText(`+$${Math.floor(c.reward * bonuses.contractBonus)}`, 'income');
+                        onShowFloatingText(`+$${Math.floor(payment * bonuses.contractBonus)}`, 'income');
                         onShowFloatingText(`+5 REP`, 'reputation');
                     }
                 }
@@ -100,14 +106,15 @@ export const useGameActions = (
 
             let newLogs = [...prev.logs];
             if (wasteAmount > 0) {
+                const t = TRANSLATIONS[prev.language];
                 newLogs.push({
                     id: Date.now(),
-                    message: `Yield: ${actualYield}%. ${wasteAmount} defects sold as budget chips for $${scrapValue}.`,
+                    message: t.logYield.replace('{0}', actualYield.toString()).replace('{1}', wasteAmount.toString()).replace('{2}', scrapValue.toString()),
                     type: 'warning' as const,
-                    timestamp: `Day ${prev.day}`
+                    timestamp: `${t.day} ${prev.day}`
                 });
             }
-            if (completedContractIds.length > 0) newLogs.push({ id: Date.now() + 1, message: `Contract Fulfilled! Payment received.`, type: 'success' as const, timestamp: `Day ${prev.day}` });
+            if (completedContractIds.length > 0) newLogs.push({ id: Date.now() + 1, message: TRANSLATIONS[prev.language].logContractFulfilled, type: 'success' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` });
 
             return {
                 ...prev,
@@ -154,7 +161,7 @@ export const useGameActions = (
                 money: prev.money + totalIncome,
                 inventory: { ...prev.inventory, [type]: 0 },
                 reputation: Math.min(100, prev.reputation + repGain),
-                logs: [...prev.logs, { id: Date.now(), message: `Sold ${count}x ${type} units.`, type: 'success' as const, timestamp: `Day ${prev.day}` }].slice(-10)
+                logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logSold.replace('{0}', count.toString()).replace('{1}', type), type: 'success' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10)
             }
         });
     }, [setGameState, playSfx, vibrate, onShowFloatingText]);
@@ -172,7 +179,7 @@ export const useGameActions = (
             }
             if (prev.silicon + amount > office.siliconCap) {
                 playSfx('error');
-                return { ...prev, logs: [...prev.logs, { id: Date.now(), message: `Warehouse Full! Upgrade needed.`, type: 'warning' as const, timestamp: `Day ${prev.day}` }].slice(-10) };
+                return { ...prev, logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logWarehouseFull, type: 'warning' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10) };
             }
             playSfx('click');
             vibrate('light');
@@ -193,7 +200,7 @@ export const useGameActions = (
                     ...prev,
                     money: prev.money - config.upgradeCost,
                     officeLevel: nextLevel,
-                    logs: [...prev.logs, { id: Date.now(), message: `HQ Upgraded to ${OFFICE_CONFIGS[nextLevel].name}!`, type: 'success' as const, timestamp: `Day ${prev.day}` }].slice(-10)
+                    logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logHQUpgraded.replace('{0}', OFFICE_CONFIGS[nextLevel].name), type: 'success' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10)
                 };
             }
             playSfx('error');
@@ -205,19 +212,55 @@ export const useGameActions = (
         });
     }, [setGameState, playSfx, vibrate, onShowFloatingText]);
 
+    const handleDowngradeOffice = useCallback(() => {
+        setGameState(prev => {
+            if (prev.officeLevel <= 0) return prev;
+            const prevLevel = (prev.officeLevel - 1) as OfficeLevel;
+            const moveCost = 5000; // Moving cost
+
+            if (prev.money < moveCost) {
+                playSfx('error');
+                return {
+                    ...prev,
+                    logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].insufficientFunds, type: 'danger' as const, timestamp: `Day ${prev.day}` }].slice(-10)
+                };
+            }
+
+            playSfx('click');
+            vibrate('medium');
+            if (onShowFloatingText) onShowFloatingText(`-$${moveCost}`, 'expense');
+
+            return {
+                ...prev,
+                money: prev.money - moveCost,
+                officeLevel: prevLevel,
+                logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logHQDowngraded.replace('{0}', OFFICE_CONFIGS[prevLevel].name), type: 'info' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10)
+            };
+        });
+    }, [setGameState, playSfx, vibrate, onShowFloatingText]);
+
     const handleAcceptContract = useCallback((contractId: string) => {
         playSfx('click');
         setGameState(prev => {
             const contract = prev.availableContracts.find(c => c.id === contractId);
             if (!contract) return prev;
+
+            // Upfront payment logic
+            const upfront = contract.upfrontPayment || 0;
+            if (upfront > 0) {
+                playSfx('money');
+                if (onShowFloatingText) onShowFloatingText(`+$${upfront}`, 'income');
+            }
+
             const activeContract = { ...contract, deadlineDay: prev.day + contract.duration };
             return {
                 ...prev,
+                money: prev.money + upfront,
                 activeContracts: [...prev.activeContracts, activeContract],
                 availableContracts: prev.availableContracts.filter(c => c.id !== contractId)
             };
         });
-    }, [setGameState, playSfx]);
+    }, [setGameState, playSfx, onShowFloatingText]);
 
     const handleEventDismiss = useCallback(() => {
         playSfx('click');
@@ -263,7 +306,8 @@ export const useGameActions = (
             if (onShowFloatingText) onShowFloatingText(`-${cost} RP`, 'rp');
             let prestigeGain = 0;
             if (nextLevelIndex > prev.globalTechLevels[type]) prestigeGain = 10;
-            const msg = prestigeGain > 0 ? `Tech Breakthrough! Market Leader! (+${prestigeGain} Prestige)` : `Tech Unlocked!`;
+            const t = TRANSLATIONS[prev.language];
+            const msg = prestigeGain > 0 ? t.logTechBreakthrough.replace('{0}', prestigeGain.toString()) : t.logTechUnlocked;
 
             return {
                 ...prev,
@@ -300,7 +344,7 @@ export const useGameActions = (
                 ...prev,
                 money: prev.money - hero.hiringCost,
                 hiredHeroes: [...prev.hiredHeroes, heroId],
-                logs: [...prev.logs, { id: Date.now(), message: `Headhunted ${hero.name}!`, type: 'success' as const, timestamp: `Day ${prev.day}` }].slice(-10)
+                logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logHeadhunted.replace('{0}', hero.name), type: 'success' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10)
             };
         });
     }, [setGameState, playSfx, vibrate, onShowFloatingText]);
@@ -407,50 +451,121 @@ export const useGameActions = (
     }, [setGameState, playSfx, vibrate, onShowFloatingText]);
 
     const handleCovertOpTrigger = useCallback((type: 'espionage' | 'sabotage', targetId: string) => {
-        const cost = type === 'espionage' ? 10000 : 25000;
         setGameState(prev => {
+            // Find competitor by id
+            const competitor = prev.competitors.find(c => c.id === targetId);
+            if (!competitor) {
+                playSfx('error');
+                return prev;
+            }
+
+            // Use competitor's money/valuation for cost calculation
+            const targetValue = competitor.money || 10000;
+
+            // Dynamic Cost: Scales with target's valuation
+            // Espionage: Costs about 10% of target's valuation (min 5k)
+            // Sabotage: Costs about 25% of target's valuation (min 15k)
+            const espionageCost = Math.max(5000, Math.floor(targetValue * 0.10));
+            const sabotageCost = Math.max(15000, Math.floor(targetValue * 0.25));
+            const cost = type === 'espionage' ? espionageCost : sabotageCost;
+
             if (prev.money < cost) {
                 playSfx('error');
-                return { ...prev, logs: [...prev.logs, { id: Date.now(), message: "Insufficient Funds for Operation", type: 'danger' as const, timestamp: `Day ${prev.day}` }].slice(-10) };
+                return { ...prev, logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logInsufficientFunds, type: 'danger' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10) };
             }
             playSfx('click');
-            if (onShowFloatingText) onShowFloatingText(`-$${cost}`, 'expense');
+            if (onShowFloatingText) onShowFloatingText(`-$${cost.toLocaleString()}`, 'expense');
             return {
                 ...prev,
-                hacking: { active: true, type, difficulty: prev.reputation > 50 ? 1 : 2, targetId }
+                hacking: { active: true, type, difficulty: prev.reputation > 50 ? 1 : 2, targetId, cost }
             };
         });
     }, [setGameState, playSfx, onShowFloatingText]);
 
     const handleHackingComplete = useCallback((success: boolean) => {
         setGameState(prev => {
-            const { type, targetId } = prev.hacking;
-            const cost = type === 'espionage' ? 10000 : 25000;
-            let newState = { ...prev, money: prev.money - cost, hacking: { ...prev.hacking, active: false } };
-            const targetStock = prev.stocks.find(s => s.id === targetId);
-            const targetName = targetStock ? targetStock.name : "Rival";
+            const t = TRANSLATIONS[prev.language];
+            const { type, targetId, cost } = prev.hacking;
+
+            // Find competitor
+            const competitor = prev.competitors.find(c => c.id === targetId);
+            const targetValue = competitor?.money || 10000;
+            const targetName = competitor?.name || "Rival";
+
+            // Use stored cost from trigger
+            const actualCost = cost || (type === 'espionage' ? 10000 : 25000);
+
+            let newState = { ...prev, money: prev.money - actualCost, hacking: { ...prev.hacking, active: false } };
+
+            const changes: { label: string, before: string, after: string, isPositive: boolean }[] = [];
+            let rewardText = "";
 
             if (success) {
                 playSfx('success');
                 vibrate('success');
+
+                // Dynamic RP Reward: Scales with target's value
+                // Formula: 2-5% of target's valuation (min 100 RP, max 10k RP)
+                const rpReward = type === 'espionage'
+                    ? Math.min(10000, Math.max(100, Math.floor(targetValue * 0.03)))
+                    : 0;
+
                 if (type === 'espionage') {
-                    newState.rp += 1000;
-                    if (onShowFloatingText) onShowFloatingText(`+1000 RP`, 'rp');
-                    if (targetStock) {
-                        newState.stocks = prev.stocks.map(s => s.id === targetId ? { ...s, currentPrice: Math.max(1, s.currentPrice * 0.95) } : s);
-                    }
-                    newState.logs = [...newState.logs, { id: Date.now(), message: `Espionage success! Stole tech from ${targetName}.`, type: 'success' as const, timestamp: `Day ${prev.day}` }].slice(-10);
+                    newState.rp += rpReward;
+                    changes.push({ label: "RP", before: `${prev.rp}`, after: `${prev.rp + rpReward}`, isPositive: true });
+                    rewardText = `+${rpReward} RP`;
+
+                    newState.logs = [...newState.logs, {
+                        id: Date.now(),
+                        message: t.logEspionageSuccess.replace('{0}', targetName),
+                        type: 'success' as const,
+                        timestamp: `${t.day} ${prev.day}`,
+                        tag: 'espionage_success'
+                    }].slice(-10);
+                    if (onShowFloatingText) onShowFloatingText(`+${rpReward} RP`, 'rp');
                 } else {
-                    if (targetStock) {
-                        newState.stocks = prev.stocks.map(s => s.id === targetId ? { ...s, currentPrice: Math.max(1, s.currentPrice * 0.70) } : s);
+                    // Sabotage effect - Damage competitor
+                    const targetComp = newState.competitors.find(c => c.id === targetId);
+                    if (targetComp) {
+                        const cashBefore = targetComp.money;
+                        targetComp.money = Math.floor(targetComp.money * 0.8);
+                        targetComp.cashReserves = Math.floor(targetComp.cashReserves * 0.8);
+                        targetComp.productQuality[ProductType.CPU] = Math.floor(targetComp.productQuality[ProductType.CPU] * 0.9);
+                        targetComp.productQuality[ProductType.GPU] = Math.floor(targetComp.productQuality[ProductType.GPU] * 0.9);
+
+                        changes.push({
+                            label: `${targetName} Valuation`,
+                            before: `$${(cashBefore / 1000).toFixed(0)}k`,
+                            after: `$${(targetComp.money / 1000).toFixed(0)}k`,
+                            isPositive: true
+                        });
                     }
-                    newState.logs = [...newState.logs, { id: Date.now(), message: `Sabotage success! ${targetName} stock crashed!`, type: 'success' as const, timestamp: `Day ${prev.day}` }].slice(-10);
+                    newState.logs = [...newState.logs, {
+                        id: Date.now(),
+                        message: t.logSabotageSuccess.replace('{0}', targetName),
+                        type: 'success' as const,
+                        timestamp: `${t.day} ${prev.day}`,
+                        tag: 'sabotage_success'
+                    }].slice(-10);
                 }
+
+                newState.hackingResult = { success: true, targetName, type, changes, rewardText };
             } else {
                 playSfx('error');
                 vibrate('error');
-                newState.reputation = Math.max(0, newState.reputation - (type === 'espionage' ? 10 : 25));
-                newState.logs = [...newState.logs, { id: Date.now(), message: `Op Failed! ${targetName} traced you.`, type: 'danger' as const, timestamp: `Day ${prev.day}` }].slice(-10);
+                const repLoss = type === 'espionage' ? 10 : 25;
+                changes.push({ label: "Reputation", before: `${prev.reputation}`, after: `${Math.max(0, prev.reputation - repLoss)}`, isPositive: false });
+
+                newState.reputation = Math.max(0, newState.reputation - repLoss);
+                newState.logs = [...newState.logs, {
+                    id: Date.now(),
+                    message: t.logOpFailed.replace('{0}', targetName),
+                    type: 'danger' as const,
+                    timestamp: `${t.day} ${prev.day}`
+                }].slice(-10);
+                if (onShowFloatingText) onShowFloatingText(type === 'espionage' ? '-10 REP' : '-25 REP', 'reputation');
+
+                newState.hackingResult = { success: false, targetName, type, changes };
             }
             return newState;
         });
@@ -474,16 +589,25 @@ export const useGameActions = (
     const handleTakeLoan = useCallback((amount: number) => {
         setGameState(prev => {
             const t = TRANSLATIONS[prev.language];
-            if (prev.loans.length >= MAX_ACTIVE_LOANS) {
+
+            // Loan Limits based on Office Level
+            let maxLoans = MAX_ACTIVE_LOANS;
+            let maxLoanAmount = 10000000;
+
+            if (prev.officeLevel === OfficeLevel.GARAGE) {
+                maxLoans = 1;
+                maxLoanAmount = 10000;
+            } else if (prev.officeLevel === OfficeLevel.BASEMENT) {
+                maxLoans = 1;
+                maxLoanAmount = 100000;
+            }
+
+            if (prev.loans.length >= maxLoans) {
                 playSfx('error');
                 return { ...prev, logs: [...prev.logs, { id: Date.now(), message: t.loanRejectedLimit, type: 'danger' as const, timestamp: `${t.day} ${prev.day}` }].slice(-10) };
             }
 
-            let requiredLevel = 0;
-            if (amount === 50000) requiredLevel = 2;
-            if (amount === 100000) requiredLevel = 3;
-            if (amount === 500000) requiredLevel = 4;
-            if (prev.officeLevel < requiredLevel) {
+            if (amount > maxLoanAmount) {
                 playSfx('error');
                 return { ...prev, logs: [...prev.logs, { id: Date.now(), message: t.loanRejectedOffice, type: 'danger' as const, timestamp: `${t.day} ${prev.day}` }].slice(-10) };
             }
@@ -523,7 +647,7 @@ export const useGameActions = (
                 }
                 playSfx('click');
                 if (onShowFloatingText) onShowFloatingText(`-$${cost.toFixed(0)}`, 'expense');
-                return { ...prev, money: prev.money - cost, playerCompanySharesOwned: Math.min(100, prev.playerCompanySharesOwned + percent), logs: [...prev.logs, { id: Date.now(), message: `Stock Buyback: +${percent}% Ownership`, type: 'success' as const, timestamp: `Day ${prev.day}` }].slice(-10) };
+                return { ...prev, money: prev.money - cost, playerCompanySharesOwned: Math.min(100, prev.playerCompanySharesOwned + percent), logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logStockBuyback.replace('{0}', percent.toString()), type: 'success' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10) };
             } else {
                 if (prev.playerCompanySharesOwned <= 10) {
                     playSfx('error');
@@ -531,7 +655,7 @@ export const useGameActions = (
                 }
                 playSfx('money');
                 if (onShowFloatingText) onShowFloatingText(`+$${cost.toFixed(0)}`, 'income');
-                return { ...prev, money: prev.money + cost, playerCompanySharesOwned: Math.max(0, prev.playerCompanySharesOwned - percent), logs: [...prev.logs, { id: Date.now(), message: `Stock Dilution: -${percent}% Ownership`, type: 'warning' as const, timestamp: `Day ${prev.day}` }].slice(-10) };
+                return { ...prev, money: prev.money + cost, playerCompanySharesOwned: Math.max(0, prev.playerCompanySharesOwned - percent), logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logStockDilution.replace('{0}', percent.toString()), type: 'warning' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10) };
             }
         });
     }, [setGameState, playSfx, onShowFloatingText]);
@@ -592,9 +716,9 @@ export const useGameActions = (
                 ),
                 logs: [...prev.logs, {
                     id: Date.now(),
-                    message: `Maintained production line. Efficiency restored to 100%.`,
+                    message: TRANSLATIONS[prev.language].logMaintained,
                     type: 'success' as const,
-                    timestamp: `Day ${prev.day}`
+                    timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}`
                 }].slice(-10)
             };
         });
@@ -624,6 +748,7 @@ export const useGameActions = (
         handlePayLoan,
         handleTradeOwnShares,
         handleLaunchCampaign,
-        handleMaintainLine
+        handleMaintainLine,
+        handleDowngradeOffice
     };
 };

@@ -4,6 +4,7 @@ import { CPU_TECH_TREE, GPU_TECH_TREE, MARKET_TRENDS, TRANSLATIONS } from '../co
 import { Button } from './ui/Button';
 import { MiniChart } from './ui/MiniChart';
 import { DollarSign, Briefcase, Building2, Skull, Activity, BarChart3, Minus, Plus, Lock, Target, X, AlertTriangle, Building, TrendingUp, TrendingDown } from 'lucide-react';
+import { format } from '../utils/gameUtils';
 
 interface MarketTabProps {
     mode: 'commercial' | 'financial';
@@ -46,9 +47,10 @@ const MarketTab: React.FC<MarketTabProps> = ({
     const [stockTradeAmount, setStockTradeAmount] = useState<number>(10);
 
     const [targetModalOpen, setTargetModalOpen] = useState(false);
+    const [ipoModalOpen, setIpoModalOpen] = useState(false);
     const [selectedOpType, setSelectedOpType] = useState<'espionage' | 'sabotage' | null>(null);
 
-    const t = TRANSLATIONS[language];
+    const t = TRANSLATIONS[language] || TRANSLATIONS['en'];
     const activeTrend = MARKET_TRENDS.find(t => t.id === gameState.activeTrendId) || MARKET_TRENDS[0];
     const isAdvancedUnlocked = unlockedTabs.includes('rnd');
 
@@ -63,6 +65,15 @@ const MarketTab: React.FC<MarketTabProps> = ({
             setTargetModalOpen(false);
             setSelectedOpType(null);
         }
+    };
+
+    const handleIPO = () => {
+        setIpoModalOpen(true);
+    };
+
+    const confirmIPO = () => {
+        onIPO();
+        setIpoModalOpen(false);
     };
 
     const renderSalesItem = (type: ProductType, techTree: any[]) => {
@@ -97,15 +108,27 @@ const MarketTab: React.FC<MarketTabProps> = ({
             techLeaderBonus = 0.7;
         }
 
-        const finalMultiplier = gameState.marketMultiplier * repBonus * salesHero * rivalMod * techLeaderBonus;
+        const brandBonus = 1 + (gameState.brandAwareness[type] / 50);
+        const finalMultiplier = gameState.marketMultiplier * repBonus * salesHero * rivalMod * techLeaderBonus * brandBonus;
 
         const currentPrice = Math.floor(tech.baseMarketPrice * finalMultiplier);
         const priceDiff = currentPrice - tech.baseMarketPrice;
         const isUp = priceDiff >= 0;
         const totalValue = count * currentPrice;
 
+        // Calculate Real Cost per Unit (including defects)
+        const yieldRate = tech.yield || 100;
+        const qualityMod = gameState.productionQuality === 'high' ? 5 : gameState.productionQuality === 'medium' ? 0 : -5;
+        const actualYield = Math.min(100, Math.max(10, yieldRate + qualityMod)) / 100;
+
+        const baseProductionCost = tech.productionCost;
+        const siliconCost = tech.productionCost / 10 * gameState.siliconPrice;
+        const totalBaseCost = baseProductionCost + siliconCost;
+        const realCostPerUnit = totalBaseCost / actualYield;
+
         return (
             <div className={`bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col gap-5 shadow-lg mb-4`}>
+                {/* ... existing header code ... */}
                 <div className="flex justify-between items-start">
                     <div>
                         <div className="text-xs text-slate-500 uppercase font-mono font-bold mb-1">{type} {t.model}</div>
@@ -149,16 +172,16 @@ const MarketTab: React.FC<MarketTabProps> = ({
                 <div className="mt-2 bg-slate-950/50 p-3 rounded-xl border border-slate-800/50 text-xs">
                     <div className="flex justify-between mb-1">
                         <span className="text-slate-500">{t.estUnitCost}</span>
-                        <span className="text-slate-300 font-mono">${(tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice)).toFixed(0)}</span>
+                        <span className="text-slate-300 font-mono">${realCostPerUnit.toFixed(0)}</span>
                     </div>
                     <div className="flex justify-between mb-1">
                         <span className="text-slate-500">{t.siliconCost}</span>
-                        <span className="text-slate-400 font-mono">${(tech.productionCost / 10 * gameState.siliconPrice).toFixed(0)}</span>
+                        <span className="text-slate-400 font-mono">${siliconCost.toFixed(0)}</span>
                     </div>
                     <div className="border-t border-slate-800 my-1 pt-1 flex justify-between font-bold">
                         <span className="text-slate-400">{t.netProfit}</span>
-                        <span className={`font-mono ${currentPrice - (tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice)) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                            {currentPrice - (tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice)) >= 0 ? '+' : ''}${(currentPrice - (tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice))).toFixed(0)} ({((currentPrice - (tech.productionCost + (tech.productionCost / 10 * gameState.siliconPrice))) / currentPrice * 100).toFixed(0)}%)
+                        <span className={`font-mono ${currentPrice - realCostPerUnit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {currentPrice - realCostPerUnit >= 0 ? '+' : ''}${(currentPrice - realCostPerUnit).toFixed(0)} ({((currentPrice - realCostPerUnit) / currentPrice * 100).toFixed(0)}%)
                         </span>
                     </div>
                 </div>
@@ -200,6 +223,58 @@ const MarketTab: React.FC<MarketTabProps> = ({
 
     return (
         <div className="flex flex-col gap-6 pt-2 pb-8 pb-[env(safe-area-inset-bottom)] relative">
+            {/* Active Trend Banner - Moved to FactoryTab */}
+
+            {/* Board Missions Display */}
+            {gameState.boardMissions && gameState.boardMissions.length > 0 && (
+                <div className="bg-slate-900 border-2 border-amber-500/50 rounded-2xl p-4 shadow-lg animate-pulse">
+                    <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="text-amber-500" size={20} />
+                        <h3 className="text-amber-500 font-black uppercase tracking-widest text-sm">{t.boardIntervention}</h3>
+                    </div>
+                    {gameState.boardMissions.map(mission => (
+                        <div key={mission.id} className="mb-2 last:mb-0">
+                            <p className="text-white font-bold text-sm">{mission.description}</p>
+                            <div className="flex justify-between text-xs mt-1">
+                                <span className="text-slate-400">{format(t.mission_deadline, mission.deadlineDay - gameState.day)}</span>
+                                <span className="text-red-400 font-bold">{format(t.penaltyPrestige, mission.penalty)}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* IPO Confirmation Modal */}
+            {ipoModalOpen && (
+                <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+                    <div className="bg-slate-900 w-full max-w-sm rounded-3xl border border-slate-700 overflow-hidden shadow-2xl">
+                        <div className="p-6">
+                            <h3 className="text-xl font-black text-white mb-2">{t.ipoConfirmTitle}</h3>
+                            <p className="text-slate-400 text-sm mb-4">{t.ipoConfirmDesc}</p>
+
+                            <div className="bg-slate-800 rounded-xl p-4 mb-4 space-y-2">
+                                <div className="flex items-center gap-2 text-red-400 text-xs font-bold">
+                                    <Minus size={14} />
+                                    {t.ipoShareSale}
+                                </div>
+                                <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                                    <Plus size={14} />
+                                    {format(t.ipoCashGain, (gameState.playerSharePrice * 4000).toLocaleString())}
+                                </div>
+                            </div>
+
+                            <p className="text-[10px] text-amber-500 font-bold mb-6 uppercase tracking-wide">
+                                {t.ipoWarning}
+                            </p>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button variant="secondary" onClick={() => setIpoModalOpen(false)}>{t.cancel}</Button>
+                                <Button variant="primary" onClick={confirmIPO}>{t.confirm}</Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             {targetModalOpen && (
                 <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
                     <div className="bg-slate-900 w-full max-w-sm rounded-3xl border border-slate-700 overflow-hidden shadow-2xl">
@@ -252,10 +327,6 @@ const MarketTab: React.FC<MarketTabProps> = ({
                                 </div>
                             </div>
                         )}
-                        <div className="bg-gradient-to-b from-slate-900 to-slate-950 p-1 rounded-2xl border border-slate-800 shadow-lg">
-                            <div className="p-4 pb-0"><div className="flex items-center gap-2 mb-1"><Activity size={16} className="text-emerald-500" /><h3 className="font-bold text-slate-400 text-xs uppercase tracking-widest">{t.cashFlow}</h3></div></div>
-                            <div className="px-2 pb-2"><MiniChart data={gameState.financialHistory} height={160} /></div>
-                        </div>
                         <div className="space-y-6">
                             {renderSalesItem(ProductType.CPU, CPU_TECH_TREE)}
                             {renderSalesItem(ProductType.GPU, GPU_TECH_TREE)}
@@ -270,14 +341,31 @@ const MarketTab: React.FC<MarketTabProps> = ({
                         )}
                         {gameState.activeContracts.map(contract => (
                             <div key={contract.id} className="bg-slate-900 border-l-4 border-blue-500 p-5 rounded-r-xl shadow-lg">
-                                <div className="flex justify-between items-start mb-2"><h4 className="font-bold text-white">{contract.title}</h4><div className="text-xs font-mono text-blue-400 font-bold bg-blue-900/20 px-2 py-1 rounded">{contract.requiredProduct}</div></div>
-                                <div className="w-full bg-slate-800 h-2 rounded-full mb-4"><div className="bg-blue-500 h-full rounded-full" style={{ width: `${(contract.fulfilledAmount / contract.requiredAmount) * 100}%` }}></div></div>
-                                <div className="flex justify-between text-xs font-bold text-slate-400 uppercase"><span>{contract.fulfilledAmount} / {contract.requiredAmount}</span><span className="text-blue-400">{contract.deadlineDay - gameState.day} {t.daysLeft}</span></div>
+                                <div className="flex justify-between items-start mb-2">
+                                    <h4 className="font-bold text-white">{contract.title}</h4>
+                                    <div className="text-xs font-mono text-blue-400 font-bold bg-blue-900/20 px-2 py-1 rounded">{contract.requiredProduct}</div>
+                                </div>
+                                <div className="w-full bg-slate-800 h-2 rounded-full mb-2"><div className="bg-blue-500 h-full rounded-full" style={{ width: `${(contract.fulfilledAmount / contract.requiredAmount) * 100}%` }}></div></div>
+                                <div className="flex justify-between text-xs font-bold text-slate-400 uppercase mb-2"><span>{contract.fulfilledAmount} / {contract.requiredAmount}</span><span className="text-blue-400">{contract.deadlineDay - gameState.day} {t.daysLeft}</span></div>
+                                <div className="flex gap-2 text-[10px] font-mono text-slate-500">
+                                    {contract.minPerformance && <span className="bg-slate-800 px-1.5 py-0.5 rounded">{t.minPerf}: {contract.minPerformance}</span>}
+                                    {contract.minEfficiency && <span className="bg-slate-800 px-1.5 py-0.5 rounded">{t.minEff}: {contract.minEfficiency}</span>}
+                                </div>
                             </div>
                         ))}
                         {gameState.availableContracts.map(contract => (
                             <div key={contract.id} className="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-md">
-                                <div className="flex justify-between mb-2"><h4 className="font-bold text-white">{contract.title}</h4><span className="text-emerald-400 font-mono font-bold">+${contract.reward.toLocaleString()}</span></div>
+                                <div className="flex justify-between mb-2">
+                                    <h4 className="font-bold text-white">{contract.title}</h4>
+                                    <div className="text-right">
+                                        <div className="text-emerald-400 font-mono font-bold text-sm">+${(contract.upfrontPayment || 0).toLocaleString()} {t.now}</div>
+                                        <div className="text-emerald-600 font-mono text-xs">+${(contract.completionPayment || contract.reward).toLocaleString()} {t.later}</div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2 mb-3">
+                                    {contract.minPerformance && <span className="text-[10px] font-bold bg-slate-800 text-slate-300 px-2 py-1 rounded">{t.req}: {contract.minPerformance}+ {t.minPerf}</span>}
+                                    {contract.minEfficiency && <span className="text-[10px] font-bold bg-slate-800 text-slate-300 px-2 py-1 rounded">{t.req}: {contract.minEfficiency}+ {t.minEff}</span>}
+                                </div>
                                 <p className="text-xs text-slate-400 mb-4">{contract.description}</p>
                                 <Button variant="secondary" size="md" className="w-full" onClick={() => onAcceptContract(contract.id)}>{t.accept}</Button>
                             </div>
@@ -293,7 +381,7 @@ const MarketTab: React.FC<MarketTabProps> = ({
                                     <Building2 size={48} className="mx-auto text-slate-700 mb-4" />
                                     <h3 className="text-xl font-black text-white mb-2">{t.privateCompany}</h3>
                                     <div className="text-sm text-slate-400 mb-6">{t.valuationGoal} {t.valuationGoalAmount}</div>
-                                    <Button size="lg" variant="primary" className="w-full" disabled={gameState.money < 100000} onClick={onIPO}>{t.launchIPO}</Button>
+                                    <Button size="lg" variant="primary" className="w-full" disabled={gameState.money < 100000} onClick={handleIPO}>{t.launchIPO}</Button>
                                 </>
                             ) : (
                                 <div className="w-full">
@@ -383,9 +471,9 @@ const MarketTab: React.FC<MarketTabProps> = ({
                         <div className="grid grid-cols-2 gap-4">
                             {[10000, 50000, 100000, 500000].map(amt => {
                                 let reqLevel = 0;
-                                if (amt === 50000) reqLevel = 2;
-                                if (amt === 100000) reqLevel = 3;
-                                if (amt === 500000) reqLevel = 4;
+                                // if (amt === 50000) reqLevel = 2; // Removed restriction
+                                if (amt === 100000) reqLevel = 2;
+                                if (amt === 500000) reqLevel = 3;
                                 const isLocked = gameState.officeLevel < reqLevel;
                                 return (
                                     <button key={amt} onClick={() => !isLocked && onTakeLoan(amt)} disabled={isLocked} className={`border p-4 rounded-2xl text-left relative overflow-hidden transition-all ${isLocked ? 'bg-slate-950 border-slate-800 opacity-60 cursor-not-allowed' : 'bg-slate-900 border-emerald-500/30 hover:bg-emerald-500/10 active:scale-95'}`}>
@@ -416,16 +504,94 @@ const MarketTab: React.FC<MarketTabProps> = ({
                         <button onClick={() => prepareOp('espionage')} className="bg-gradient-to-br from-slate-900 to-indigo-950 p-6 rounded-2xl border border-indigo-500/30 text-left relative overflow-hidden group active:scale-95 transition-transform">
                             <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Briefcase size={80} /></div>
                             <div className="text-indigo-400 font-black uppercase tracking-widest mb-1">{t.espionage}</div>
-                            <div className="text-2xl text-white font-bold mb-4">{t.stealTech}</div>
-                            <div className="text-sm font-mono bg-black/30 text-indigo-300 inline-block px-3 py-1 rounded">$10,000</div>
+                            <div className="text-2xl text-white font-bold mb-3">{t.stealTech}</div>
+                            <div className="text-xs text-indigo-300/70">Select a target to see pricing</div>
                         </button>
                         <button onClick={() => prepareOp('sabotage')} className="bg-gradient-to-br from-slate-900 to-red-950 p-6 rounded-2xl border border-red-500/30 text-left relative overflow-hidden group active:scale-95 transition-transform">
                             <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Skull size={80} /></div>
                             <div className="text-red-400 font-black uppercase tracking-widest mb-1">{t.sabotage}</div>
-                            <div className="text-2xl text-white font-bold mb-4">{t.crippleRivals}</div>
-                            <div className="text-sm font-mono bg-black/30 text-red-300 inline-block px-3 py-1 rounded">$25,000</div>
+                            <div className="text-2xl text-white font-bold mb-3">{t.crippleRivals}</div>
+                            <div className="text-xs text-red-300/70">Select a target to see pricing</div>
                         </button>
                         <div className="mt-4 pt-4 border-t border-slate-800"><Button variant="secondary" className="w-full py-4" onClick={onRetire}>{t.retire}</Button></div>
+                    </div>
+                )}
+
+                {/* Target Selection Modal with Dynamic Pricing */}
+                {targetModalOpen && selectedOpType && (
+                    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+                        <div className="bg-slate-900 w-full max-w-md rounded-3xl border border-slate-700 overflow-hidden shadow-2xl max-h-[80vh] overflow-y-auto">
+                            <div className={`p-6 border-b border-slate-700 ${selectedOpType === 'espionage' ? 'bg-gradient-to-r from-indigo-900/50 to-slate-900' : 'bg-gradient-to-r from-red-900/50 to-slate-900'}`}>
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <div className={`text-xs font-bold uppercase tracking-widest mb-1 ${selectedOpType === 'espionage' ? 'text-indigo-400' : 'text-red-400'}`}>
+                                            {selectedOpType === 'espionage' ? t.espionage : t.sabotage}
+                                        </div>
+                                        <div className="text-lg font-black text-white">
+                                            {selectedOpType === 'espionage' ? 'Select Target to Steal Tech' : 'Select Target to Sabotage'}
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setTargetModalOpen(false)} className="text-slate-400 hover:text-white">
+                                        <X size={24} />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
+                                {gameState.competitors.map(comp => {
+                                    // Use competitor's valuation for cost (same as backend)
+                                    const targetValue = comp.money || 10000;
+                                    const espionageCost = Math.max(5000, Math.floor(targetValue * 0.10));
+                                    const sabotageCost = Math.max(15000, Math.floor(targetValue * 0.25));
+                                    const opCost = selectedOpType === 'espionage' ? espionageCost : sabotageCost;
+
+                                    const canAfford = gameState.money >= opCost;
+
+                                    return (
+                                        <button
+                                            key={comp.id}
+                                            onClick={() => canAfford && handleTargetSelect(comp.id)}
+                                            disabled={!canAfford}
+                                            className={`w-full p-4 rounded-xl border transition-all text-left ${canAfford
+                                                ? 'bg-slate-800/50 border-slate-700 hover:bg-slate-700/50 hover:border-slate-600 active:scale-95'
+                                                : 'bg-slate-950/50 border-slate-800 opacity-40 cursor-not-allowed'
+                                                }`}
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <div className="text-sm font-bold text-white">{comp.name}</div>
+                                                    <div className="text-[10px] text-slate-500 mt-0.5">
+                                                        Tech: {comp.techLevel[ProductType.CPU]}/{comp.techLevel[ProductType.GPU]} •
+                                                        ${((comp.money || 0) / 1000).toFixed(0)}k
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className={`text-lg font-black font-mono ${selectedOpType === 'espionage' ? 'text-indigo-400' : 'text-red-400'
+                                                        }`}>
+                                                        ${opCost.toLocaleString()}
+                                                    </div>
+                                                    <div className="text-[9px] text-slate-500 uppercase">Cost</div>
+                                                </div>
+                                            </div>
+                                            {selectedOpType === 'espionage' && (
+                                                <div className="text-[10px] text-indigo-300/70 bg-indigo-950/30 px-2 py-1 rounded">
+                                                    Steal tech & gain RP
+                                                </div>
+                                            )}
+                                            {selectedOpType === 'sabotage' && (
+                                                <div className="text-[10px] text-red-300/70 bg-red-950/30 px-2 py-1 rounded">
+                                                    Damage their operations
+                                                </div>
+                                            )}
+                                            {!canAfford && (
+                                                <div className="text-[10px] text-amber-400/70 bg-amber-950/20 px-2 py-1 rounded mt-1">
+                                                    Insufficient funds
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

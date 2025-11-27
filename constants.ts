@@ -8,10 +8,10 @@ export const INITIAL_REPUTATION = 10;
 
 // Simulation Constants
 export const TICK_RATE_MS = 1500; // 1.5 seconds per day
-export const RESEARCHER_BASE_COST = 1000;
-export const RESEARCHER_COST_GROWTH = 1.5;
-export const RESEARCHER_DAILY_SALARY = 150;
-export const RP_PER_RESEARCHER_PER_DAY = 10;
+export const RESEARCHER_BASE_COST = 3000; // Increased from 1000
+export const RESEARCHER_COST_GROWTH = 1.6; // Increased from 1.5  
+export const RESEARCHER_DAILY_SALARY = 300; // Increased from 150
+export const RP_PER_RESEARCHER_PER_DAY = 8; // Decreased from 10
 export const IPO_THRESHOLD_VALUATION = 100000;
 export const MAX_ACTIVE_LOANS = 3;
 
@@ -61,41 +61,168 @@ export const MARKETING_CAMPAIGNS: MarketingCampaign[] = [
 
 // Competitor Constants
 export const INITIAL_COMPETITORS: Competitor[] = [
+  // Tier 1: Startups (Early Game Rivals)
   {
-    id: 'comp_techcorp',
-    name: 'TechCorp',
-    marketShare: { [ProductType.CPU]: 25, [ProductType.GPU]: 20 },
-    productQuality: { [ProductType.CPU]: 70, [ProductType.GPU]: 65 },
-    aggressiveness: 50,
+    id: 'comp_garage',
+    name: 'GarageTek',
+    marketShare: { [ProductType.CPU]: 0.5, [ProductType.GPU]: 0.5 },
+    productQuality: { [ProductType.CPU]: 15, [ProductType.GPU]: 15 },
+    aggressiveness: 20,
+    cashReserves: 5000,
+    techLevel: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
+    money: 5000,
+    history: [5000],
+    lastReleaseDay: -10
+  },
+  {
+    id: 'comp_pixel',
+    name: 'PixelDreams',
+    marketShare: { [ProductType.CPU]: 0.2, [ProductType.GPU]: 0.8 },
+    productQuality: { [ProductType.CPU]: 10, [ProductType.GPU]: 25 },
+    aggressiveness: 25,
+    cashReserves: 8000,
+    techLevel: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
+    money: 8000,
+    history: [8000],
+    lastReleaseDay: -15
+  },
+  {
+    id: 'comp_logic',
+    name: 'LogicGate',
+    marketShare: { [ProductType.CPU]: 0.8, [ProductType.GPU]: 0.2 },
+    productQuality: { [ProductType.CPU]: 25, [ProductType.GPU]: 10 },
+    aggressiveness: 30,
+    cashReserves: 12000,
+    techLevel: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
+    money: 12000,
+    history: [12000],
+    lastReleaseDay: -20
+  },
+
+  // Tier 2: Small Cap (Growth)
+  {
+    id: 'comp_wave',
+    name: 'SiliconWave',
+    marketShare: { [ProductType.CPU]: 2, [ProductType.GPU]: 2 },
+    productQuality: { [ProductType.CPU]: 40, [ProductType.GPU]: 40 },
+    aggressiveness: 45,
     cashReserves: 500000,
-    techLevel: { [ProductType.CPU]: 1, [ProductType.GPU]: 1 }
+    techLevel: { [ProductType.CPU]: 1, [ProductType.GPU]: 1 },
+    money: 500000,
+    history: [500000],
+    lastReleaseDay: -40
   },
   {
-    id: 'comp_budgetchips',
-    name: 'BudgetChips',
-    marketShare: { [ProductType.CPU]: 30, [ProductType.GPU]: 15 },
-    productQuality: { [ProductType.CPU]: 45, [ProductType.GPU]: 40 },
-    aggressiveness: 80,
-    cashReserves: 300000,
-    techLevel: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 }
+    id: 'comp_chip',
+    name: 'ChipMaster',
+    marketShare: { [ProductType.CPU]: 3, [ProductType.GPU]: 1 },
+    productQuality: { [ProductType.CPU]: 45, [ProductType.GPU]: 30 },
+    aggressiveness: 50,
+    cashReserves: 750000,
+    techLevel: { [ProductType.CPU]: 1, [ProductType.GPU]: 1 },
+    money: 750000,
+    history: [750000],
+    lastReleaseDay: -35
   },
   {
-    id: 'comp_innovate',
-    name: 'InnovateTech',
-    marketShare: { [ProductType.CPU]: 20, [ProductType.GPU]: 35 },
-    productQuality: { [ProductType.CPU]: 60, [ProductType.GPU]: 75 },
-    aggressiveness: 40,
-    cashReserves: 800000,
-    techLevel: { [ProductType.CPU]: 1, [ProductType.GPU]: 2 }
+    id: 'comp_nano',
+    name: 'NanoSystems',
+    marketShare: { [ProductType.CPU]: 1, [ProductType.GPU]: 3 },
+    productQuality: { [ProductType.CPU]: 35, [ProductType.GPU]: 50 },
+    aggressiveness: 55,
+    cashReserves: 900000,
+    techLevel: { [ProductType.CPU]: 1, [ProductType.GPU]: 1 },
+    money: 900000,
+    history: [900000],
+    lastReleaseDay: -45
   },
+
+  // Tier 3: Mid Cap (Established)
   {
-    id: 'comp_global',
-    name: 'GlobalSemi',
-    marketShare: { [ProductType.CPU]: 25, [ProductType.GPU]: 30 },
-    productQuality: { [ProductType.CPU]: 65, [ProductType.GPU]: 70 },
+    id: 'comp_future',
+    name: 'FutureSystems',
+    marketShare: { [ProductType.CPU]: 6, [ProductType.GPU]: 6 },
+    productQuality: { [ProductType.CPU]: 55, [ProductType.GPU]: 50 },
     aggressiveness: 60,
-    cashReserves: 1000000,
-    techLevel: { [ProductType.CPU]: 1, [ProductType.GPU]: 1 }
+    cashReserves: 2500000,
+    techLevel: { [ProductType.CPU]: 2, [ProductType.GPU]: 1 },
+    money: 2500000,
+    history: [2500000],
+    lastReleaseDay: -60
+  },
+  {
+    id: 'comp_quantum',
+    name: 'QuantumCore',
+    marketShare: { [ProductType.CPU]: 8, [ProductType.GPU]: 4 },
+    productQuality: { [ProductType.CPU]: 65, [ProductType.GPU]: 45 },
+    aggressiveness: 65,
+    cashReserves: 3500000,
+    techLevel: { [ProductType.CPU]: 2, [ProductType.GPU]: 2 },
+    money: 3500000,
+    history: [3500000],
+    lastReleaseDay: -55
+  },
+  {
+    id: 'comp_cyber',
+    name: 'CyberDyne',
+    marketShare: { [ProductType.CPU]: 4, [ProductType.GPU]: 8 },
+    productQuality: { [ProductType.CPU]: 50, [ProductType.GPU]: 65 },
+    aggressiveness: 70,
+    cashReserves: 4000000,
+    techLevel: { [ProductType.CPU]: 1, [ProductType.GPU]: 2 },
+    money: 4000000,
+    history: [4000000],
+    lastReleaseDay: -50
+  },
+
+  // Tier 4: Giants (Market Leaders)
+  {
+    id: 'comp_intel',
+    name: 'Intellion',
+    marketShare: { [ProductType.CPU]: 30, [ProductType.GPU]: 5 },
+    productQuality: { [ProductType.CPU]: 75, [ProductType.GPU]: 40 },
+    aggressiveness: 60,
+    cashReserves: 15000000,
+    techLevel: { [ProductType.CPU]: 3, [ProductType.GPU]: 1 },
+    money: 15000000,
+    history: [15000000],
+    lastReleaseDay: -100
+  },
+  {
+    id: 'comp_amd',
+    name: 'Advanced Micro',
+    marketShare: { [ProductType.CPU]: 15, [ProductType.GPU]: 20 },
+    productQuality: { [ProductType.CPU]: 65, [ProductType.GPU]: 65 },
+    aggressiveness: 75,
+    cashReserves: 10000000,
+    techLevel: { [ProductType.CPU]: 3, [ProductType.GPU]: 3 },
+    money: 10000000,
+    history: [10000000],
+    lastReleaseDay: -80
+  },
+  {
+    id: 'comp_nvidia',
+    name: 'Nvidio',
+    marketShare: { [ProductType.CPU]: 2, [ProductType.GPU]: 40 },
+    productQuality: { [ProductType.CPU]: 30, [ProductType.GPU]: 85 },
+    aggressiveness: 80,
+    cashReserves: 20000000,
+    techLevel: { [ProductType.CPU]: 1, [ProductType.GPU]: 4 },
+    money: 20000000,
+    history: [20000000],
+    lastReleaseDay: -50
+  },
+  {
+    id: 'comp_apple',
+    name: 'Fruit Silicon',
+    marketShare: { [ProductType.CPU]: 10, [ProductType.GPU]: 5 },
+    productQuality: { [ProductType.CPU]: 90, [ProductType.GPU]: 60 },
+    aggressiveness: 40,
+    cashReserves: 50000000,
+    techLevel: { [ProductType.CPU]: 4, [ProductType.GPU]: 2 },
+    money: 50000000,
+    history: [50000000],
+    lastReleaseDay: -120
   }
 ];
 
@@ -282,7 +409,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: 'Spy Games',
     description: 'Perform a successful Espionage.',
     icon: 'Eye',
-    condition: (state) => state.logs.some(l => l.message.includes('Espionage success')),
+    condition: (state) => state.logs.some(l => l.tag === 'espionage_success'),
     reward: { type: 'rp', value: 500 }
   },
   {
@@ -290,7 +417,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: 'Saboteur',
     description: 'Perform a successful Sabotage.',
     icon: 'Bomb',
-    condition: (state) => state.logs.some(l => l.message.includes('Sabotage success')),
+    condition: (state) => state.logs.some(l => l.tag === 'sabotage_success'),
     reward: { type: 'rp', value: 250 }
   },
   {
@@ -347,6 +474,7 @@ export const TRANSLATIONS = {
     //Manifactoring
     manufacturing: "Manufacturing",
     marketValue: "Market Value",
+    price: "Price",
     designLab: "DESIGN LAB",
     engineeringStation: "Engineering Station",
     budgetChip: "Budget Chip",
@@ -519,7 +647,7 @@ export const TRANSLATIONS = {
 
     // Market Tab
     estUnitCost: "Est. Unit Cost",
-    siliconCost: "Silicon Cost",
+    siliconCost: "Material Cost",
     netProfit: "Net Profit",
     avgCost: "Avg Cost",
     pl: "P/L",
@@ -582,8 +710,21 @@ export const TRANSLATIONS = {
     specialization: "Specialization",
     speed: "Speed",
     normal: "Normal",
+    defectRate: "Defect Rate",
     // Logs & Notifications
     logRdEstablished: "R&D Dept. Established.",
+
+    // Statistics Tab
+    marketValuation: "Market Valuation",
+    competitorAnalysis: "Competitor Analysis",
+    company: "Company",
+    techLevel: "Tech (CPU/GPU)",
+    share: "Share",
+    you: "You",
+
+    // Market Tab
+    boardIntervention: "Board Intervention",
+    penaltyPrestige: "Penalty: -{0} Prestige",
     logFinanceEstablished: "Finance Dept. Established. IPO ready.",
     logContractFailed: "Contract FAILED! Client furious.",
     logContractOrder: "ORDER: {0}x {1}",
@@ -598,6 +739,9 @@ export const TRANSLATIONS = {
     logResignSingle: "RESIGNATION: A researcher left for a better offer.",
     logBankInterest: "Bank: Weekly interest deducted.",
     logRentPaid: "Office Rent Paid.",
+    logEspionageSuccess: "Espionage success! Stole tech from {0}.",
+    logSabotageSuccess: "Sabotage success! Crippled {0}.",
+    logOpFailed: "Op Failed! {0} traced you.",
     logBankRejectedLimit: "Bank rejected! Too many active loans.",
     logBankRejectedOffice: "Bank rejected! Office too small.",
     logLoanApproved: "Loan approved. Interest rate 1.5%",
@@ -662,362 +806,96 @@ export const TRANSLATIONS = {
     ach_ipo_desc: "Launch an IPO.",
     ach_monopoly_title: "Market Dominance",
     ach_monopoly_desc: "Reach 90% Reputation.",
+
+    // General Actions
+    cancel: "CANCEL",
+    confirm: "CONFIRM",
+    trendMatched: "Trend Matched",
+    trendMissed: "Trend Missed",
+    downgrade: "DOWNGRADE",
+    downgradeTo: "Downgrade to:",
+    downgradeConfirm: "Are you sure you want to downgrade?",
+    downgradeCost: "Moving Cost",
+    minPerf: "Min Perf",
+    minEff: "Min Eff",
+    upfront: "Upfront",
+    completion: "Completion",
+    req: "Req",
+    produceCpu: "Produce CPU",
+    produceGpu: "Produce GPU",
+    balancedMarket: "Balanced Market",
+    highVolatility: "High Volatility",
+    infrastructure: "Infrastructure",
+    now: "Now",
+    later: "Later",
+
+
+
+    // Logs
+    logYield: "Yield: {0}%. {1} defects sold as budget chips for ${2}.",
+    logContractFulfilled: "Contract Fulfilled! Payment received.",
+    logSold: "Sold {0}x {1} units.",
+    logWarehouseFull: "Warehouse Full! Upgrade needed.",
+    logHQUpgraded: "HQ Upgraded to {0}!",
+    logHQDowngraded: "HQ Downgraded to {0}. Rent reduced.",
+    logTechBreakthrough: "Tech Breakthrough! Market Leader! (+{0} Prestige)",
+    logTechUnlocked: "Tech Unlocked!",
+    logHeadhunted: "Headhunted {0}!",
+    logStockBuyback: "Stock Buyback: +{0}% Ownership",
+    logStockDilution: "Stock Dilution: -{0}% Ownership",
+    logMaintained: "Maintained production line. Efficiency restored to 100%.",
+    logInsufficientFunds: "Insufficient Funds for Operation",
+
+    // Events
+    evt_cyber_title: "CYBER ATTACK!",
+    evt_cyber_desc: "Hackers infiltrated your servers. Research data corrupted.",
+    evt_viral_title: "VIRAL REVIEW",
+    evt_viral_desc: "A famous tech tuber praised your products. Demand surging!",
+    evt_shortage_title: "SILICON SHORTAGE",
+    evt_shortage_desc: "Global supply chain issues. Silicon prices skyrocketed.",
+    evt_grant_title: "GOVERNMENT GRANT",
+    evt_grant_desc: "Received a tech innovation grant.",
+    evt_dotcom_title: "DOT-COM BUBBLE BURST",
+    evt_dotcom_desc: "Market crash! Tech stocks plummeting.",
+    evt_y2k_title: "Y2K BUG SCARE",
+    evt_y2k_desc: "Critical software updates needed. Research halted.",
+    evt_appstore_title: "APP ECOSYSTEM LAUNCH",
+    evt_appstore_desc: "Mobile software demand skyrocketing!",
+    evt_social_title: "SOCIAL MEDIA EXPLOSION",
+    evt_social_desc: "Data centers expanding. High server CPU demand.",
+    evt_agi_title: "AGI BREAKTHROUGH",
+    evt_agi_desc: "Artificial General Intelligence achieved! Research speed x2.",
+    evt_robot_tax_title: "AUTOMATION TAX",
+    evt_robot_tax_desc: "New laws tax AI usage. Costs increased.",
+    evt_quantum_title: "QUANTUM SUPREMACY",
+    evt_quantum_desc: "Quantum computing breakthrough. Encryption tech valued.",
+
+    // Board Missions
+    mission_profit: "Board Demand: Reach ${0} Profit",
+    mission_quality: "Board Demand: Achieve {0}% Quality",
+    mission_prestige: "Board Demand: Reach {0} Prestige",
+    mission_penalty: "Board Mission Failed! Prestige -{0}",
+    mission_deadline: "Deadline: {0} Days",
+
+    // IPO
+    ipoConfirmTitle: "Launch IPO?",
+    ipoConfirmDesc: "You are about to take your company public.",
+    ipoShareSale: "You will sell 40% of your shares.",
+    ipoCashGain: "Estimated Cash Gain: ${0}",
+    ipoWarning: "Warning: If your ownership drops below 50%, the Board will intervene."
   },
-  tr: {
-    logOfflineMessage: "Siz yokken şirketiniz {0} kazandı ve {1} AP elde etti.",
-    selectProduct: "Ürün Seç",
-    designSpecs: "Tasarım Özellikleri",
-    production: "Üretim",
-    amount: "Miktar",
-    insufficientFunds: "Yetersiz Bakiye",
-    statistics: "İSTATİSTİK",
-    marketing: "PAZARLAMA",
-    campaigns: "Kampanyalar",
-    brandAwareness: "Marka Bilinirliği",
-    activeCampaigns: "Aktif Kampanyalar",
-    launch: "BAŞLAT",
-    cost: "Maliyet",
-    duration: "Süre",
-    boost: "Artış",
-    type: "Tür",
-    // General UI
-    version: "v1.0.0 • Erken Erişim",
-    cash: "NAKİT",
-    rndAcronym: "AR-GE",
-    repAcronym: "İTB",
-    nextEra: "Sonraki Çağ",
-    marketModifiers: "Pazar Etkileri",
-    cpuDemand: "CPU Talebi",
-    gpuDemand: "GPU Talebi",
-    locked: "KİLİTLİ",
-
-    // Market Tab
-    estUnitCost: "Tahmini Birim Maliyet",
-    siliconCost: "Silikon Maliyeti",
-    netProfit: "Net Kâr",
-    avgCost: "Ort. Maliyet",
-    pl: "K/Z",
-
-    // Research Tab
-    policyRelaxedName: "RAHAT",
-    policyNormalName: "NORMAL",
-    policyCrunchName: "AĞIR MESAİ",
-
-    // Hacking Minigame
-    hackProtocol: "GÜVENLİK PROTOKOLÜ",
-    hackLocked: "KİLİTLİ",
-    hackGranted: "ERİŞİM BAŞARILI",
-    hackDetected: "TESPİT EDİLDİ",
-    hackInstruction: "Güvenlik duvarını aşmak için imleci işaretli alanda durdur.",
-    hackExecute: "HACKLE",
-    hackUploading: "VİRÜS YÜKLENİYOR...",
-    hackLost: "BAĞLANTI KOPTU",
-    // Marketing Campaigns
-    camp_social_name: "Sosyal Medya Reklamları",
-    camp_social_desc: "Popüler platformlarda hedefli reklamlar.",
-    camp_influencer_name: "Fenomen İncelemesi",
-    camp_influencer_desc: "Ürünleri ünlü teknoloji YouTuber'larına gönder.",
-    camp_tv_name: "TV Reklamı",
-    camp_tv_desc: "Ulusal kanallarda prime-time reklamı.",
-    camp_event_name: "Teknoloji Fuarı Standı",
-    camp_event_desc: "Yıllık Teknoloji Fuarı'nda büyük bir stant.",
-
-    // Office Names & Descs
-    office_garage_name: "Annemin Garajı",
-    office_garage_desc: "Bedava ama minik. Maksimum 2 personel.",
-    office_basement_name: "Bodrum Laboratuvarı",
-    office_basement_desc: "Ucuz yeraltı alanı. Kötü havalandırma.",
-    office_startup_name: "Startup Ofisi",
-    office_startup_desc: "Gerçek iş buradan başlıyor.",
-    office_corporate_name: "Kurumsal Kat",
-    office_corporate_desc: "Olanaklarla profesyonel ortam.",
-    office_campus_name: "Teknoloji Kampüsü",
-    office_campus_desc: "Devasa üretim kapasitesi.",
-    office_hq_name: "Silikon Merkezi",
-    office_hq_desc: "Küresel hakimiyet.",
-
-    // Factory UI
-    nextLevel: "Sonraki Seviye",
-    rent: "Kira",
-    maxResearchers: "Maks. Araştırmacı",
-    upgradeCost: "Yükseltme Maliyeti",
-    achievements: "BAŞARIMLAR",
-    achievementUnlocked: "Başarım Açıldı!",
-    repUnknown: "Bilinmiyor",
-    repLocal: "Yerel Marka (+%10 Fiyat)",
-    repNational: "Ulusal Yıldız (-%15 Silikon M.)",
-    repGlobal: "Küresel Oyuncu (+%20 Kontrat)",
-    repTitan: "Teknoloji Devi (+%25 Ar-Ge Hızı)",
-    startNew: "YENİ ŞİRKET KUR",
-    continue: "DEVAM ET",
-    welcome: "SILICON TYCOON",
-    subtitle: "Kurumsal Yönetim Simülasyonu",
-    resetWarning: "Mevcut kayıt silinecektir.",
-    day: "Gün",
-    netWorth: "Şirket Değeri",
-    research: "Ar-Ge",
-    factory: "FABRİKA",
-    rnd: "AR-GE",
-    market: "PAZAR",
-    paused: "DURAKLATILDI",
-    productionHalted: "Üretim Durduruldu",
-    resume: "DEVAM ET",
-    saveAndExit: "KAYDET VE ÇIK",
-    tabLocked: "ÖZELLİK KİLİTLİ",
-    tabLockedDesc: "Açmak için ofis seviyesini yükselt veya eğitimi tamamla.",
-    systemOnline: "SİSTEM AÇIK. VERİ BEKLENİYOR...",
-    rep: "İtibar",
-    silicon: "Silikon",
-    newRun: "Yeni Oyun. Miras:",
-
-    // Factory
-    design: "TASARIM",
-    done: "TAMAM",
-    unitCost: "Birim Maliyet",
-    unitPrice: "Birim Fiyat",
-    performance: "Performans",
-    efficiency: "Verimlilik",
-    budget: "Bütçe",
-    highEnd: "Yüksek Performans",
-    powerHungry: "Güç Canavarı",
-    ecoFriendly: "Çevre Dostu",
-    inStock: "Stokta",
-    line: "Hattı",
-    noSilicon: "SİLİKON YOK",
-    produce: "ÜRET",
-    marketTrend: "Pazar Trendi",
-    requiredSpec: "Gereksinim",
-    officeLevel: "Ofis Seviyesi",
-    upgrade: "Yükselt:",
-    maxed: "MAKSİMUM",
-    upgradeInfra: "OFİSİ YÜKSELT",
-    siliconSupply: "Silikon Stoğu",
-    purchaseSilicon: "100 BİRİM SATIN AL",
-    assemblyLines: "Üretim Hatları",
-    strategy: "Strateji",
-
-    //Üretimhane
-    manufacturing: "Üretim Maliyeti",
-    marketValue: "Pazar Değeri",
-    designLab: "TASARIM LAB",
-    engineeringStation: "Mühendislik İstasyonu",
-    budgetChip: "Bütçe Dostu",
-    flagship: "Amiral Gemisi",
-    defect: "Hata %",
-    clock: "Hız",
-    tdp: "Isı (TDP)",
-
-    // Research
-    nextMilestone: "Sıradaki Hedef",
-    baseCost: "Baz Maliyet",
-    basePrice: "Baz Fiyat",
-    researchBtn: "ARAŞTIR",
-    techMastered: "Teknoloji Tamamlandı",
-
-    rndDept: "Ar-Ge Departmanı",
-    dailyOutput: "Günlük Üretim",
-    researchers: "Araştırmacı",
-    activeStaff: "Aktif Personel",
-    hireStaff: "PERSONEL AL",
-    headhunters: "Kafa Avcıları",
-    scrollMore: "Kaydır",
-    hired: "İŞE ALINDI",
-    hire: "İŞE AL",
-    techRoadmap: "Teknoloji Haritası",
-    cpuArch: "CPU Mimarisi",
-    gpuArch: "GPU Mimarisi",
-    policyRelaxedDesc: "Yüksek Moral, Düşük Çıktı (-%20 Maaş)",
-    policyNormalDesc: "Dengeli iş akışı.",
-    policyCrunchDesc: "Dikkat: Yüksek Çıktı, İstifa Riski! (+%50 Maaş)",
-
-    // Market
-    sales: "Satış",
-    contracts: "Kontratlar",
-    stocks: "Borsa",
-    warfare: "Savaş",
-    model: "Model",
-    trendMatch: "Trend Uyumu",
-    trendMiss: "Trend Uyumsuzluğu",
-    marketPrice: "Pazar Fiyatı",
-    inventory: "Envanter",
-    sellBatch: "PARTİYİ SAT",
-    rivalAlert: "Rakip Alarmı",
-    cashFlow: "Nakit Akışı",
-    noContracts: "Mevcut Kontrat Yok",
-    daysLeft: "Gün Kaldı",
-    accept: "KABUL ET",
-    privateCompany: "Özel Şirket",
-    valuationGoal: "Hedef Değerleme",
-    launchIPO: "HALKA ARZ OL",
-    publiclyTraded: "Halka Açık",
-    sharePrice: "Hisse Fiyatı",
-    ownership: "Sahiplik",
-    globalExchange: "Küresel Borsa",
-    owned: "Sahip Olunan",
-    buy: "AL",
-    sell: "SAT",
-    espionage: "Casusluk",
-    stealTech: "Teknoloji Çal",
-    sabotage: "Sabotaj",
-    crippleRivals: "Rakipleri Çökert",
-    retire: "EMEKLİ OL (PRESTİJ)",
-    impact: "Etki",
-    left: "kaldı",
-    days: "gün",
-
-    //Banka
-    bank: "Banka & Kredi",
-    takeLoan: "KREDİ ÇEK",
-    payLoan: "BORCU KAPAT",
-    dailyInterest: "Günlük Faiz",
-    activeLoans: "Aktif Krediler",
-    hrPolicy: "İK Politikası",
-    morale: "Personel Morali",
-    policyRelaxed: "Rahat (Düşük Stres)",
-    policyNormal: "Standart (9-5 Mesai)",
-    policyCrunch: "AĞIR MESAİ (Yüksek Çıktı)",
-    moraleLowWarning: "Personel tükeniyor!",
-    valuation: "Şirket Değerlemesi",
-    buyBack: "HİSSE GERİ AL",
-    dilute: "HİSSE SAT (FONLA)",
-    ownershipWarning: "Dikkat! Sahiplik çok düşük!",
-    needUpgrade: "Ofis Yükseltmesi Gerek",
-    finance: "FİNANS",
-    bankruptcyWarning: "İFLAS UYARISI! 60 gün içinde bakiyeyi düzeltmezsen kovulacaksın!",
-    gameOver: "OYUN BİTTİ",
-    fired: "Şirketi batırdığın için kovuldun.",
-    tryAgain: "TEKRAR DENE",
-    fireStaff: "KOV (-$500)",
-    firedAlert: "Personel kovuldu. Moral düştü!",
-    settings: "AYARLAR",
-    soundEffects: "Ses Efektleri",
-    soundDesc: "Oyun seslerini aç/kapat",
-    vibration: "Titreşim",
-    vibrationDesc: "Titreşim geri bildirimi",
-    close: "KAPAT",
-    loanRejectedLimit: "Banka reddetti! Çok fazla aktif kredi var.",
-    loanRejectedOffice: "Banka reddetti! Ofis çok küçük.",
-    loanApproved: "Kredi onaylandı. Faiz oranı %1.5",
-    loanRepaid: "Kredi Ödendi! Kredi notu yükseldi.",
-    selectTarget: "HEDEF SEÇ",
-    noActiveDebt: "Aktif Borç Yok",
-    leader: "LİDER",
-    old: "ESKİ",
-    valuationGoalAmount: "$100k",
-    returnToMenu: "ANA MENÜYE DÖN",
-    designName: "Tasarım Adı",
-    selectEditDesign: "Yeni bir şema oluşturmak için 'Tasarımı Düzenle'yi seç.",
-    noActiveLines: "için aktif üretim hattı yok",
-    buildNewLine: "Yeni Hat Kur ($50k)",
-    outputDaily: "Üretim: {0}/gün",
-    productionAmount: "Üretim Miktarı",
-    units: "adet",
-    siliconNeeded: "Gerekli Silikon",
-    totalCost: "Toplam Maliyet",
-    available: "Mevcut",
-    current: "Şu Anki",
-    siliconCap: "Silikon Kapasitesi",
-    welcomeBack: "Tekrar Hoşgeldin, CEO",
-    offlineMessage: "Sen yokken {0} dakika boyunca A.L.I.C.E. operasyonları yönetti.",
-    earnings: "Kazanç",
-    collectResources: "KAYNAKLARI TOPLA",
-
-    // Competitors (NEW)
-    competitors: "Rakipler",
-    marketShare: "Pazar Payı",
-    quality: "Kalite",
-
-    // Production (NEW)
-    maintenance: "Bakım",
-    maintain: "BAKIM YAP",
-    specialization: "Uzmanlaşma",
-    speed: "Hız",
-    normal: "Normal",
-    // Logs & Notifications
-    // Logs & Notifications
-    logRdEstablished: "Ar-Ge Departmanı Kuruldu.",
-    logFinanceEstablished: "Finans Departmanı Kuruldu. Halka Arz hazır.",
-    logContractFailed: "Kontrat BAŞARISIZ! Müşteri öfkeli.",
-    logContractOrder: "SİPARİŞ: {0}x {1}",
-    logContractDeadline: "Son Gün: {0} Gün",
-    logGlobalTech: "Küresel Teknoloji: Rakipler Tier {0} {1} piyasaya sürdü!",
-    logEraChange: "ÇAĞ DEĞİŞİMİ: {0} başladı!",
-    logMarketShift: "PAZAR DEĞİŞİMİ: {0}!",
-    logRivalAlert: "RAKİP ALARMI: {0} yeni ürün çıkardı!",
-    logResignCritical: "KRİTİK: Toksik ortam hızlı istifalara yol açıyor!",
-    logResignMass: "TOPLU İSTİFA: 3 araştırmacı protesto ederek ayrıldı!",
-    logResignBad: "DÜŞÜK MORAL: {0} araştırmacı işi bıraktı.",
-    logResignSingle: "İSTİFA: Bir araştırmacı daha iyi bir teklif için ayrıldı.",
-    logBankInterest: "Banka: Haftalık faiz tahsil edildi.",
-    logRentPaid: "Ofis Kirası Ödendi.",
-    logBankRejectedLimit: "Banka reddetti! Çok fazla aktif kredi var.",
-    logBankRejectedOffice: "Banka reddetti! Ofis çok küçük.",
-    logLoanApproved: "Kredi onaylandı. Faiz oranı %1.5",
-    logLoanRepaid: "Kredi Ödendi! Kredi notu yükseldi.",
-    logWelcomeBack: "Tekrar Hoşgeldin, CEO",
-    logCampaignLaunched: "{1} için {0} başlatıldı!",
-
-    // Achievements
-    ach_millionaire_title: "Çekirdek Para",
-    ach_millionaire_desc: "$1,000,000 nakite ulaş.",
-    ach_decamillionaire_title: "Seri A",
-    ach_decamillionaire_desc: "$10,000,000 nakite ulaş.",
-    ach_centimillionaire_title: "Büyük Oyuncu",
-    ach_centimillionaire_desc: "$100,000,000 nakite ulaş.",
-    ach_billionaire_title: "Unicorn",
-    ach_billionaire_desc: "$1,000,000,000 nakite ulaş.",
-    ach_trillionaire_title: "Küresel Hegemon",
-    ach_trillionaire_desc: "$1 Trilyon nakite ulaş.",
-    ach_mass_production_title: "Seri Üretim",
-    ach_mass_production_desc: "Toplam 1,000 birim üret.",
-    ach_industrial_giant_title: "Sanayi Devi",
-    ach_industrial_giant_desc: "Toplam 10,000 birim üret.",
-    ach_researcher_title: "Evreka!",
-    ach_researcher_desc: "İlk araştırmanı tamamla.",
-    ach_tech_pioneer_title: "Teknoloji Öncüsü",
-    ach_tech_pioneer_desc: "Maksimum CPU teknolojisine ulaş.",
-    ach_graphics_wizard_title: "Grafik Sihirbazı",
-    ach_graphics_wizard_desc: "Maksimum GPU teknolojisine ulaş.",
-    ach_lab_rat_title: "Laboratuvar Faresi",
-    ach_lab_rat_desc: "5 Araştırmacı işe al.",
-    ach_research_institute_title: "Araştırma Enstitüsü",
-    ach_research_institute_desc: "20 Araştırmacı işe al.",
-    ach_headhunter_title: "Kafa Avcısı",
-    ach_headhunter_desc: "Bir Kahraman karakter işe al.",
-    ach_dream_team_title: "Rüya Takım",
-    ach_dream_team_desc: "3 Kahraman karakter işe al.",
-    ach_garage_days_title: "Garaj Günleri",
-    ach_garage_days_desc: "30 gün hayatta kal.",
-    ach_anniversary_title: "Yıl Dönümü",
-    ach_anniversary_desc: "365 gün hayatta kal.",
-    ach_veteran_title: "Emektar",
-    ach_veteran_desc: "1000 gün hayatta kal.",
-    ach_corporate_ladder_title: "Kurumsal Merdiven",
-    ach_corporate_ladder_desc: "Ofisi Kurumsal seviyeye yükselt.",
-    ach_sky_high_title: "Göklerde",
-    ach_sky_high_desc: "Ofisi Genel Merkez seviyeye yükselt.",
-    ach_famous_title: "Ünlü",
-    ach_famous_desc: "%50 Marka Bilinirliğine ulaş.",
-    ach_household_name_title: "Herkesin Bildiği İsim",
-    ach_household_name_desc: "%100 Marka Bilinirliğine ulaş.",
-    ach_spy_games_title: "Casus Oyunları",
-    ach_spy_games_desc: "Başarılı bir Casusluk yap.",
-    ach_saboteur_title: "Sabotajcı",
-    ach_saboteur_desc: "Başarılı bir Sabotaj yap.",
-    ach_ipo_title: "Halka Arz",
-    ach_ipo_desc: "Borsaya açıl (IPO).",
-    ach_monopoly_title: "Pazar Hakimiyeti",
-    ach_monopoly_desc: "%90 İtibara ulaş.",
-
-  }
+  tr: null as any // Will be assigned below
 };
+TRANSLATIONS.tr = TRANSLATIONS.en;
+
+
 
 export const MARKET_TRENDS: MarketTrend[] = [
   // Universal Trends
   {
     id: 'trend_neutral',
-    name: 'Dengeli Pazar',
-    description: 'Tüm ürünler için dengeli talep.',
+    name: 'Balanced Market',
+    description: 'Stable demand across all sectors.',
     requiredSpec: 'performance',
     minSpecValue: 0,
     priceBonus: 1.0,
@@ -1026,8 +904,8 @@ export const MARKET_TRENDS: MarketTrend[] = [
   },
   {
     id: 'trend_green',
-    name: 'Enerji Krizi',
-    description: 'Enerji maliyetleri fırladı! Verimlilik kral.',
+    name: 'Energy Crisis',
+    description: 'Energy costs soaring! Efficiency is king.',
     requiredSpec: 'efficiency',
     minSpecValue: 70,
     priceBonus: 1.6,
@@ -1038,28 +916,30 @@ export const MARKET_TRENDS: MarketTrend[] = [
   // CPU-Specific Trends
   {
     id: 'trend_servers',
-    name: 'Sunucu Patlaması',
-    description: 'Veri merkezleri genişliyor! Verimli CPU gerek.',
+    name: 'Server Boom',
+    description: 'Data centers expanding! Efficient CPUs needed.',
     requiredSpec: 'efficiency',
     minSpecValue: 65,
     priceBonus: 1.8,
     penalty: 0.7,
-    affectedProducts: [ProductType.CPU]
+    affectedProducts: [ProductType.CPU],
+    requiredEra: ['era_pc', 'era_mobile']
   },
   {
     id: 'trend_cloud',
-    name: 'Bulut Bilişim Dalgası',
-    description: 'Bulut sağlayıcıları toplu CPU alıyor!',
+    name: 'Cloud Computing Wave',
+    description: 'Cloud providers buying bulk CPUs!',
     requiredSpec: 'efficiency',
     minSpecValue: 60,
     priceBonus: 1.5,
     penalty: 0.8,
-    affectedProducts: [ProductType.CPU]
+    affectedProducts: [ProductType.CPU],
+    requiredEra: ['era_mobile', 'era_ai']
   },
   {
     id: 'trend_office',
-    name: 'Kurumsal Yenileme',
-    description: 'Şirketler ofis bilgisayarlarını yeniliyor.',
+    name: 'Corporate Refresh',
+    description: 'Companies upgrading office PCs.',
     requiredSpec: 'efficiency',
     minSpecValue: 50,
     priceBonus: 1.3,
@@ -1070,18 +950,19 @@ export const MARKET_TRENDS: MarketTrend[] = [
   // GPU-Specific Trends
   {
     id: 'trend_ai',
-    name: 'Yapay Zeka Devrimi',
-    description: 'Makine öğrenmesi patlaması! GPU talebi çok yüksek!',
+    name: 'AI Revolution',
+    description: 'Machine learning boom! High GPU demand!',
     requiredSpec: 'performance',
     minSpecValue: 75,
     priceBonus: 2.0,
     penalty: 0.6,
-    affectedProducts: [ProductType.GPU]
+    affectedProducts: [ProductType.GPU],
+    requiredEra: ['era_ai']
   },
   {
     id: 'trend_gaming',
-    name: 'Oyun Çılgınlığı',
-    description: 'Yeni AAA oyunlar çıktı! Oyuncular güç istiyor!',
+    name: 'Gaming Craze',
+    description: 'New AAA games released! Gamers need power!',
     requiredSpec: 'performance',
     minSpecValue: 80,
     priceBonus: 1.9,
@@ -1090,33 +971,36 @@ export const MARKET_TRENDS: MarketTrend[] = [
   },
   {
     id: 'trend_crypto',
-    name: 'Kripto Madenciliği',
-    description: 'Bitcoin yükseliyor! Madenciler tüm GPU\'ları alıyor!',
+    name: 'Crypto Mining',
+    description: 'Bitcoin rising! Miners buying all GPUs!',
     requiredSpec: 'performance',
     minSpecValue: 70,
     priceBonus: 2.2,
     penalty: 0.4,
-    affectedProducts: [ProductType.GPU]
+    affectedProducts: [ProductType.GPU],
+    requiredEra: ['era_mobile', 'era_ai'] // Late mobile / AI
   },
   {
     id: 'trend_vr',
-    name: 'VR/AR Patlaması',
-    description: 'Sanal gerçeklik ana akıma giriyor!',
+    name: 'VR/AR Boom',
+    description: 'Virtual reality entering mainstream!',
     requiredSpec: 'performance',
     minSpecValue: 75,
     priceBonus: 1.7,
     penalty: 0.6,
-    affectedProducts: [ProductType.GPU]
+    affectedProducts: [ProductType.GPU],
+    requiredEra: ['era_mobile', 'era_ai']
   },
   {
     id: 'trend_streaming',
-    name: 'İçerik Üreticisi Patlaması',
-    description: 'Yayıncılar ve içerik üreticileri güçlü GPU istiyor!',
+    name: 'Creator Boom',
+    description: 'Streamers and creators need powerful GPUs!',
     requiredSpec: 'performance',
     minSpecValue: 65,
     priceBonus: 1.5,
     penalty: 0.7,
-    affectedProducts: [ProductType.GPU]
+    affectedProducts: [ProductType.GPU],
+    requiredEra: ['era_mobile', 'era_ai']
   }
 ];
 
@@ -1125,25 +1009,25 @@ export const MARKET_TRENDS: MarketTrend[] = [
 export const ERAS: GameEra[] = [
   {
     id: 'era_pc',
-    name: 'PC DEVRİMİ',
+    name: 'PC REVOLUTION',
     startDay: 0,
-    description: 'Kişisel bilgisayarların şafağı. CPU\'lar kral.',
+    description: 'Dawn of personal computers. CPUs are king.',
     cpuDemandMod: 1.2,
     gpuDemandMod: 0.8
   },
   {
     id: 'era_mobile',
-    name: 'MOBİL ÇAĞI',
+    name: 'MOBILE ERA',
     startDay: 150,
-    description: 'Her yerde akıllı telefonlar. Verimlilik önemli.',
+    description: 'Smartphones everywhere. Efficiency matters.',
     cpuDemandMod: 0.9,
     gpuDemandMod: 1.1
   },
   {
     id: 'era_ai',
-    name: 'YAPAY ZEKA TEKİLLİĞİ',
+    name: 'AI SINGULARITY',
     startDay: 365,
-    description: 'Üretken yapay zeka patlaması. İnanılmaz GPU talebi.',
+    description: 'Generative AI explosion. Insane GPU demand.',
     cpuDemandMod: 1.0,
     gpuDemandMod: 2.0
   }
@@ -1154,30 +1038,30 @@ export const HEROES: Hero[] = [
   {
     id: 'hero_steve',
     name: 'Steve W.',
-    role: 'Pazarlama Gurusu',
+    role: 'Marketing Guru',
     hiringCost: 50000,
     dailySalary: 500,
-    description: 'Satış fiyatlarını %20 artırır. Çok talepkar.',
+    description: 'Increases sales prices by 20%. Very demanding.',
     effectType: 'sales',
     effectValue: 0.2
   },
   {
     id: 'hero_linus',
     name: 'Linus T.',
-    role: 'Çekirdek Mimarı',
+    role: 'Kernel Architect',
     hiringCost: 30000,
     dailySalary: 300,
-    description: 'Tüm araştırmacılardan gelen RP üretimini ikiye katlar.',
+    description: 'Doubles RP production from all researchers.',
     effectType: 'research',
     effectValue: 1.0 // +100%
   },
   {
     id: 'hero_elon',
     name: 'Elon M.',
-    role: 'Vizyoner',
+    role: 'Visionary',
     hiringCost: 100000,
     dailySalary: 1000,
-    description: 'Şirket değerlemesini ve hisse volatilitesini artırır.',
+    description: 'Increases company valuation and stock volatility.',
     effectType: 'stock',
     effectValue: 0.5
   }
@@ -1185,126 +1069,144 @@ export const HEROES: Hero[] = [
 
 export const OFFICE_CONFIGS = {
   [OfficeLevel.GARAGE]: {
-    name: "Annemin Garajı",
+    name: "Mom's Garage",
     rent: 0,
     maxResearchers: 2,
     siliconCap: 200,
     upgradeCost: 25000,
-    description: "Bedava ama minik. Maksimum 2 personel."
+    description: "Free but tiny. Max 2 staff."
   },
   [OfficeLevel.BASEMENT]: {
-    name: "Bodrum Laboratuvarı",
+    name: "Basement Lab",
     rent: 200,
     maxResearchers: 5,
     siliconCap: 1000,
     upgradeCost: 100000,
-    description: "Ucuz yeraltı alanı. Kötü havalandırma."
+    description: "Cheap underground space. Poor ventilation."
   },
   [OfficeLevel.STARTUP]: {
-    name: "Startup Ofisi",
+    name: "Startup Office",
     rent: 1000,
     maxResearchers: 15,
     siliconCap: 5000,
     upgradeCost: 500000,
-    description: "Gerçek iş buradan başlıyor."
+    description: "Real business starts here."
   },
   [OfficeLevel.CORPORATE]: {
-    name: "Kurumsal Kat",
+    name: "Corporate Floor",
     rent: 5000,
     maxResearchers: 40,
     siliconCap: 20000,
     upgradeCost: 2500000,
-    description: "Olanaklarla profesyonel ortam."
+    description: "Professional environment with amenities."
   },
   [OfficeLevel.CAMPUS]: {
-    name: "Teknoloji Kampüsü",
+    name: "Tech Campus",
     rent: 15000,
     maxResearchers: 100,
     siliconCap: 100000,
     upgradeCost: 10000000,
-    description: "Devasa üretim kapasitesi."
+    description: "Massive production capacity."
   },
   [OfficeLevel.HEADQUARTERS]: {
-    name: "Silikon Merkezi",
+    name: "Silicon HQ",
     rent: 50000,
     maxResearchers: 300,
     siliconCap: 1000000,
     upgradeCost: 0,
-    description: "Küresel hakimiyet."
+    description: "Global dominance."
   }
 };
 
 // Tech Tree for CPUs (10 TIERS with Branching)
 export const CPU_TECH_TREE: TechNode[] = [
   { id: 'cpu_0', name: '8-bit Processor', tier: 0, productionCost: 25, baseMarketPrice: 60, researchCost: 0, branch: 'balanced', yield: 100 },
-  { id: 'cpu_1', name: '16-bit Processor', tier: 1, productionCost: 55, baseMarketPrice: 130, researchCost: 100, branch: 'balanced', prerequisites: ['cpu_0'], yield: 95 },
-  { id: 'cpu_2', name: '32-bit RISC', tier: 2, productionCost: 140, baseMarketPrice: 320, researchCost: 500, branch: 'balanced', prerequisites: ['cpu_1'], yield: 90 },
-  { id: 'cpu_3', name: '32-bit CISC', tier: 3, productionCost: 450, baseMarketPrice: 950, researchCost: 2000, branch: 'balanced', prerequisites: ['cpu_2'], yield: 85 },
+  { id: 'cpu_1', name: '16-bit Processor', tier: 1, productionCost: 55, baseMarketPrice: 130, researchCost: 600, branch: 'balanced', prerequisites: ['cpu_0'], yield: 95 },
+  { id: 'cpu_2', name: '32-bit RISC', tier: 2, productionCost: 140, baseMarketPrice: 320, researchCost: 3000, branch: 'balanced', prerequisites: ['cpu_1'], yield: 90 },
+  { id: 'cpu_3', name: '32-bit CISC', tier: 3, productionCost: 450, baseMarketPrice: 950, researchCost: 15000, branch: 'balanced', prerequisites: ['cpu_2'], yield: 85 },
 
   // Tier 4: Branching starts
-  { id: 'cpu_4_perf', name: '64-bit High-Freq', tier: 4, productionCost: 1200, baseMarketPrice: 1800, researchCost: 8000, branch: 'performance', prerequisites: ['cpu_3'], specialBonus: { type: 'market', value: 10 }, yield: 75 },
-  { id: 'cpu_4_eff', name: '64-bit Low-Power', tier: 4, productionCost: 900, baseMarketPrice: 1200, researchCost: 6000, branch: 'efficiency', prerequisites: ['cpu_3'], specialBonus: { type: 'production', value: 15 }, yield: 80 },
+  { id: 'cpu_4_perf', name: '64-bit High-Freq', tier: 4, productionCost: 1200, baseMarketPrice: 1800, researchCost: 75000, branch: 'performance', prerequisites: ['cpu_3'], specialBonus: { type: 'market', value: 10 }, yield: 75 },
+  { id: 'cpu_4_eff', name: '64-bit Low-Power', tier: 4, productionCost: 900, baseMarketPrice: 1200, researchCost: 60000, branch: 'efficiency', prerequisites: ['cpu_3'], specialBonus: { type: 'production', value: 15 }, yield: 80 },
 
   // Tier 5
-  { id: 'cpu_5_perf', name: 'Dual-Core HT', tier: 5, productionCost: 3000, baseMarketPrice: 4500, researchCost: 25000, branch: 'performance', prerequisites: ['cpu_4_perf'], yield: 70 },
-  { id: 'cpu_5_eff', name: 'Dual-Core Budget', tier: 5, productionCost: 2200, baseMarketPrice: 3000, researchCost: 18000, branch: 'efficiency', prerequisites: ['cpu_4_eff'], yield: 75 },
+  { id: 'cpu_5_perf', name: 'Dual-Core HT', tier: 5, productionCost: 3000, baseMarketPrice: 4500, researchCost: 225000, branch: 'performance', prerequisites: ['cpu_4_perf'], yield: 70 },
+  { id: 'cpu_5_eff', name: 'Dual-Core Budget', tier: 5, productionCost: 2200, baseMarketPrice: 3000, researchCost: 180000, branch: 'efficiency', prerequisites: ['cpu_4_eff'], yield: 75 },
 
   // Tier 6
-  { id: 'cpu_6_perf', name: 'Quad-Core 3GHz', tier: 6, productionCost: 7500, baseMarketPrice: 11000, researchCost: 75000, branch: 'performance', prerequisites: ['cpu_5_perf'], specialBonus: { type: 'market', value: 15 }, yield: 65 },
-  { id: 'cpu_6_eff', name: 'Quad-Core 2GHz', tier: 6, productionCost: 5500, baseMarketPrice: 8000, researchCost: 55000, branch: 'efficiency', prerequisites: ['cpu_5_eff'], specialBonus: { type: 'production', value: 20 }, yield: 70 },
+  { id: 'cpu_6_perf', name: 'Quad-Core 3GHz', tier: 6, productionCost: 7500, baseMarketPrice: 11000, researchCost: 750000, branch: 'performance', prerequisites: ['cpu_5_perf'], specialBonus: { type: 'market', value: 15 }, yield: 65 },
+  { id: 'cpu_6_eff', name: 'Quad-Core 2GHz', tier: 6, productionCost: 5500, baseMarketPrice: 8000, researchCost: 540000, branch: 'efficiency', prerequisites: ['cpu_5_eff'], specialBonus: { type: 'production', value: 20 }, yield: 70 },
 
   // Tier 7
-  { id: 'cpu_7_perf', name: 'Hexa-Core Turbo', tier: 7, productionCost: 18000, baseMarketPrice: 28000, researchCost: 200000, branch: 'performance', prerequisites: ['cpu_6_perf'], yield: 60 },
-  { id: 'cpu_7_eff', name: 'Hexa-Core ECO', tier: 7, productionCost: 13000, baseMarketPrice: 20000, researchCost: 150000, branch: 'efficiency', prerequisites: ['cpu_6_eff'], yield: 65 },
+  { id: 'cpu_7_perf', name: 'Hexa-Core Turbo', tier: 7, productionCost: 18000, baseMarketPrice: 28000, researchCost: 2400000, branch: 'performance', prerequisites: ['cpu_6_perf'], yield: 60 },
+  { id: 'cpu_7_eff', name: 'Hexa-Core ECO', tier: 7, productionCost: 13000, baseMarketPrice: 20000, researchCost: 1800000, branch: 'efficiency', prerequisites: ['cpu_6_eff'], yield: 65 },
 
   // Tier 8
-  { id: 'cpu_8_perf', name: 'Octa-Core 5GHz', tier: 8, productionCost: 45000, baseMarketPrice: 70000, researchCost: 500000, branch: 'performance', prerequisites: ['cpu_7_perf'], specialBonus: { type: 'market', value: 25 }, yield: 50 },
-  { id: 'cpu_8_eff', name: 'Octa-Core 3GHz', tier: 8, productionCost: 32000, baseMarketPrice: 50000, researchCost: 380000, branch: 'efficiency', prerequisites: ['cpu_7_eff'], specialBonus: { type: 'production', value: 30 }, yield: 60 },
+  { id: 'cpu_8_perf', name: 'Octa-Core 5GHz', tier: 8, productionCost: 45000, baseMarketPrice: 70000, researchCost: 7500000, branch: 'performance', prerequisites: ['cpu_7_perf'], specialBonus: { type: 'market', value: 25 }, yield: 50 },
+  { id: 'cpu_8_eff', name: 'Octa-Core 3GHz', tier: 8, productionCost: 32000, baseMarketPrice: 50000, researchCost: 5400000, branch: 'efficiency', prerequisites: ['cpu_7_eff'], specialBonus: { type: 'production', value: 30 }, yield: 60 },
 
   // Tier 9: Ultimate
-  { id: 'cpu_9_perf', name: '16-Core Extreme', tier: 9, productionCost: 120000, baseMarketPrice: 200000, researchCost: 1500000, branch: 'performance', prerequisites: ['cpu_8_perf'], specialBonus: { type: 'market', value: 40 }, yield: 40 },
-  { id: 'cpu_9_eff', name: '32-Core Workstation', tier: 9, productionCost: 85000, baseMarketPrice: 140000, researchCost: 1100000, branch: 'efficiency', prerequisites: ['cpu_8_eff'], specialBonus: { type: 'production', value: 50 }, yield: 50 },
+  { id: 'cpu_9_perf', name: '16-Core Extreme', tier: 9, productionCost: 120000, baseMarketPrice: 200000, researchCost: 30000000, branch: 'performance', prerequisites: ['cpu_8_perf'], specialBonus: { type: 'market', value: 40 }, yield: 40 },
+  { id: 'cpu_9_eff', name: '32-Core Workstation', tier: 9, productionCost: 85000, baseMarketPrice: 140000, researchCost: 24000000, branch: 'efficiency', prerequisites: ['cpu_8_eff'], specialBonus: { type: 'production', value: 50 }, yield: 50 },
 ];
 
 
 // Tech Tree for GPUs (10 TIERS with Branching)
 export const GPU_TECH_TREE: TechNode[] = [
   { id: 'gpu_0', name: 'VGA Graphics', tier: 0, productionCost: 40, baseMarketPrice: 90, researchCost: 0, branch: 'balanced', yield: 100 },
-  { id: 'gpu_1', name: 'SVGA Graphics', tier: 1, productionCost: 90, baseMarketPrice: 200, researchCost: 250, branch: 'balanced', prerequisites: ['gpu_0'], yield: 95 },
-  { id: 'gpu_2', name: '3D Accelerator', tier: 2, productionCost: 220, baseMarketPrice: 480, researchCost: 800, branch: 'balanced', prerequisites: ['gpu_1'], yield: 90 },
-  { id: 'gpu_3', name: 'T&L GPU', tier: 3, productionCost: 700, baseMarketPrice: 1500, researchCost: 3000, branch: 'balanced', prerequisites: ['gpu_2'], yield: 85 },
+  { id: 'gpu_1', name: 'SVGA Graphics', tier: 1, productionCost: 90, baseMarketPrice: 200, researchCost: 1500, branch: 'balanced', prerequisites: ['gpu_0'], yield: 95 },
+  { id: 'gpu_2', name: '3D Accelerator', tier: 2, productionCost: 220, baseMarketPrice: 480, researchCost: 6000, branch: 'balanced', prerequisites: ['gpu_1'], yield: 90 },
+  { id: 'gpu_3', name: 'T&L GPU', tier: 3, productionCost: 700, baseMarketPrice: 1500, researchCost: 24000, branch: 'balanced', prerequisites: ['gpu_2'], yield: 85 },
 
   // Tier 4: Branching starts
-  { id: 'gpu_4_perf', name: 'Shader Model 1.0', tier: 4, productionCost: 2000, baseMarketPrice: 3200, researchCost: 10000, branch: 'performance', prerequisites: ['gpu_3'], specialBonus: { type: 'market', value: 12 }, yield: 75 },
-  { id: 'gpu_4_eff', name: 'Budget Shader', tier: 4, productionCost: 1500, baseMarketPrice: 2200, researchCost: 7500, branch: 'efficiency', prerequisites: ['gpu_3'], specialBonus: { type: 'production', value: 18 }, yield: 80 },
+  { id: 'gpu_4_perf', name: 'Shader Model 1.0', tier: 4, productionCost: 2000, baseMarketPrice: 3200, researchCost: 90000, branch: 'performance', prerequisites: ['gpu_3'], specialBonus: { type: 'market', value: 12 }, yield: 75 },
+  { id: 'gpu_4_eff', name: 'Budget Shader', tier: 4, productionCost: 1500, baseMarketPrice: 2200, researchCost: 66000, branch: 'efficiency', prerequisites: ['gpu_3'], specialBonus: { type: 'production', value: 18 }, yield: 80 },
 
   // Tier 5
-  { id: 'gpu_5_perf', name: 'Shader Model 2.0', tier: 5, productionCost: 5000, baseMarketPrice: 8000, researchCost: 35000, branch: 'performance', prerequisites: ['gpu_4_perf'], yield: 70 },
-  { id: 'gpu_5_eff', name: 'DirectX 8.1 GPU', tier: 5, productionCost: 3800, baseMarketPrice: 5800, researchCost: 26000, branch: 'efficiency', prerequisites: ['gpu_4_eff'], yield: 75 },
+  { id: 'gpu_5_perf', name: 'Shader Model 2.0', tier: 5, productionCost: 5000, baseMarketPrice: 8000, researchCost: 300000, branch: 'performance', prerequisites: ['gpu_4_perf'], yield: 70 },
+  { id: 'gpu_5_eff', name: 'DirectX 8.1 GPU', tier: 5, productionCost: 3800, baseMarketPrice: 5800, researchCost: 240000, branch: 'efficiency', prerequisites: ['gpu_4_eff'], yield: 75 },
 
   // Tier 6
-  { id: 'gpu_6_perf', name: 'Shader Model 3.0', tier: 6, productionCost: 12000, baseMarketPrice: 19000, researchCost: 90000, branch: 'performance', prerequisites: ['gpu_5_perf'], specialBonus: { type: 'market', value: 18 }, yield: 65 },
-  { id: 'gpu_6_eff', name: 'DirectX 9c GPU', tier: 6, productionCost: 9000, baseMarketPrice: 14000, researchCost: 68000, branch: 'efficiency', prerequisites: ['gpu_5_eff'], specialBonus: { type: 'production', value: 25 }, yield: 70 },
+  { id: 'gpu_6_perf', name: 'Shader Model 3.0', tier: 6, productionCost: 12000, baseMarketPrice: 19000, researchCost: 900000, branch: 'performance', prerequisites: ['gpu_5_perf'], specialBonus: { type: 'market', value: 18 }, yield: 65 },
+  { id: 'gpu_6_eff', name: 'DirectX 9c GPU', tier: 6, productionCost: 9000, baseMarketPrice: 14000, researchCost: 660000, branch: 'efficiency', prerequisites: ['gpu_5_eff'], specialBonus: { type: 'production', value: 25 }, yield: 70 },
 
   // Tier 7
-  { id: 'gpu_7_perf', name: 'Unified Shader', tier: 7, productionCost: 30000, baseMarketPrice: 48000, researchCost: 250000, branch: 'performance', prerequisites: ['gpu_6_perf'], yield: 60 },
-  { id: 'gpu_7_eff', name: 'DirectX 10 GPU', tier: 7, productionCost: 22000, baseMarketPrice: 36000, researchCost: 190000, branch: 'efficiency', prerequisites: ['gpu_6_eff'], yield: 65 },
+  { id: 'gpu_7_perf', name: 'Unified Shader', tier: 7, productionCost: 30000, baseMarketPrice: 48000, researchCost: 3000000, branch: 'performance', prerequisites: ['gpu_6_perf'], yield: 60 },
+  { id: 'gpu_7_eff', name: 'DirectX 10 GPU', tier: 7, productionCost: 22000, baseMarketPrice: 36000, researchCost: 2250000, branch: 'efficiency', prerequisites: ['gpu_6_eff'], yield: 65 },
 
   // Tier 8
-  { id: 'gpu_8_perf', name: 'GDDR5 High-End', tier: 8, productionCost: 80000, baseMarketPrice: 130000, researchCost: 750000, branch: 'performance', prerequisites: ['gpu_7_perf'], specialBonus: { type: 'market', value: 30 }, yield: 50 },
-  { id: 'gpu_8_eff', name: 'GDDR5 Mid-Range', tier: 8, productionCost: 58000, baseMarketPrice: 95000, researchCost: 560000, branch: 'efficiency', prerequisites: ['gpu_7_eff'], specialBonus: { type: 'production', value: 35 }, yield: 60 },
+  { id: 'gpu_8_perf', name: 'GDDR5 High-End', tier: 8, productionCost: 80000, baseMarketPrice: 130000, researchCost: 9000000, branch: 'performance', prerequisites: ['gpu_7_perf'], specialBonus: { type: 'market', value: 30 }, yield: 50 },
+  { id: 'gpu_8_eff', name: 'GDDR5 Mid-Range', tier: 8, productionCost: 58000, baseMarketPrice: 95000, researchCost: 6600000, branch: 'efficiency', prerequisites: ['gpu_7_eff'], specialBonus: { type: 'production', value: 35 }, yield: 60 },
 
   // Tier 9: Ultimate
-  { id: 'gpu_9_perf', name: 'Real-Time Lighting', tier: 9, productionCost: 200000, baseMarketPrice: 350000, researchCost: 2000000, branch: 'performance', prerequisites: ['gpu_8_perf'], specialBonus: { type: 'market', value: 50 }, yield: 40 },
-  { id: 'gpu_9_eff', name: 'HBM2 Compute', tier: 9, productionCost: 145000, baseMarketPrice: 250000, researchCost: 1500000, branch: 'efficiency', prerequisites: ['gpu_8_eff'], specialBonus: { type: 'production', value: 60 }, yield: 50 },
+  { id: 'gpu_9_perf', name: 'Real-Time Lighting', tier: 9, productionCost: 200000, baseMarketPrice: 350000, researchCost: 36000000, branch: 'performance', prerequisites: ['gpu_8_perf'], specialBonus: { type: 'market', value: 50 }, yield: 40 },
+  { id: 'gpu_9_eff', name: 'HBM2 Compute', tier: 9, productionCost: 145000, baseMarketPrice: 250000, researchCost: 27000000, branch: 'efficiency', prerequisites: ['gpu_8_eff'], specialBonus: { type: 'production', value: 60 }, yield: 50 },
 ];
 
 // Fictional Companies
 export const INITIAL_STOCKS: Stock[] = [
-  { id: 'stk_1', symbol: 'NBL', name: 'Nebula Systems', currentPrice: 50, history: [48, 49, 50], owned: 0, avgBuyPrice: 0, volatility: 0.05 },
-  { id: 'stk_2', symbol: 'GIG', name: 'GigaWeb Corp', currentPrice: 120, history: [115, 118, 120], owned: 0, avgBuyPrice: 0, volatility: 0.08 },
-  { id: 'stk_3', symbol: 'FRT', name: 'Fruit Computers', currentPrice: 450, history: [440, 445, 450], owned: 0, avgBuyPrice: 0, volatility: 0.03 },
-  { id: 'stk_4', symbol: 'OMN', name: 'OmniDynamics', currentPrice: 15, history: [14, 16, 15], owned: 0, avgBuyPrice: 0, volatility: 0.15 }
+  // Startups (High Volatility, Low Price)
+  { id: 'stock_garage', symbol: 'GTK', name: 'GarageTek', currentPrice: 5.0, history: [5.0], owned: 0, avgBuyPrice: 0, volatility: 0.15 },
+  { id: 'stock_pixel', symbol: 'PXL', name: 'PixelDreams', currentPrice: 8.0, history: [8.0], owned: 0, avgBuyPrice: 0, volatility: 0.12 },
+  { id: 'stock_logic', symbol: 'LGC', name: 'LogicGate', currentPrice: 12.0, history: [12.0], owned: 0, avgBuyPrice: 0, volatility: 0.10 },
+
+  // Small Cap (Growth Potential)
+  { id: 'stock_wave', symbol: 'WAV', name: 'SiliconWave', currentPrice: 45.0, history: [45.0], owned: 0, avgBuyPrice: 0, volatility: 0.08 },
+  { id: 'stock_chip', symbol: 'CHP', name: 'ChipMaster', currentPrice: 30.0, history: [30.0], owned: 0, avgBuyPrice: 0, volatility: 0.09 },
+  { id: 'stock_nano', symbol: 'NNO', name: 'NanoSystems', currentPrice: 60.0, history: [60.0], owned: 0, avgBuyPrice: 0, volatility: 0.07 },
+
+  // Mid Cap (Stable)
+  { id: 'stock_future', symbol: 'FUT', name: 'FutureSystems', currentPrice: 120.0, history: [120.0], owned: 0, avgBuyPrice: 0, volatility: 0.05 },
+  { id: 'stock_quantum', symbol: 'QTM', name: 'QuantumCore', currentPrice: 150.0, history: [150.0], owned: 0, avgBuyPrice: 0, volatility: 0.06 },
+  { id: 'stock_cyber', symbol: 'CYB', name: 'CyberDyne', currentPrice: 180.0, history: [180.0], owned: 0, avgBuyPrice: 0, volatility: 0.04 },
+
+  // Giants (Blue Chip)
+  { id: 'stock_fruit', symbol: 'APPL', name: 'Fruit Silicon', currentPrice: 2500.0, history: [2500.0], owned: 0, avgBuyPrice: 0, volatility: 0.02 },
+  { id: 'stock_micro', symbol: 'SFT', name: 'MicroSoft', currentPrice: 2800.0, history: [2800.0], owned: 0, avgBuyPrice: 0, volatility: 0.015 },
+  { id: 'stock_goog', symbol: 'GGL', name: 'Goggle', currentPrice: 2500.0, history: [2500.0], owned: 0, avgBuyPrice: 0, volatility: 0.025 },
+  { id: 'stock_nvid', symbol: 'NVD', name: 'Nvidio', currentPrice: 800.0, history: [800.0], owned: 0, avgBuyPrice: 0, volatility: 0.05 },
+  { id: 'stock_intc', symbol: 'INT', name: 'Intellion', currentPrice: 450.0, history: [450.0], owned: 0, avgBuyPrice: 0, volatility: 0.03 },
+  { id: 'stock_amd', symbol: 'AMD', name: 'Advanced Micro', currentPrice: 600.0, history: [600.0], owned: 0, avgBuyPrice: 0, volatility: 0.06 }
 ];
 
 // Random Events
@@ -1336,6 +1238,65 @@ export const POTENTIAL_EVENTS: GameEvent[] = [
     description: 'You received a technology innovation grant.',
     type: 'positive',
     effect: (s) => ({ money: s.money + 5000 })
+  },
+  // PC Era Events
+  {
+    id: 'evt_dotcom',
+    title: 'DOT-COM BUBBLE BURST',
+    description: 'Market crash! Tech stocks plummeting.',
+    type: 'negative',
+    requiredEra: ['era_pc'],
+    effect: (s) => ({ marketMultiplier: 0.5, money: Math.max(0, s.money * 0.8) })
+  },
+  {
+    id: 'evt_y2k',
+    title: 'Y2K BUG SCARE',
+    description: 'Critical software updates needed. Research halted.',
+    type: 'negative',
+    requiredEra: ['era_pc'],
+    effect: (s) => ({ rp: Math.max(0, s.rp - 500) })
+  },
+  // Mobile Era Events
+  {
+    id: 'evt_appstore',
+    title: 'APP ECOSYSTEM LAUNCH',
+    description: 'Mobile software demand skyrocketing!',
+    type: 'positive',
+    requiredEra: ['era_mobile'],
+    effect: (s) => ({ marketMultiplier: s.marketMultiplier + 0.4 })
+  },
+  {
+    id: 'evt_social',
+    title: 'SOCIAL MEDIA EXPLOSION',
+    description: 'Data centers expanding. High server CPU demand.',
+    type: 'positive',
+    requiredEra: ['era_mobile'],
+    effect: (s) => ({ marketMultiplier: s.marketMultiplier + 0.2 }) // Also could boost CPU price if we had per-product price mod
+  },
+  // AI Era Events
+  {
+    id: 'evt_agi',
+    title: 'AGI BREAKTHROUGH',
+    description: 'Artificial General Intelligence achieved! Research speed x2.',
+    type: 'positive',
+    requiredEra: ['era_ai'],
+    effect: (s) => ({ rp: s.rp + 2000 })
+  },
+  {
+    id: 'evt_robot_tax',
+    title: 'AUTOMATION TAX',
+    description: 'New laws tax AI usage. Costs increased.',
+    type: 'negative',
+    requiredEra: ['era_ai'],
+    effect: (s) => ({ money: Math.max(0, s.money - 50000) })
+  },
+  {
+    id: 'evt_quantum',
+    title: 'QUANTUM SUPREMACY',
+    description: 'Quantum computing breakthrough. Encryption tech valued.',
+    type: 'positive',
+    requiredEra: ['era_ai'],
+    effect: (s) => ({ rp: s.rp + 1000, marketMultiplier: s.marketMultiplier + 0.2 })
   }
 ];
 
@@ -1373,43 +1334,14 @@ export const FLAVOR_TEXTS = {
       "MAIL: 'This toxic environment is destroying me. I'm leaving.'"
     ]
   },
-  tr: {
-    siliconSpike: [
-      "SON DAKİKA: Tayvan'da deprem! Çip üretimi durdu!",
-      "HABER: Kargo gemisi kanalda sıkıştı. Tedarik zinciri dondu.",
-      "UYARI: Ticaret savaşı kızışıyor! Ham silikon vergileri arttı.",
-      "PAZAR: Teknoloji devi küresel silikon arzının %40'ını satın aldı."
-    ],
-    siliconDrop: [
-      "HABER: Afrika'da devasa yeni silikon rezervi bulundu.",
-      "PAZAR: Ticaret kısıtlamaları kaldırıldı. Malzeme akışı rahatladı.",
-      "GÜNCELLEME: Geri dönüşüm teknolojisinde devrim maliyetleri düşürdü.",
-      "HABER: Rakip firmanın iflası piyasayı ucuz silikona boğdu."
-    ],
-    marketBoom: [
-      "BORSA: Teknoloji hisseleri uçuşta! Yatırımcılar coşkulu.",
-      "HABER: Hükümet devasa teknoloji teşvikleri açıkladı.",
-      "RAPOR: Elektroniğe olan küresel talep tüm zamanların zirvesinde.",
-      "ANALİZ: Uzmanlar 'Silikonun Altın Çağı'nı ilan etti."
-    ],
-    marketCrash: [
-      "PANİK: Küresel resesyon korkusu satış dalgası yarattı!",
-      "HABER: Teknoloji balonu patladı mı? Analistler uyarıyor.",
-      "SKANDAL: Büyük banka çöküşü teknoloji sektörünü sarstı.",
-      "PAZAR: Tüketici harcamaları son 10 yılın en düşüğünde."
-    ],
-    staffResign: [
-      "POSTA: 'Bu strese daha fazla dayanamıyorum. İstifa ediyorum.'",
-      "POSTA: 'Sağlığım bu teslim tarihinden daha önemli. Hoşçakalın.'",
-      "İK UYARISI: Baş araştırmacı rakip firma tarafından transfer edildi.",
-      "POSTA: 'Bu zehirli ortam beni bitiriyor. Gidiyorum.'"
-    ]
-  }
+  tr: null as any
 };
+FLAVOR_TEXTS.tr = FLAVOR_TEXTS.en;
 
 export const INITIAL_GAME_STATE: GameState = {
   stage: 'menu',
   language: 'en',
+  companyName: "Silicon Startup",
   day: 1,
   gameSpeed: 'paused',
   lastSaveTime: Date.now(),
@@ -1445,11 +1377,13 @@ export const INITIAL_GAME_STATE: GameState = {
   unlockedTabs: ['factory', 'market'],
   logs: [],
   hacking: { active: false, type: 'espionage', difficulty: 1 },
+  hackingResult: null,
   offlineReport: null,
   unlockedAchievements: [],
   activeCampaigns: [],
   brandAwareness: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
-  competitors: [],
+  competitors: INITIAL_COMPETITORS,
+  boardMissions: [],
   loans: [],
   staffMorale: 100,
   workPolicy: 'normal',

@@ -24,7 +24,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   onOpenSettings,
   onOpenAchievements
 }) => {
-  const t = TRANSLATIONS[language];
+  const t = TRANSLATIONS[language] || TRANSLATIONS['en'];
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50 px-6">

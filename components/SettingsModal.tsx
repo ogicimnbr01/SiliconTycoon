@@ -28,7 +28,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     language
 }) => {
     if (!isOpen) return null;
-    const t = TRANSLATIONS[language];
+    const t = TRANSLATIONS[language] || TRANSLATIONS['en'];
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">

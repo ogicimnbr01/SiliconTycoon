@@ -35,7 +35,7 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
 
     if (!isOpen) return null;
 
-    const t = TRANSLATIONS[language];
+    const t = TRANSLATIONS[language] || TRANSLATIONS['en'];
 
     const handleSave = (slotId: string) => {
         onSave(slotId);

@@ -67,6 +67,10 @@ export interface Contract {
   penalty: number;
   deadlineDay: number;
   duration: number;
+  upfrontPayment: number;
+  completionPayment: number;
+  minPerformance?: number;
+  minEfficiency?: number;
 }
 
 export interface GameEvent {
@@ -75,6 +79,7 @@ export interface GameEvent {
   description: string;
   effect?: (state: GameState) => Partial<GameState>;
   type: 'positive' | 'negative' | 'neutral';
+  requiredEra?: string[]; // IDs of eras where this event can occur
 }
 
 export interface Hero {
@@ -106,6 +111,7 @@ export interface MarketTrend {
   priceBonus: number;
   penalty: number;
   affectedProducts: ProductType[]; // Which products this trend affects
+  requiredEra?: string[]; // IDs of eras where this trend can occur
 }
 
 export interface Achievement {
@@ -151,6 +157,9 @@ export interface Competitor {
   aggressiveness: number; // 0-100, affects pricing and R&D investment
   cashReserves: number;
   techLevel: Record<ProductType, number>; // Current tech level
+  money: number; // New: Track competitor money
+  history: number[]; // New: Track money history for charts
+  lastReleaseDay: number; // New: Track last product release
 }
 
 export interface FinancialSnapshot {
@@ -177,6 +186,7 @@ export interface HackingState {
   type: 'espionage' | 'sabotage';
   difficulty: number;
   targetId?: string;
+  cost?: number;
 }
 
 export interface ProductionLine {
@@ -193,10 +203,32 @@ export interface ProductionLine {
   lastMaintenanceDay?: number;
 }
 
+export interface BoardMission {
+  id: string;
+  description: string;
+  type: 'profit' | 'quality' | 'prestige';
+  targetValue: number;
+  deadlineDay: number;
+  penalty: number; // Prestige penalty
+}
+
 export interface OfflineReportData {
   elapsedSeconds: number;
   moneyEarned: number;
   rpEarned: number;
+}
+
+export interface HackingResult {
+  success: boolean;
+  targetName: string;
+  type: 'espionage' | 'sabotage';
+  changes: {
+    label: string;
+    before: string;
+    after: string;
+    isPositive: boolean;
+  }[];
+  rewardText?: string;
 }
 
 export interface GameState {
@@ -210,6 +242,7 @@ export interface GameState {
 
   // Resources
   money: number;
+  companyName: string;
   rp: number;
   silicon: number;
   siliconPrice: number;
@@ -258,12 +291,14 @@ export interface GameState {
 
   // Mini-games
   hacking: HackingState;
+  hackingResult: HackingResult | null;
   offlineReport: OfflineReportData | null;
   unlockedAchievements?: string[];
 
   loans: Loan[];
-  staffMorale: number;
+  staffMorale: number; // 0-100
   workPolicy: 'relaxed' | 'normal' | 'crunch';
+  boardMissions: BoardMission[];
   globalTechLevels: Record<ProductType, number>; // Dünyanın teknoloji seviyesi
 
   // Marketing
@@ -279,4 +314,5 @@ export interface LogEntry {
   message: string;
   type: 'success' | 'info' | 'danger' | 'warning';
   timestamp: string;
+  tag?: string;
 }

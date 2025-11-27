@@ -19,7 +19,7 @@ export const MarketingTab: React.FC<MarketingTabProps> = ({
     onLaunchCampaign,
     language
 }) => {
-    const t = TRANSLATIONS[language];
+    const t = TRANSLATIONS[language] || TRANSLATIONS['en'];
 
     return (
         <div className="p-4 space-y-6">

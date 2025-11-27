@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { GameState } from '../types';
 import { ACHIEVEMENTS, TRANSLATIONS } from '../constants';
+import { saveGlobalAchievements } from '../utils/achievementManager';
 
 export const useAchievements = (
     gameState: GameState,
@@ -48,21 +49,25 @@ export const useAchievements = (
                     if (onUnlock) onUnlock(ach);
                     newLogs.push({
                         id: Date.now() + Math.random(),
-                        message: `${t.achievementUnlocked} ${ach.title}`,
+                        message: `${t.achievementUnlocked}: ${t[`${ach.id}_title` as keyof typeof t] || ach.title}`,
                         type: 'success',
-                        timestamp: `Day ${gameState.day}`
+                        timestamp: `${t.day} ${gameState.day}`
                     });
                 }
             });
 
+            // Save to global storage
+            const allUnlocked = [...unlockedIds, ...newUnlocks];
+            saveGlobalAchievements(allUnlocked);
+
             setGameState(prev => ({
                 ...prev,
-                unlockedAchievements: [...(prev.unlockedAchievements || []), ...newUnlocks],
                 money: newMoney,
                 rp: newRp,
                 reputation: newReputation,
-                logs: newLogs.slice(-10)
+                unlockedAchievements: allUnlocked,
+                logs: newLogs
             }));
         }
-    }, [gameState, setGameState, playSfx, vibrate]);
+    }, [gameState, setGameState, playSfx, vibrate, onUnlock]);
 };

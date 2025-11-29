@@ -24,10 +24,12 @@ export const useGameLoop = (
     setGameState: React.Dispatch<React.SetStateAction<GameState>>,
     playSfx: (sfx: any) => void,
     vibrate: (type: any) => void,
-    onShowFloatingText?: (text: string, type: 'income' | 'expense' | 'rp' | 'reputation' | 'neutral', x?: number, y?: number) => void
+    onShowFloatingText?: (text: string, type: 'income' | 'expense' | 'rp' | 'reputation' | 'neutral', x?: number, y?: number) => void,
+    isPaused?: boolean
 ) => {
     useEffect(() => {
-        if (gameState.gameSpeed === 'paused') return;
+        // Pause if watching ad or if game speed is paused
+        if (gameState.gameSpeed === 'paused' || isPaused) return;
 
         const tick = () => {
             setGameState(prev => {

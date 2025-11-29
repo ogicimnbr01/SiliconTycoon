@@ -68,6 +68,7 @@ const App: React.FC = () => {
     const [floatingTexts, setFloatingTexts] = useState<FloatingTextItem[]>([]);
     const [showBailoutModal, setShowBailoutModal] = useState(false);
     const [showDailyWheel, setShowDailyWheel] = useState(false);
+    const [isPaused, setIsPaused] = useState(false); // For ad viewing
 
 
 
@@ -146,7 +147,18 @@ const App: React.FC = () => {
     // Hooks
     const { handleNewGame, loadGame, saveGame, deleteSave, getSlots, hasAnySave } = useSaveLoad(gameState, setGameState, setActiveTab, playSfx, vibrate);
 
-    useGameLoop(gameState, setGameState, playSfx, vibrate, handleShowFloatingText);
+    // Ad pause/resume callbacks
+    const handleAdStart = useCallback(() => {
+        console.log('⏸️ Game paused for ad');
+        setIsPaused(true);
+    }, []);
+
+    const handleAdEnd = useCallback(() => {
+        console.log('▶️ Game resumed after ad');
+        setIsPaused(false);
+    }, []);
+
+    useGameLoop(gameState, setGameState, playSfx, vibrate, handleShowFloatingText, isPaused);
     useAchievements(gameState, setGameState, playSfx, vibrate, (ach) => {
         setActiveAchievement(ach);
     });
@@ -290,7 +302,7 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto overscroll-none px-4 pb-32 pt-4 scroll-smooth no-scrollbar w-full">
-                {activeTab === 'factory' && (<FactoryTab gameState={gameState} language={gameState.language} onProduce={actions.handleProduce} onBuySilicon={actions.handleBuySilicon} onUpgradeOffice={actions.handleUpgradeOffice} onDowngradeOffice={actions.handleDowngradeOffice} onSetStrategy={(s) => setGameState(prev => ({ ...prev, productionQuality: s }))} onUpdateDesignSpec={actions.handleUpdateDesignSpec} onActivateOverdrive={actions.handleActivateOverdrive} />)}
+                {activeTab === 'factory' && (<FactoryTab gameState={gameState} language={gameState.language} onProduce={actions.handleProduce} onBuySilicon={actions.handleBuySilicon} onUpgradeOffice={actions.handleUpgradeOffice} onDowngradeOffice={actions.handleDowngradeOffice} onSetStrategy={(s) => setGameState(prev => ({ ...prev, productionQuality: s }))} onUpdateDesignSpec={actions.handleUpdateDesignSpec} onActivateOverdrive={actions.handleActivateOverdrive} onAdStart={handleAdStart} onAdEnd={handleAdEnd} />)}
 
                 {activeTab === 'rnd' && (
                     <ResearchTab

@@ -19,6 +19,7 @@ import {
     GPU_TECH_TREE
 } from '../constants';
 import { getReputationBonuses } from '../utils/gameUtils';
+import { calculateFinalRevenue, getEraTier } from '../utils/economySystem';
 
 export const useGameActions = (
     gameState: GameState,
@@ -145,24 +146,80 @@ export const useGameActions = (
                 playSfx('error');
                 return prev;
             }
-            playSfx('money');
+
+            // Get current tech tier and market era
+            const techTree = type === ProductType.CPU ? CPU_TECH_TREE : GPU_TECH_TREE;
+            const currentTech = techTree[prev.techLevels[type]];
+            const productTier = currentTech.tier;
+            const marketEra = getEraTier(prev.currentEraId);
+
+            // Calculate final revenue with ALL penalties
+            const { revenue, breakdown, warnings } = calculateFinalRevenue({
+                basePrice: currentPrice,
+                amount: count,
+                productTier,
+                productType: type,
+                marketEra,
+                marketSaturation: prev.marketSaturation?.[type] ?? 0
+            });
+
+            // Update market saturation (increases from this sale)
+            const saturationIncrease = count / 1000; // Each 1000 units adds 1.0 saturation
+            const newSaturation = {
+                ...prev.marketSaturation,
+                [type]: Math.min(1, (prev.marketSaturation?.[type] ?? 0) + saturationIncrease)
+            };
+
+            playSfx(revenue > 0 ? 'money' : 'error');
             vibrate('medium');
 
             const bonuses = getReputationBonuses(prev.reputation);
-            const finalPrice = Math.floor(currentPrice * bonuses.priceBonus);
-            const totalIncome = count * finalPrice;
-            if (onShowFloatingText) onShowFloatingText(`+$${totalIncome}`, 'income');
+            const finalRevenue = Math.floor(revenue * bonuses.priceBonus);
 
+            if (onShowFloatingText && finalRevenue > 0) {
+                onShowFloatingText(`+$${finalRevenue}`, 'income');
+            }
+
+            // Rep gain (only if selling current-gen tech)
             let repGain = 0;
-            if (count > 10 && Math.random() < 0.1) repGain = 1;
+            if (count > 10 && productTier >= marketEra - 1 && Math.random() < 0.1) {
+                repGain = 1;
+            }
+
+            // Create log message with warnings
+            let logMessage = TRANSLATIONS[prev.language].logSold
+                .replace('{0}', count.toString())
+                .replace('{1}', type);
+
+            if (warnings.length > 0) {
+                logMessage += ` ${warnings[0]}`; // Show first warning in log
+            }
+
+            // Show detailed breakdown in console (for debugging/playtesting)
+            console.group(`💰 Sale: ${count}x ${type}`);
+            console.log('Base Revenue:', `$${breakdown.baseRevenue.toFixed(0)}`);
+            console.log('After Decay:', `$${breakdown.afterDecay.toFixed(0)} (${((breakdown.afterDecay / breakdown.baseRevenue) * 100).toFixed(0)}%)`);
+            console.log('After Crash:', `$${breakdown.afterCrash.toFixed(0)} (${((breakdown.afterCrash / breakdown.baseRevenue) * 100).toFixed(0)}%)`);
+            console.log('After Saturation:', `$${breakdown.afterSaturation.toFixed(0)} (${((breakdown.afterSaturation / breakdown.baseRevenue) * 100).toFixed(0)}%)`);
+            console.log('Final with Rep Bonus:', `$${finalRevenue.toFixed(0)}`);
+            if (warnings.length > 0) {
+                console.warn('Warnings:', warnings);
+            }
+            console.groupEnd();
 
             return {
                 ...prev,
-                money: prev.money + totalIncome,
+                money: prev.money + finalRevenue,
                 inventory: { ...prev.inventory, [type]: 0 },
                 reputation: Math.min(100, prev.reputation + repGain),
-                logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logSold.replace('{0}', count.toString()).replace('{1}', type), type: 'success' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10)
-            }
+                marketSaturation: newSaturation,
+                logs: [...prev.logs, {
+                    id: Date.now(),
+                    message: logMessage,
+                    type: warnings.length > 0 ? 'warning' as const : 'success' as const,
+                    timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}`
+                }].slice(-10)
+            };
         });
     }, [setGameState, playSfx, vibrate, onShowFloatingText]);
 

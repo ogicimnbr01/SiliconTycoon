@@ -305,6 +305,9 @@ export interface GameState {
   activeCampaigns: ActiveCampaign[];
   brandAwareness: Record<ProductType, number>; // 0-100
 
+  // Advanced Economy (Hardcore Mode)
+  marketSaturation: Record<ProductType, number>; // 0-1, how flooded market is
+
   // Competitors
   competitors: Competitor[];
 }

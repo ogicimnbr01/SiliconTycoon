@@ -17,6 +17,7 @@ import {
     TICK_RATE_MS,
 } from '../constants';
 import { getReputationBonuses, format } from '../utils/gameUtils';
+import { calculateStorageCost, ECONOMY_CONFIG } from '../utils/economySystem';
 
 export const useGameLoop = (
     gameState: GameState,
@@ -90,6 +91,30 @@ export const useGameLoop = (
                 if (prev.workPolicy === 'relaxed') salaryMultiplier = 0.8;
                 if (prev.workPolicy === 'crunch') salaryMultiplier = 1.5;
                 const staffCost = prev.researchers * RESEARCHER_DAILY_SALARY * salaryMultiplier;
+
+                // Storage Costs (Progressive Economy)
+                const currentOfficeConfig = OFFICE_CONFIGS[prev.officeLevel];
+                const totalInventory = prev.inventory[ProductType.CPU] + prev.inventory[ProductType.GPU];
+
+                // Calculate average product tier for early game relief
+                const totalTier = (prev.techLevels[ProductType.CPU] * prev.inventory[ProductType.CPU]) +
+                    (prev.techLevels[ProductType.GPU] * prev.inventory[ProductType.GPU]);
+                const avgProductTier = totalInventory > 0 ? totalTier / totalInventory : 0;
+
+                const storageCost = calculateStorageCost(totalInventory, currentOfficeConfig.siliconCap, avgProductTier);
+                newMoney -= storageCost;
+
+                if (storageCost > 0 && newDay % 7 === 0 && onShowFloatingText) {
+                    onShowFloatingText(`-$${(storageCost * 7).toFixed(0)} Storage`, 'expense');
+                }
+
+                // Market Saturation Recovery
+                const newSaturation = { ...prev.marketSaturation };
+                if (!newSaturation[ProductType.CPU]) newSaturation[ProductType.CPU] = 0;
+                if (!newSaturation[ProductType.GPU]) newSaturation[ProductType.GPU] = 0;
+
+                newSaturation[ProductType.CPU] = Math.max(0, newSaturation[ProductType.CPU] - ECONOMY_CONFIG.MARKET_RECOVERY_RATE);
+                newSaturation[ProductType.GPU] = Math.max(0, newSaturation[ProductType.GPU] - ECONOMY_CONFIG.MARKET_RECOVERY_RATE);
 
                 // Hero salaries
                 let heroSalary = 0;
@@ -674,6 +699,7 @@ export const useGameLoop = (
                     competitors,
                     productionLines: updatedProductionLines,
                     boardMissions,
+                    marketSaturation: newSaturation,
                 };
             });
         };

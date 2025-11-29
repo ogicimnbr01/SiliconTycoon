@@ -128,11 +128,14 @@ const App: React.FC = () => {
 
     // Hooks
     const { handleNewGame, loadGame, saveGame, deleteSave, getSlots, hasAnySave } = useSaveLoad(gameState, setGameState, setActiveTab, playSfx, vibrate);
+
     useGameLoop(gameState, setGameState, playSfx, vibrate, handleShowFloatingText);
     useAchievements(gameState, setGameState, playSfx, vibrate, (ach) => {
         setActiveAchievement(ach);
     });
     const actions = useGameActions(gameState, setGameState, setActiveTab, playSfx, vibrate, handleShowFloatingText);
+
+
 
     const TabButton = useCallback(({ id, label, icon: Icon }: { id: TabType, label: string, icon: any }) => {
         const isLocked = !gameState.unlockedTabs.includes(id);
@@ -145,6 +148,7 @@ const App: React.FC = () => {
         return (
             <button
                 onClick={() => { if (!isLocked) actions.handleTabSwitch(id); }}
+                data-tutorial={`${id}-tab`}
                 className={`flex flex-col items-center justify-center py-1 flex-1 transition-all active:scale-95 touch-manipulation relative ${activeTab === id ? 'text-corp-accent bg-slate-800/80 rounded-xl mx-2 shadow-[0_0_15px_rgba(14,165,233,0.2)]' : isLocked ? 'opacity-50' : 'text-slate-500'}`}
             >
                 {isLocked && (

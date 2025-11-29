@@ -105,7 +105,7 @@ export const useSaveLoad = (
         setGameState(prev => ({
             ...INITIAL_GAME_STATE,
             stage: 'game',
-            gameSpeed: 'paused',
+            gameSpeed: 'normal', // Changed from 'paused' - tutorial will handle pause if needed
             money: INITIAL_GAME_STATE.money + (prev.prestigePoints * 1000),
             prestigePoints: prev.prestigePoints, // Keep accumulated prestige
         }));

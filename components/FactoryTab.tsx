@@ -409,11 +409,37 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                         </div>
                         <input
                             type="range"
-                            min="1" max="100"
+                            min="1" max="1000"
                             value={productionAmount}
                             onChange={(e) => setProductionAmount(parseInt(e.target.value))}
                             className="w-full accent-blue-500 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer"
                         />
+
+                        {/* Quick Select Buttons */}
+                        <div className="grid grid-cols-4 gap-2 mt-2">
+                            {(() => {
+                                const siliconPerUnit = tech.productionCost / 10;
+                                const maxPossible = Math.min(1000, Math.floor(gameState.silicon / siliconPerUnit));
+                                return [
+                                    { label: '10', val: 10 },
+                                    { label: '50', val: 50 },
+                                    { label: '100', val: 100 },
+                                    { label: 'MAX', val: maxPossible }
+                                ].map((opt, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => setProductionAmount(Math.max(1, opt.val))}
+                                        disabled={opt.val < 1}
+                                        className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all ${productionAmount === opt.val
+                                                ? 'bg-blue-500 text-white'
+                                                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                            } disabled:opacity-30`}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ));
+                            })()}
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-3 gap-3 mb-4">

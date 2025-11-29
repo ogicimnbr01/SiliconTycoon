@@ -84,7 +84,7 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
                                 <Trophy className="text-white" size={28} />
                             </div>
                             <div>
-                                <div className="text-xs text-amber-300 uppercase tracking-wider font-bold">Market Ranking</div>
+                                <div className="text-xs text-amber-300 uppercase tracking-wider font-bold">{t.marketRanking}</div>
                                 <div className="text-3xl font-black text-white">#{playerRank}<span className="text-lg text-slate-400">/{allCompanies.length}</span></div>
                             </div>
                         </div>
@@ -92,13 +92,13 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
                             <div className="px-4 py-2 bg-yellow-500/20 border border-yellow-400/50 rounded-full">
                                 <div className="flex items-center gap-2">
                                     <Crown className="text-yellow-400" size={16} />
-                                    <span className="text-sm font-bold text-yellow-300">MARKET LEADER</span>
+                                    <span className="text-sm font-bold text-yellow-300">{t.marketLeader}</span>
                                 </div>
                             </div>
                         )}
                         {playerRank > 1 && playerRank <= 3 && (
                             <div className="px-4 py-2 bg-blue-500/20 border border-blue-400/50 rounded-full">
-                                <span className="text-sm font-bold text-blue-300">TOP 3</span>
+                                <span className="text-sm font-bold text-blue-300">{t.top3}</span>
                             </div>
                         )}
                     </div>
@@ -108,7 +108,7 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
                         <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-2">
                             <Flame className="text-red-400" size={16} />
                             <div className="flex-1">
-                                <div className="text-xs text-red-300 font-bold">AHEAD OF YOU</div>
+                                <div className="text-xs text-red-300 font-bold">{t.aheadOfYou}</div>
                                 <div className="text-sm text-white">{biggestThreat.name}: {formatNumber(biggestThreat.money)}</div>
                             </div>
                             <div className="text-xs text-red-400 font-mono">
@@ -120,7 +120,7 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
                         <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3">
                             <Target className="text-emerald-400" size={16} />
                             <div className="flex-1">
-                                <div className="text-xs text-emerald-300 font-bold">BEHIND YOU</div>
+                                <div className="text-xs text-emerald-300 font-bold">{t.behindYou}</div>
                                 <div className="text-sm text-white">{closestRival.name}: {formatNumber(closestRival.money)}</div>
                             </div>
                             <div className="text-xs text-emerald-400 font-mono">
@@ -136,7 +136,7 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
                 <div className="bg-slate-800/50 px-4 py-3 border-b border-slate-700">
                     <div className="flex items-center gap-2">
                         <Medal className="text-amber-400" size={18} />
-                        <h2 className="text-sm font-bold text-white uppercase tracking-wide">Market Leaderboard</h2>
+                        <h2 className="text-sm font-bold text-white uppercase tracking-wide">{t.marketLeaderboard}</h2>
                     </div>
                 </div>
                 <div className="divide-y divide-slate-700/50">
@@ -153,17 +153,17 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
                             <div
                                 key={comp.id}
                                 className={`p-4 transition-all ${isPlayer
-                                        ? 'bg-gradient-to-r from-emerald-900/40 to-transparent border-l-4 border-emerald-500'
-                                        : index < 3 ? bgColors[index] : 'hover:bg-slate-800/30'
+                                    ? 'bg-gradient-to-r from-emerald-900/40 to-transparent border-l-4 border-emerald-500'
+                                    : index < 3 ? bgColors[index] : 'hover:bg-slate-800/30'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
                                     {/* Rank */}
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-lg ${isPlayer ? 'bg-emerald-500/20 text-emerald-400' :
-                                            index === 0 ? 'bg-yellow-500/20 text-yellow-400' :
-                                                index === 1 ? 'bg-slate-700 text-slate-300' :
-                                                    index === 2 ? 'bg-amber-800/30 text-amber-500' :
-                                                        'bg-slate-800 text-slate-500'
+                                        index === 0 ? 'bg-yellow-500/20 text-yellow-400' :
+                                            index === 1 ? 'bg-slate-700 text-slate-300' :
+                                                index === 2 ? 'bg-amber-800/30 text-amber-500' :
+                                                    'bg-slate-800 text-slate-500'
                                         }`}>
                                         {index === 0 && !isPlayer ? '👑' : index + 1}
                                     </div>
@@ -177,12 +177,12 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
                                             </span>
                                             {isPlayer && (
                                                 <span className="px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/40 rounded text-[10px] font-bold text-emerald-300">
-                                                    YOU
+                                                    {t.you}
                                                 </span>
                                             )}
                                         </div>
                                         <div className="text-xs text-slate-400 mt-0.5">
-                                            Tech Avg: {comp.techAvg.toFixed(1)} • Market: {((comp.marketShareCPU + comp.marketShareGPU) / 2).toFixed(0)}%
+                                            {t.techAvg}: {comp.techAvg.toFixed(1)} • {t.share}: {((comp.marketShareCPU + comp.marketShareGPU) / 2).toFixed(0)}%
                                         </div>
                                     </div>
 
@@ -204,7 +204,7 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
             <div className="bg-slate-900/80 border border-slate-700 rounded-xl p-4 shadow-xl">
                 <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                     <BarChart3 className="text-purple-400" size={18} />
-                    Market Dominance
+                    {t.marketDominance}
                 </h3>
                 <div className="space-y-4">
                     {/* CPU Market */}
@@ -214,7 +214,7 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
                                 <div className="w-6 h-6 rounded bg-blue-500/20 flex items-center justify-center">
                                     <Zap className="text-blue-400" size={12} />
                                 </div>
-                                <span className="text-xs font-bold text-slate-300">CPU Market</span>
+                                <span className="text-xs font-bold text-slate-300">{t.cpuMarket}</span>
                             </div>
                             {topCPUCompetitor && (
                                 <div className="flex items-center gap-2">
@@ -236,7 +236,7 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
                                         <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full transition-all duration-500 ${i === 0 ? 'bg-blue-500' :
-                                                        i === 1 ? 'bg-blue-400' : 'bg-blue-300'
+                                                    i === 1 ? 'bg-blue-400' : 'bg-blue-300'
                                                     }`}
                                                 style={{ width: `${comp.marketShare[ProductType.CPU]}%` }}
                                             />
@@ -256,7 +256,7 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
                                 <div className="w-6 h-6 rounded bg-purple-500/20 flex items-center justify-center">
                                     <Package className="text-purple-400" size={12} />
                                 </div>
-                                <span className="text-xs font-bold text-slate-300">GPU Market</span>
+                                <span className="text-xs font-bold text-slate-300">{t.gpuMarket}</span>
                             </div>
                             {topGPUCompetitor && (
                                 <div className="flex items-center gap-2">
@@ -278,7 +278,7 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
                                         <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full transition-all duration-500 ${i === 0 ? 'bg-purple-500' :
-                                                        i === 1 ? 'bg-purple-400' : 'bg-purple-300'
+                                                    i === 1 ? 'bg-purple-400' : 'bg-purple-300'
                                                     }`}
                                                 style={{ width: `${comp.marketShare[ProductType.GPU]}%` }}
                                             />
@@ -296,21 +296,21 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
             {/* YOUR STATS - Quick Overview */}
             <div className="grid grid-cols-2 gap-3">
                 <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
-                    <div className="text-[10px] text-slate-500 uppercase mb-1">Your Valuation</div>
+                    <div className="text-[10px] text-slate-500 uppercase mb-1">{t.yourValuation}</div>
                     <div className="text-xl font-black text-emerald-400">{formatNumber(gameState.money)}</div>
                 </div>
                 <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
-                    <div className="text-[10px] text-slate-500 uppercase mb-1">Tech Level</div>
+                    <div className="text-[10px] text-slate-500 uppercase mb-1">{t.techLevel}</div>
                     <div className="text-xl font-black text-white">
                         {gameState.techLevels[ProductType.CPU]}/{gameState.techLevels[ProductType.GPU]}
                     </div>
                 </div>
                 <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
-                    <div className="text-[10px] text-slate-500 uppercase mb-1">Day</div>
+                    <div className="text-[10px] text-slate-500 uppercase mb-1">{t.day}</div>
                     <div className="text-xl font-black text-white">{gameState.day}</div>
                 </div>
                 <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
-                    <div className="text-[10px] text-slate-500 uppercase mb-1">Achievements</div>
+                    <div className="text-[10px] text-slate-500 uppercase mb-1">{t.achievements}</div>
                     <div className="text-xl font-black text-amber-400">{gameState.unlockedAchievements?.length || 0}</div>
                 </div>
             </div>

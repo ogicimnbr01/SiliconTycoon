@@ -55,7 +55,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
                         <div>
                             <h2 className="text-xl font-bold text-white tracking-wide">{t.achievements}</h2>
                             <p className="text-sm text-slate-400 font-mono">
-                                {unlockedSet.size} / {ACHIEVEMENTS.length} UNLOCKED
+                                {unlockedSet.size} / {ACHIEVEMENTS.length} {t.unlocked}
                             </p>
                         </div>
                     </div>
@@ -101,7 +101,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
                                         </p>
                                         {ach.reward && (
                                             <div className="mt-2 text-xs font-mono text-emerald-400/80 flex items-center gap-1">
-                                                REWARD: +{ach.reward.value} {ach.reward.type.toUpperCase()}
+                                                {t.reward}: +{ach.reward.value} {ach.reward.type.toUpperCase()}
                                             </div>
                                         )}
                                     </div>

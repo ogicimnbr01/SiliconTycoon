@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Volume2, VolumeX, Smartphone, SmartphoneNfc } from 'lucide-react';
+import { X, Volume2, VolumeX, Smartphone, SmartphoneNfc, DollarSign } from 'lucide-react';
 import { Button } from './ui/Button';
 import { TRANSLATIONS } from '../constants';
 import { Language } from '../types';
@@ -14,6 +14,8 @@ interface SettingsModalProps {
     onOpenSaveGame: () => void;
     onOpenLoadGame: () => void;
     language: Language;
+    onTogglePremium: () => void;
+    isPremium: boolean;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -25,7 +27,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     onToggleVibration,
     onOpenSaveGame,
     onOpenLoadGame,
-    language
+    language,
+    onTogglePremium,
+    isPremium
 }) => {
     if (!isOpen) return null;
     const t = TRANSLATIONS[language] || TRANSLATIONS['en'];
@@ -83,6 +87,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             className={`w-14 h-8 rounded-full p-1 cursor-pointer transition-colors duration-300 ${vibrationEnabled ? 'bg-indigo-500' : 'bg-slate-700'}`}
                         >
                             <div className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300 ${vibrationEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                        </div>
+                    </div>
+
+                    {/* Premium Toggle (Mock) */}
+                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                        <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-lg ${isPremium ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-700/50 text-slate-500'}`}>
+                                <DollarSign size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-white font-bold">{t.premium}</h3>
+                                <p className="text-xs text-slate-400">{isPremium ? 'Active' : 'Inactive'}</p>
+                            </div>
+                        </div>
+                        <div
+                            onClick={onTogglePremium}
+                            className={`w-14 h-8 rounded-full p-1 cursor-pointer transition-colors duration-300 ${isPremium ? 'bg-amber-500' : 'bg-slate-700'}`}
+                        >
+                            <div className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300 ${isPremium ? 'translate-x-6' : 'translate-x-0'}`} />
                         </div>
                     </div>
 

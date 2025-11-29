@@ -686,7 +686,7 @@ export const useGameActions = (
             if (onShowFloatingText) onShowFloatingText(`+$${amount}`, 'income');
             const interestRate = 0.015;
             const dailyPayment = Math.floor(amount * interestRate);
-            const newLoan: Loan = { id: `loan_${Date.now()}`, amount, interestRate, dailyPayment };
+            const newLoan: Loan = { id: `loan_${Date.now()}`, amount, interestRate, dailyPayment, remainingDays: 30 };
             return { ...prev, money: prev.money + amount, loans: [...prev.loans, newLoan], logs: [...prev.logs, { id: Date.now(), message: t.loanApproved, type: 'warning' as const, timestamp: `${t.day} ${prev.day}` }].slice(-10) };
         });
     }, [setGameState, playSfx, vibrate, onShowFloatingText]);
@@ -794,6 +794,110 @@ export const useGameActions = (
         });
     }, [setGameState, playSfx, vibrate, onShowFloatingText]);
 
+    const handleBailoutReward = useCallback(() => {
+        setGameState(prev => {
+            const techLevel = Math.max(1, (prev.techLevels.CPU + prev.techLevels.GPU) / 2);
+            const bailoutAmount = Math.floor(5000 * Math.pow(1.5, techLevel));
+
+            return {
+                ...prev,
+                money: prev.money + bailoutAmount,
+                bailoutUsedToday: true,
+                logs: [...prev.logs, {
+                    id: Date.now(),
+                    message: `💰 Angel Investor saved the company! +$${bailoutAmount.toLocaleString()}`,
+                    type: 'success' as const,
+                    timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}`
+                }].slice(-10)
+            };
+        });
+        playSfx('success');
+    }, [setGameState, playSfx]);
+
+    const handleSpinWheel = useCallback((prizeLabel: string, amount: number, type: 'money' | 'rp' | 'silicon' | 'reputation') => {
+        setGameState(prev => {
+            const isFreeSpin = !prev.dailySpinUsed;
+            const newExtraSpins = isFreeSpin ? prev.extraSpinsRemaining : Math.max(0, prev.extraSpinsRemaining - 1);
+
+            let updates: Partial<GameState> = {
+                dailySpinUsed: true,
+                extraSpinsRemaining: newExtraSpins,
+                logs: [...prev.logs, {
+                    id: Date.now(),
+                    message: `🎰 Daily Spin Win: ${prizeLabel}`,
+                    type: 'success' as const,
+                    timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}`
+                }].slice(-10)
+            };
+
+            if (type === 'money') updates.money = prev.money + amount;
+            else if (type === 'rp') updates.rp = prev.rp + amount;
+            else if (type === 'silicon') updates.silicon = prev.silicon + amount;
+            else if (type === 'reputation') updates.reputation = Math.min(100, prev.reputation + amount);
+
+            return { ...prev, ...updates };
+        });
+        playSfx('success');
+    }, [setGameState, playSfx]);
+
+    const handleActivateOverdrive = useCallback(() => {
+        setGameState(prev => {
+            // Check unlock conditions: Office Level 2 OR Day 15+
+            const isUnlocked = prev.officeLevel >= 1 || prev.day >= 15; // OfficeLevel.STARTUP = 1
+
+            if (!isUnlocked) {
+                playSfx('error');
+                vibrate('error');
+                return {
+                    ...prev,
+                    logs: [...prev.logs, {
+                        id: Date.now(),
+                        message: prev.officeLevel < 1
+                            ? '🔒 Overdrive locked! Upgrade to Startup Office or reach Day 15.'
+                            : '🔒 Overdrive locked! Upgrade office or reach Day 15.',
+                        type: 'warning' as const,
+                        timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}`
+                    }].slice(-10)
+                };
+            }
+
+            // Check 45-minute cooldown (2700000 ms)
+            const COOLDOWN_MS = 45 * 60 * 1000; // 45 minutes
+            const timeSinceLastUse = Date.now() - (prev.lastOverdriveTime || 0);
+
+            if (prev.lastOverdriveTime && timeSinceLastUse < COOLDOWN_MS) {
+                const remainingMinutes = Math.ceil((COOLDOWN_MS - timeSinceLastUse) / 60000);
+                playSfx('error');
+                vibrate('error');
+                return {
+                    ...prev,
+                    logs: [...prev.logs, {
+                        id: Date.now(),
+                        message: `⏱️ Overdrive cooldown: ${remainingMinutes} minutes remaining.`,
+                        type: 'warning' as const,
+                        timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}`
+                    }].slice(-10)
+                };
+            }
+
+            // Activate Overdrive
+            playSfx('success');
+            vibrate('heavy');
+            return {
+                ...prev,
+                overdriveActive: true,
+                overdriveEndsAt: Date.now() + 60000, // 1 minute
+                lastOverdriveTime: Date.now(),
+                logs: [...prev.logs, {
+                    id: Date.now(),
+                    message: '⚡ PRODUCTION OVERDRIVE ACTIVATED! (2x Speed for 1m)',
+                    type: 'success' as const,
+                    timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}`
+                }].slice(-10)
+            };
+        });
+    }, [setGameState, playSfx, vibrate]);
+
     return {
         handleTabSwitch,
         handleProduce,
@@ -819,6 +923,9 @@ export const useGameActions = (
         handleTradeOwnShares,
         handleLaunchCampaign,
         handleMaintainLine,
-        handleDowngradeOffice
+        handleDowngradeOffice,
+        handleBailoutReward,
+        handleActivateOverdrive,
+        handleSpinWheel
     };
 };

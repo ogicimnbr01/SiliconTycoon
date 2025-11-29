@@ -38,7 +38,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
                 {isNext && (<div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-indigo-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg uppercase tracking-widest">{t.nextMilestone}</div>)}
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
-                        <h4 className={`text-lg font-black uppercase tracking-tight leading-none mb-2 ${isUnlocked ? 'text-emerald-400' : isNext ? 'text-white' : 'text-slate-500'}`}>{tech.name}</h4>
+                        <h4 className={`text-lg font-black uppercase tracking-tight leading-none mb-2 ${isUnlocked ? 'text-emerald-400' : isNext ? 'text-white' : 'text-slate-500'}`}>{t[`${tech.id}_name` as keyof typeof t] || tech.name}</h4>
                         <p className="text-sm text-slate-400 font-medium leading-snug">{tech.description}</p>
                     </div>
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 shrink-0 ml-4 ${isUnlocked ? 'bg-emerald-500 border-emerald-500 text-slate-900' : isNext ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-slate-700 text-slate-700'}`}>{isUnlocked ? <Check size={20} strokeWidth={4} /> : <Lock size={18} />}</div>
@@ -139,8 +139,8 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
                         return (
                             <div key={hero.id} className="snap-center min-w-[280px] bg-slate-900 border-2 border-slate-800 p-5 rounded-2xl flex flex-col relative shadow-lg">
                                 {isHired && (<div className="absolute inset-0 bg-emerald-900/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-2xl border-2 border-emerald-500"><div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-black mb-2 shadow-lg shadow-emerald-500/50"><Check size={28} strokeWidth={3} /></div><div className="font-black text-white uppercase tracking-widest">{t.hired}</div></div>)}
-                                <div className="flex items-center gap-4 mb-4"><div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white shadow-lg"><Crown size={24} fill="currentColor" /></div><div><div className="font-black text-white text-base leading-none mb-1">{hero.name}</div><div className="text-[10px] text-slate-400 uppercase font-bold tracking-wide bg-slate-800 px-2 py-0.5 rounded w-fit">{hero.role}</div></div></div>
-                                <p className="text-sm text-slate-300 mb-6 italic leading-relaxed">"{hero.description}"</p>
+                                <div className="flex items-center gap-4 mb-4"><div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white shadow-lg"><Crown size={24} fill="currentColor" /></div><div><div className="font-black text-white text-base leading-none mb-1">{t[`${hero.id}_name` as keyof typeof t] || hero.name}</div><div className="text-[10px] text-slate-400 uppercase font-bold tracking-wide bg-slate-800 px-2 py-0.5 rounded w-fit">{t[`${hero.id}_role` as keyof typeof t] || hero.role}</div></div></div>
+                                <p className="text-sm text-slate-300 mb-6 italic leading-relaxed">"{t[`${hero.id}_desc` as keyof typeof t] || hero.description}"</p>
                                 <Button size="lg" variant={isHired ? "secondary" : "primary"} className="w-full mt-auto" disabled={isHired || gameState.money < hero.hiringCost} onClick={() => onHireHero(hero.id)}>{isHired ? t.hired : `$${(hero.hiringCost / 250).toFixed(0)}k • ${t.hire}`}</Button>
                             </div>
                         )

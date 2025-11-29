@@ -20,13 +20,14 @@ export enum OfficeLevel {
 
 export type Language = 'en' | 'tr';
 export type TabType = 'factory' | 'rnd' | 'market' | 'finance' | 'marketing' | 'statistics';
-export type GameStage = 'menu' | 'game';
+export type GameStage = 'menu' | 'game' | 'game_over';
 
 export interface Loan {
   id: string;
   amount: number;
   interestRate: number;
   dailyPayment: number;
+  remainingDays: number;
 }
 
 export interface TechNode {
@@ -205,11 +206,13 @@ export interface ProductionLine {
 
 export interface BoardMission {
   id: string;
+  title: string;
   description: string;
   type: 'profit' | 'quality' | 'prestige';
   targetValue: number;
   deadlineDay: number;
   penalty: number; // Prestige penalty
+  reward: number;
 }
 
 export interface OfflineReportData {
@@ -298,6 +301,7 @@ export interface GameState {
   loans: Loan[];
   staffMorale: number; // 0-100
   workPolicy: 'relaxed' | 'normal' | 'crunch';
+  researchPolicy: 'safe' | 'balanced' | 'aggressive';
   boardMissions: BoardMission[];
   globalTechLevels: Record<ProductType, number>; // Dünyanın teknoloji seviyesi
 
@@ -311,6 +315,21 @@ export interface GameState {
 
   // Competitors
   competitors: Competitor[];
+
+  // AdMob & Monetization
+  bailoutUsedToday: boolean;
+  overdriveActive: boolean;
+  overdriveEndsAt: number;
+  lastOverdriveTime: number;
+  offlineAdWatched: boolean;
+
+  // Daily Wheel
+  dailySpinUsed: boolean;
+  extraSpinsRemaining: number;
+  lastDailyReset: number;
+
+  // Premium
+  isPremium: boolean;
 }
 
 export interface LogEntry {

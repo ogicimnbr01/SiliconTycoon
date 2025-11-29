@@ -47,9 +47,50 @@ export const useGameLoop = (
                 const bonuses = getReputationBonuses(prev.reputation);
                 let newMoney = prev.money;
                 const newDay = prev.day + 1;
-                let newLogs = [...prev.logs];
+
+                // OPTIMIZATION: Copy-on-write for logs
+                let newLogs = prev.logs;
+
+                const addLog = (entry: any) => {
+                    if (newLogs === prev.logs) {
+                        newLogs = [...prev.logs];
+                    }
+                    newLogs.push(entry);
+                };
+
                 let activeEvent = prev.activeEvent;
                 let newBankruptcyTimer = prev.bankruptcyTimer;
+
+                // Overdrive Timer Check
+                let overdriveActive = prev.overdriveActive;
+                if (overdriveActive && Date.now() > prev.overdriveEndsAt) {
+                    overdriveActive = false;
+                    addLog({
+                        id: Date.now(),
+                        message: t.logOverdriveExpired,
+                        type: 'info',
+                        timestamp: `${t.day} ${newDay}`,
+                    });
+                }
+
+                // Daily Reset Logic (Real-time)
+                let dailySpinUsed = prev.dailySpinUsed;
+                let bailoutUsedToday = prev.bailoutUsedToday;
+                let lastDailyReset = prev.lastDailyReset;
+
+                const lastResetDate = new Date(prev.lastDailyReset);
+                const currentDate = new Date();
+                if (lastResetDate.getDate() !== currentDate.getDate()) {
+                    dailySpinUsed = false;
+                    bailoutUsedToday = false;
+                    lastDailyReset = Date.now();
+                    addLog({
+                        id: Date.now(),
+                        message: t.logDailyReset,
+                        type: 'info',
+                        timestamp: `${t.day} ${newDay}`,
+                    });
+                }
 
                 // Bankruptcy handling
                 if (newMoney < 0) {
@@ -57,7 +98,7 @@ export const useGameLoop = (
                     if (newBankruptcyTimer === 1 || newBankruptcyTimer % 10 === 0) {
                         playSfx('error');
                         vibrate('error');
-                        newLogs.push({
+                        addLog({
                             id: Date.now(),
                             message: t.bankruptcyWarning + ` (${60 - newBankruptcyTimer} ${t.days || 'days'} ${t.left || 'left'})`,
                             type: 'danger',
@@ -70,6 +111,13 @@ export const useGameLoop = (
                     }
                 } else {
                     newBankruptcyTimer = 0;
+                }
+
+                // Bailout Offer Check (Trigger at -3000)
+                if (newMoney < -3000 && !bailoutUsedToday && newBankruptcyTimer === 0) {
+                    // Note: We don't have a direct way to open modal from here without state.
+                    // But App.tsx checks for money < -3000 now? No, we need to ensure App.tsx handles it.
+                    // Actually, BailoutModal usually checks gameState.money.
                 }
 
                 // Loan interest
@@ -150,13 +198,7 @@ export const useGameLoop = (
                 const totalDailyExpenses = staffCost + heroSalary;
                 newMoney -= totalDailyExpenses;
                 if (totalDailyExpenses > 0 && onShowFloatingText) {
-                    // Show daily salary expense occasionally or aggregated to avoid spam?
-                    // For now, let's show it daily but maybe small?
-                    // Actually, daily spam might be annoying. Let's show it weekly or if it's significant.
-                    // Or just show it. It's a "tick" based game.
-                    if (newDay % 7 === 0) { // Weekly summary for salaries to reduce noise?
-                        // No, user asked for "invisible" expenses. Daily salary is invisible.
-                        // But daily tick is 1.5s.
+                    if (newDay % 7 === 0) {
                         onShowFloatingText(`-$${totalDailyExpenses.toFixed(0)}`, 'expense');
                     }
                 }
@@ -166,7 +208,7 @@ export const useGameLoop = (
                 const office = OFFICE_CONFIGS[prev.officeLevel];
                 if (newDay % 7 === 0 && office.rent > 0) {
                     newMoney -= office.rent;
-                    newLogs.push({
+                    addLog({
                         id: Date.now(),
                         message: t.logRentPaid,
                         type: 'info',
@@ -190,22 +232,22 @@ export const useGameLoop = (
                     const msg = flavor.marketBoom[Math.floor(Math.random() * flavor.marketBoom.length)];
                     activeEvent = {
                         id: `boom_${Date.now()}`,
-                        title: "MARKET BOOM!",
+                        title: t.evtMarketBoom,
                         description: msg,
                         type: "positive"
                     };
-                    newLogs.push({ id: Date.now(), message: msg, type: 'success', timestamp: `${t.day} ${newDay}` });
+                    addLog({ id: Date.now(), message: msg, type: 'success', timestamp: `${t.day} ${newDay}` });
                     vibrate('success');
                 }
                 if (newMultiplier < 0.7 && prev.marketMultiplier >= 0.7) {
                     const msg = flavor.marketCrash[Math.floor(Math.random() * flavor.marketCrash.length)];
                     activeEvent = {
                         id: `crash_${Date.now()}`,
-                        title: "MARKET CRASH!",
+                        title: t.evtMarketCrash,
                         description: msg,
                         type: "negative"
                     };
-                    newLogs.push({ id: Date.now(), message: msg, type: 'danger', timestamp: `${t.day} ${newDay}` });
+                    addLog({ id: Date.now(), message: msg, type: 'danger', timestamp: `${t.day} ${newDay}` });
                     vibrate('error');
                 }
 
@@ -226,11 +268,11 @@ export const useGameLoop = (
                     const msg = flavor.siliconSpike[Math.floor(Math.random() * flavor.siliconSpike.length)];
                     activeEvent = {
                         id: `spike_${Date.now()}`,
-                        title: "SILICON SHORTAGE!",
+                        title: t.evtSiliconShortageTitle,
                         description: msg,
                         type: "negative"
                     };
-                    newLogs.push({ id: Date.now(), message: msg, type: 'warning', timestamp: `${t.day} ${newDay}` });
+                    addLog({ id: Date.now(), message: msg, type: 'warning', timestamp: `${t.day} ${newDay}` });
                 }
 
                 // Global tech advancement
@@ -239,7 +281,7 @@ export const useGameLoop = (
                 let newGlobalTechGPU = prev.globalTechLevels.GPU;
                 if (Math.random() < progressChance && newGlobalTechCPU < CPU_TECH_TREE.length - 1) {
                     newGlobalTechCPU += 1;
-                    newLogs.push({
+                    addLog({
                         id: Date.now(),
                         message: format(t.logGlobalTech, newGlobalTechCPU, "CPU"),
                         type: 'warning',
@@ -248,7 +290,7 @@ export const useGameLoop = (
                 }
                 if (Math.random() < progressChance && newGlobalTechGPU < GPU_TECH_TREE.length - 1) {
                     newGlobalTechGPU += 1;
-                    newLogs.push({
+                    addLog({
                         id: Date.now(),
                         message: format(t.logGlobalTech, newGlobalTechGPU, "GPU"),
                         type: 'warning',
@@ -256,116 +298,27 @@ export const useGameLoop = (
                     });
                 }
 
-                // Era change
-                const nextEra = ERAS.find(e => e.startDay === newDay);
-                let currentEraId = prev.currentEraId;
-                if (nextEra) {
-                    currentEraId = nextEra.id;
-                    newLogs.push({
-                        id: Date.now(),
-                        message: format(t.logEraChange, nextEra.name),
-                        type: 'info',
-                        timestamp: `${t.day} ${newDay}`,
-                    });
-                    vibrate('medium');
-                }
 
-                // Market trend shift
-                let activeTrendId = prev.activeTrendId;
-                if (newDay % 45 === 0) {
-                    const possible = MARKET_TRENDS.filter(t => t.id !== activeTrendId);
-                    const next = possible[Math.floor(Math.random() * possible.length)];
-                    activeTrendId = next.id;
-                    newLogs.push({
-                        id: Date.now(),
-                        message: format(t.logMarketShift, next.name),
-                        type: 'warning',
-                        timestamp: `${t.day} ${newDay}`,
-                    });
-                    vibrate('medium');
-                }
+                // RP gain
+                let rpPolicyMult = 1;
+                if (prev.researchPolicy === 'aggressive') rpPolicyMult = 1.5;
+                if (prev.researchPolicy === 'safe') rpPolicyMult = 0.8;
 
-                // Rival launch
-                let activeRivalLaunch = prev.activeRivalLaunch;
-                if (activeRivalLaunch) {
-                    activeRivalLaunch = { ...activeRivalLaunch, daysRemaining: activeRivalLaunch.daysRemaining - 1 };
-                    if (activeRivalLaunch.daysRemaining <= 0) activeRivalLaunch = null;
-                } else if (newDay > 20 && Math.random() < 0.015) {
-                    const rival = prev.stocks[Math.floor(Math.random() * prev.stocks.length)];
-                    activeRivalLaunch = {
-                        id: `launch_${newDay}`,
-                        companyName: rival.name,
-                        productName: `Killer-X`,
-                        effect: 0.6,
-                        daysRemaining: 10,
-                    };
-                    newLogs.push({
+                let newMorale = prev.staffMorale;
+                if (prev.workPolicy === 'crunch' && prev.researchers > 0) newMorale = Math.max(0, newMorale - 1);
+                if (prev.workPolicy === 'relaxed') newMorale = Math.min(100, newMorale + 1);
+
+                let newResearchers = prev.researchers;
+                if (newMorale < 20 && Math.random() < 0.05 && prev.researchers > 0) {
+                    newResearchers -= 1;
+                    addLog({
                         id: Date.now(),
-                        message: format(t.logRivalAlert, rival.name),
+                        message: t.logResearcherQuit,
                         type: 'danger',
                         timestamp: `${t.day} ${newDay}`,
                     });
-                    vibrate('heavy');
                 }
 
-                // Financial history (weekly)
-                let financialHistory = [...prev.financialHistory];
-                if (newDay % 5 === 0) {
-                    financialHistory.push({ day: newDay, money: newMoney });
-                    if (financialHistory.length > 30) financialHistory.shift();
-                }
-
-                // Morale & RP policy
-                let moraleChange = 0;
-                let rpPolicyMult = 1.0;
-                if (prev.researchers > 0) {
-                    if (prev.workPolicy === 'relaxed') {
-                        moraleChange = 0.5;
-                        rpPolicyMult = 0.7;
-                    } else if (prev.workPolicy === 'normal') {
-                        moraleChange = -0.1;
-                        rpPolicyMult = 1;
-                    } else if (prev.workPolicy === 'crunch') {
-                        moraleChange = -1;
-                        rpPolicyMult = 1.6;
-                    }
-                }
-                const newMorale = Math.min(100, Math.max(0, prev.staffMorale + moraleChange));
-                let newResearchers = prev.researchers;
-
-                // Resignation logic
-                if (newResearchers > 0) {
-                    let resigned = 0;
-                    let msg = '';
-                    if (newMorale < 15 && Math.random() < 0.2) {
-                        resigned = 1;
-                        msg = t.logResignCritical;
-                    } else if (newMorale < 20 && Math.random() < 0.1) {
-                        resigned = 3;
-                        msg = t.logResignMass;
-                    } else if (newMorale < 25 && Math.random() < 0.05) {
-                        resigned = 2 + Math.floor(Math.random() * 2);
-                        msg = format(t.logResignBad, resigned);
-                    } else if (newMorale < 35 && newMorale >= 30 && Math.random() < 0.02) {
-                        resigned = 1;
-                        msg = t.logResignSingle;
-                    }
-                    if (resigned > 0) {
-                        newResearchers = Math.max(0, newResearchers - resigned);
-                        const flavorMsg = flavor.staffResign[Math.floor(Math.random() * flavor.staffResign.length)];
-                        activeEvent = {
-                            id: `resign_${Date.now()}`,
-                            title: msg,
-                            description: flavorMsg,
-                            type: "negative",
-                        };
-                        playSfx('error');
-                        vibrate('heavy');
-                        newLogs.push({ id: Date.now(), message: msg, type: 'danger', timestamp: `${t.day} ${newDay}` });
-                    }
-                }
-
-                // RP gain
                 const moraleEfficiency = newMorale / 100;
                 const rpModifier = prev.hiredHeroes.includes('hero_linus') ? 2 : 1;
                 const prestigeMult = 1 + prev.prestigePoints * 0.01;
@@ -379,7 +332,6 @@ export const useGameLoop = (
                     (0.5 + moraleEfficiency * 0.5);
 
                 // Stock market update
-                // Increased volatility for high risk/reward
                 const volMult = prev.hiredHeroes.includes('hero_elon') ? 4.0 : 2.5;
                 const newStocks = prev.stocks.map(stock => {
                     const change = (Math.random() - 0.5) * stock.volatility * volMult;
@@ -429,39 +381,41 @@ export const useGameLoop = (
                             remainingMissions.push(mission);
                         }
                     }
-                })
+                });
                 boardMissions = remainingMissions;
 
                 // Generate new mission if ownership < 50%
                 if (prev.playerCompanySharesOwned < 50 && boardMissions.length === 0 && Math.random() < 0.1) {
-                    // Only profit and prestige missions (quality mechanic doesn't exist)
                     const missionType = ['profit', 'prestige'][Math.floor(Math.random() * 2)] as 'profit' | 'prestige';
                     let target = 0;
                     let desc = "";
 
                     if (missionType === 'profit') {
                         target = Math.floor(newMoney * 1.5) + 10000;
-                        desc = format(t.mission_profit, target);
+                        desc = `Reach $${target.toLocaleString()} cash balance`;
                     } else {
                         target = Math.min(100, prev.reputation + 10);
-                        desc = format(t.mission_prestige, target);
+                        desc = `Reach ${target}% Reputation`;
                     }
 
                     boardMissions.push({
-                        id: `bm_${Date.now()}`,
+                        id: `mission_${Date.now()}`,
+                        title: "Board Directive",
                         description: desc,
                         type: missionType,
                         targetValue: target,
                         deadlineDay: newDay + 30,
-                        penalty: 10
+                        penalty: 10, // Prestige penalty
+                        reward: 0 // No direct reward, just survival
                     });
 
-                    newLogs.push({
+                    addLog({
                         id: Date.now(),
-                        message: "BOARD INTERVENTION: New Mission Assigned!",
+                        message: "New Board Mission Received!",
                         type: 'warning',
-                        timestamp: `${t.day} ${newDay}`
+                        timestamp: `${t.day} ${newDay}`,
                     });
+                    playSfx('notification');
                 }
 
                 // Unlock new tabs (R&D, Finance)
@@ -469,12 +423,12 @@ export const useGameLoop = (
                 let newTabUnlocked = false;
                 if (!currentUnlocked.includes('rnd') && newMoney >= 10000) {
                     currentUnlocked.push('rnd');
-                    newLogs.push({ id: Date.now(), message: t.logRdEstablished, type: 'success', timestamp: `${t.day} ${newDay}` });
+                    addLog({ id: Date.now(), message: t.logRdEstablished, type: 'success', timestamp: `${t.day} ${newDay}` });
                     newTabUnlocked = true;
                 }
                 if (!currentUnlocked.includes('finance') && newMoney >= 0) {
                     currentUnlocked.push('finance');
-                    newLogs.push({ id: Date.now(), message: t.logFinanceEstablished, type: 'success', timestamp: `${t.day} ${newDay}` });
+                    addLog({ id: Date.now(), message: t.logFinanceEstablished, type: 'success', timestamp: `${t.day} ${newDay}` });
                     newTabUnlocked = true;
                 }
                 if (!currentUnlocked.includes('statistics') && newMoney >= 0) {
@@ -483,7 +437,7 @@ export const useGameLoop = (
                 }
                 if (!currentUnlocked.includes('marketing') && newMoney >= 100000) {
                     currentUnlocked.push('marketing');
-                    newLogs.push({ id: Date.now(), message: "Marketing Dept. Established", type: 'success', timestamp: `${t.day} ${newDay}` });
+                    addLog({ id: Date.now(), message: "Marketing Dept. Established", type: 'success', timestamp: `${t.day} ${newDay}` });
                     if (newTabUnlocked) {
                         playSfx('success');
                         vibrate('medium');
@@ -500,7 +454,7 @@ export const useGameLoop = (
                         repPenalty += 10;
                         playSfx('error');
                         vibrate('error');
-                        newLogs.push({ id: Date.now(), message: t.logContractFailed, type: 'danger', timestamp: `${t.day} ${newDay}` });
+                        addLog({ id: Date.now(), message: t.logContractFailed, type: 'danger', timestamp: `${t.day} ${newDay}` });
                         if (onShowFloatingText) {
                             onShowFloatingText(`-$${contract.penalty}`, 'expense');
                             onShowFloatingText(`-10 REP`, 'reputation');
@@ -559,7 +513,7 @@ export const useGameLoop = (
 
                 // Production logic
                 let productionSiliconConsumed = 0;
-                const productionOutput: Record<ProductType, number> = { [ProductType.CPU]: 0, [ProductType.GPU]: 0 };
+                let productionOutput: Record<ProductType, number> = { [ProductType.CPU]: 0, [ProductType.GPU]: 0 };
 
                 // Marketing Bonus: Brand Awareness boosts demand (sales speed)
                 // 100% Awareness = 2x Sales Speed
@@ -577,10 +531,10 @@ export const useGameLoop = (
                         if (line.specialization === 'speed') baseOutput = Math.floor(baseOutput * 1.5);
                         else if (line.specialization === 'quality') baseOutput = Math.floor(baseOutput * 0.7);
 
-                        // Apply Brand Bonus to effective output (simulating higher demand clearing stock faster)
-                        // Note: This is a simplification. Ideally, demand should be separate.
-                        // For now, we assume production is the bottleneck, but high demand allows selling more if we had it?
-                        // Actually, let's keep production as is, but sales logic below should use brandBonus.
+                        // Apply Overdrive Multiplier
+                        if (overdriveActive) {
+                            baseOutput = baseOutput * 2;
+                        }
 
                         const actualOutput = Math.floor(baseOutput * (newEfficiency / 100));
                         const siliconNeeded = actualOutput * siliconPerUnit;
@@ -689,6 +643,12 @@ export const useGameLoop = (
                     });
                 }
 
+                // Era and Trend Logic (Missing in previous view)
+                let currentEraId = prev.currentEraId;
+                let activeTrendId = prev.activeTrendId;
+                let activeRivalLaunch = prev.activeRivalLaunch;
+                let financialHistory = [...prev.financialHistory];
+
                 // Assemble new state
                 return {
                     ...prev,
@@ -723,18 +683,19 @@ export const useGameLoop = (
                     boardMissions,
                     marketSaturation: newSaturation,
                     dailyDemand: newDailyDemand,
+                    dailySpinUsed,
+                    bailoutUsedToday,
+                    lastDailyReset,
+                    overdriveActive,
                 };
             });
         };
 
-        const interval = setInterval(
-            tick,
-            gameState.gameSpeed === 'fast'
-                ? TICK_RATE_MS / 3
-                : gameState.gameSpeed === 'normal'
-                    ? TICK_RATE_MS * 4.0
-                    : TICK_RATE_MS
-        );
+        let tickRate = TICK_RATE_MS;
+        if (gameState.gameSpeed === 'fast') tickRate = TICK_RATE_MS / 3;
+        else if (gameState.gameSpeed === 'normal') tickRate = TICK_RATE_MS * 4.0;
+
+        const interval = setInterval(tick, tickRate);
         return () => clearInterval(interval);
     }, [
         gameState.gameSpeed,

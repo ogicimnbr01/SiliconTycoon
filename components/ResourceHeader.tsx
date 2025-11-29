@@ -55,7 +55,7 @@ const ResourceHeaderComponent: React.FC<ResourceHeaderProps> = ({ gameState, onS
                   <Calendar size={10} /> {t.day} {gameState.day}
                </div>
                <div className="text-xs font-bold text-blue-100 truncate max-w-[100px]">
-                  {currentEra.name}
+                  {t[`${currentEra.id}_name` as keyof typeof t] || currentEra.name}
                </div>
                {nextEra && (
                   <div className="text-[8px] font-bold text-blue-400 mt-0.5">
@@ -101,10 +101,10 @@ const ResourceHeaderComponent: React.FC<ResourceHeaderProps> = ({ gameState, onS
                <div className="fixed inset-0 z-[60]" onClick={() => setShowEraInfo(false)} />
                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-slate-900/95 backdrop-blur-xl border border-slate-700 p-4 rounded-2xl shadow-2xl z-[70] animate-in fade-in slide-in-from-top-2">
                   <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-800">
-                     <h4 className="text-sm font-bold text-white">{currentEra.name}</h4>
+                     <h4 className="text-sm font-bold text-white">{t[`${currentEra.id}_name` as keyof typeof t] || currentEra.name}</h4>
                      <span className="text-[10px] font-mono text-blue-400 bg-blue-950/50 px-2 py-0.5 rounded-full border border-blue-900">{Math.round(progress)}%</span>
                   </div>
-                  <p className="text-xs text-slate-400 leading-relaxed mb-4">{currentEra.description}</p>
+                  <p className="text-xs text-slate-400 leading-relaxed mb-4">{t[`${currentEra.id}_desc` as keyof typeof t] || currentEra.description}</p>
                   {/* ... rest of tooltip content ... */}
                   <div className="space-y-2 bg-slate-950/50 p-3 rounded-xl border border-slate-800/50">
                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">{t.marketModifiers}</div>

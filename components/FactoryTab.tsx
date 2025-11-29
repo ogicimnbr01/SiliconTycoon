@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { GameState, ProductType, DesignSpec } from '../types';
-import { TRANSLATIONS, CPU_TECH_TREE, GPU_TECH_TREE, OFFICE_CONFIGS, MARKET_TRENDS } from '../constants';
-import { Cpu, Zap, Settings, TrendingUp, Package, ArrowLeft, ShoppingCart, Building } from 'lucide-react';
+import { GameState, ProductType, DesignSpec, OfficeLevel } from '../types';
+import { TRANSLATIONS } from '../constants';
+import { CPU_TECH_TREE, GPU_TECH_TREE, OFFICE_CONFIGS, MARKET_TRENDS } from '../constants';
 import { getReputationBonuses } from '../utils/gameUtils';
+import { Zap, TrendingUp, TrendingDown, AlertTriangle, Lock, Unlock, Factory, Briefcase, DollarSign, Clock, Shield, ChevronRight, ChevronDown, ArrowLeft, Cpu, Building, Settings, Package } from 'lucide-react';
+import { useAdMob } from '../hooks/useAdMob';
 
 interface FactoryTabProps {
     gameState: GameState;
@@ -13,6 +15,7 @@ interface FactoryTabProps {
     onDowngradeOffice: () => void;
     onSetStrategy: (strategy: 'low' | 'medium' | 'high') => void;
     onUpdateDesignSpec: (type: ProductType, spec: DesignSpec) => void;
+    onActivateOverdrive: () => void;
 }
 
 const FactoryTabComponent: React.FC<FactoryTabProps> = ({
@@ -23,7 +26,8 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
     onUpgradeOffice,
     onDowngradeOffice,
     onSetStrategy,
-    onUpdateDesignSpec
+    onUpdateDesignSpec,
+    onActivateOverdrive
 }) => {
     const t = TRANSLATIONS[language] || TRANSLATIONS['en'];
     const [step, setStep] = useState<'select' | 'produce'>('select');
@@ -31,6 +35,64 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
     const [productionAmount, setProductionAmount] = useState(10);
     const [showUpgradeConfirm, setShowUpgradeConfirm] = useState(false);
     const [upgradeError, setUpgradeError] = useState<string | null>(null);
+
+    // Overdrive Logic
+    const { showRewardedAd, isAdReady } = useAdMob(gameState.isPremium);
+    const [isAdLoading, setIsAdLoading] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(0);
+    // Check if ad is ready (isAdReady is a function)
+    const adReady = isAdReady('boost');
+
+    React.useEffect(() => {
+        if (!gameState.overdriveActive) {
+            setTimeLeft(0);
+            return;
+        }
+
+        const updateTimer = () => {
+            const remaining = Math.max(0, gameState.overdriveEndsAt - Date.now());
+            setTimeLeft(remaining);
+        };
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+        return () => clearInterval(interval);
+    }, [gameState.overdriveActive, gameState.overdriveEndsAt]);
+
+    const handleOverdriveClick = async () => {
+        if (gameState.overdriveActive) return;
+
+        // Check unlock conditions
+        const isUnlocked = gameState.officeLevel >= 1 || gameState.day >= 15;
+        if (!isUnlocked) {
+            // Unlock condition not met - function will show error message
+            onActivateOverdrive();
+            return;
+        }
+
+        // Check cooldown
+        const COOLDOWN_MS = 45 * 60 * 1000;
+        const timeSinceLastUse = Date.now() - (gameState.lastOverdriveTime || 0);
+        if (gameState.lastOverdriveTime && timeSinceLastUse < COOLDOWN_MS) {
+            // Cooldown not finished - function will show error message
+            onActivateOverdrive();
+            return;
+        }
+
+        // All checks passed - show ad
+        setIsAdLoading(true);
+        await showRewardedAd('boost', () => {
+            onActivateOverdrive();
+        });
+        setIsAdLoading(false);
+    };
+
+    const formatTime = (ms: number) => {
+        const seconds = Math.floor(ms / 1000);
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
 
     React.useEffect(() => {
         if (showUpgradeConfirm) setUpgradeError(null);
@@ -77,7 +139,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                             <div className="text-xs font-bold text-slate-500 uppercase text-center">{t.current}</div>
                             <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center">
                                 <div className="font-bold text-white mb-1">{getOfficeName(gameState.officeLevel)}</div>
-                                <div className="text-[10px] text-slate-400">Cap: {currentOffice.siliconCap}</div>
+                                <div className="text-[10px] text-slate-400">{t.cap}: {currentOffice.siliconCap}</div>
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -85,7 +147,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                             <div className="bg-slate-950 p-3 rounded-xl border border-emerald-500/30 text-center relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-3 h-3 bg-emerald-500 rounded-bl-lg"></div>
                                 <div className="font-bold text-emerald-400 mb-1">{getOfficeName(gameState.officeLevel + 1)}</div>
-                                <div className="text-[10px] text-emerald-300/70">Cap: {nextOffice.siliconCap}</div>
+                                <div className="text-[10px] text-emerald-300/70">{t.cap}: {nextOffice.siliconCap}</div>
                             </div>
                         </div>
                     </div>
@@ -160,10 +222,10 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-bold text-white leading-tight mb-1">
-                                            {activeTrend.name}
+                                            {t[`${activeTrend.id}_name` as keyof typeof t] || activeTrend.name}
                                         </h3>
                                         <p className="text-sm text-indigo-200 leading-snug">
-                                            {activeTrend.description}
+                                            {t[`${activeTrend.id}_desc` as keyof typeof t] || activeTrend.description}
                                         </p>
                                         <div className="mt-2 flex flex-wrap gap-2">
                                             <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
@@ -333,7 +395,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                     <div>
                         <h2 className="text-xl font-black text-white uppercase tracking-wide flex items-center gap-2">
                             {selectedProduct === ProductType.CPU ? <Cpu size={20} className="text-indigo-400" /> : <Zap size={20} className="text-emerald-400" />}
-                            {tech.name}
+                            {t[`${tech.id}_name` as keyof typeof t] || tech.name}
                         </h2>
                         <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t.design} & {t.manufacturing}</div>
                     </div>
@@ -431,8 +493,8 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                                         onClick={() => setProductionAmount(Math.max(1, opt.val))}
                                         disabled={opt.val < 1}
                                         className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all ${productionAmount === opt.val
-                                                ? 'bg-blue-500 text-white'
-                                                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                            ? 'bg-blue-500 text-white'
+                                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                                             } disabled:opacity-30`}
                                     >
                                         {opt.label}
@@ -446,7 +508,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                         <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
                             <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">{t.siliconNeeded}</div>
                             <div className={`font-mono font-bold text-sm ${canProduce ? 'text-orange-400' : 'text-red-500'}`}>
-                                {totalSiliconNeeded} kg
+                                {totalSiliconNeeded} Wafer
                             </div>
                         </div>
                         <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
@@ -476,8 +538,43 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
         );
     };
 
+    const isUnlocked = gameState.officeLevel >= 1 || gameState.day >= 15;
+    const COOLDOWN_MS = 45 * 60 * 1000;
+    const timeSinceLastUse = Date.now() - (gameState.lastOverdriveTime || 0);
+    const isOnCooldown = gameState.lastOverdriveTime && timeSinceLastUse < COOLDOWN_MS;
+    const cooldownMinutes = isOnCooldown ? Math.ceil((COOLDOWN_MS - timeSinceLastUse) / 60000) : 0;
+
     return (
         <div className="h-full pb-24 overflow-y-auto px-1">
+            {/* Overdrive Button */}
+            {(isAdReady || gameState.overdriveActive || !isUnlocked || isOnCooldown) && (
+                <div className="mb-4 px-1">
+                    <button
+                        onClick={handleOverdriveClick}
+                        disabled={gameState.overdriveActive || isAdLoading || !isUnlocked || isOnCooldown}
+                        className={`w-full py-3 rounded-xl font-black text-sm uppercase tracking-wider transition-all shadow-lg flex items-center justify-center gap-2 relative overflow-hidden ${gameState.overdriveActive
+                            ? 'bg-yellow-500 text-black shadow-yellow-500/20'
+                            : (!isUnlocked || isOnCooldown)
+                                ? 'bg-slate-950 text-slate-600 border border-slate-800 cursor-not-allowed'
+                                : 'bg-slate-800 text-yellow-400 border border-yellow-500/30 hover:bg-slate-700'
+                            }`}
+                    >
+                        {gameState.overdriveActive && (
+                            <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                        )}
+                        <Zap size={18} className={gameState.overdriveActive ? 'animate-bounce' : ''} />
+                        {gameState.overdriveActive
+                            ? `OVERDRIVE ACTIVE (${formatTime(timeLeft)})`
+                            : !isUnlocked
+                                ? `🔒 LOCKED (Office Lv2 or Day 15)`
+                                : isOnCooldown
+                                    ? `⏱️ COOLDOWN (${cooldownMinutes}m remaining)`
+                                    : isAdLoading ? 'LOADING AD...' : 'ACTIVATE OVERDRIVE (2X SPEED)'
+                        }
+                    </button>
+                </div>
+            )}
+
             {step === 'select' ? renderSelectionStep() : renderProductionStep()}
             {renderUpgradeModal()}
         </div>

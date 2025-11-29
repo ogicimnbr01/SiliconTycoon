@@ -25,7 +25,7 @@ import { NewsTicker } from './components/NewsTicker';
 import { HackingMinigame } from './components/HackingMinigame';
 import { OfflineReport } from './components/ui/OfflineReport';
 import { MainMenu } from './components/MainMenu';
-import { LayoutGrid, FlaskConical, LineChart, AlertTriangle, Loader2, Pause, Play, LogOut, Landmark, Skull, MailWarning, Lock, Megaphone, BarChart } from 'lucide-react';
+import { LayoutGrid, FlaskConical, LineChart, AlertTriangle, Loader2, Pause, Play, LogOut, Landmark, Skull, MailWarning, Lock, Megaphone, BarChart, Gift } from 'lucide-react';
 import { playSfx, setSoundEnabled } from './utils/SoundManager';
 import { SettingsModal } from './components/SettingsModal';
 import { AchievementsModal } from './components/AchievementsModal';
@@ -33,6 +33,8 @@ import { AchievementPopup } from './components/AchievementPopup';
 
 import { SaveLoadModal } from './components/SaveLoadModal';
 import { HackingResultModal } from './components/HackingResultModal';
+import { BailoutModal } from './components/BailoutModal';
+import { DailyBonusWheel } from './components/DailyBonusWheel';
 
 import { MarketingTab } from './components/MarketingTab';
 import { StatisticsTab } from './components/StatisticsTab';
@@ -64,11 +66,10 @@ const App: React.FC = () => {
     });
     const [activeAchievement, setActiveAchievement] = useState<any>(null);
     const [floatingTexts, setFloatingTexts] = useState<FloatingTextItem[]>([]);
+    const [showBailoutModal, setShowBailoutModal] = useState(false);
+    const [showDailyWheel, setShowDailyWheel] = useState(false);
 
-    useEffect(() => {
-        setSoundEnabled(soundEnabled);
-        localStorage.setItem('siliconTycoonSettings', JSON.stringify({ sound: soundEnabled, vibration: vibrationEnabled }));
-    }, [soundEnabled, vibrationEnabled]);
+
 
     useEffect(() => {
         const hideSystemBars = async () => {
@@ -102,6 +103,22 @@ const App: React.FC = () => {
             else if (type === 'error') await Haptics.notification({ type: NotificationType.Error });
         } catch (e) { console.warn("Haptics not supported"); }
     }, [vibrationEnabled]);
+
+    // Check for Bankruptcy / Bailout
+    // Check for Bankruptcy / Bailout
+    useEffect(() => {
+        if (gameState.money < -3000 && !gameState.bailoutUsedToday && !showBailoutModal) {
+            // Small delay to let the "Bankrupt" log appear first or just to be safe
+            const timer = setTimeout(() => setShowBailoutModal(true), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [gameState.money, gameState.bailoutUsedToday, showBailoutModal]);
+
+    // Update settings
+    useEffect(() => {
+        setSoundEnabledState(soundEnabled);
+        localStorage.setItem('siliconTycoonSettings', JSON.stringify({ sound: soundEnabled, vibration: vibrationEnabled }));
+    }, [soundEnabled, vibrationEnabled]);
 
     const handleShowFloatingText = useCallback((text: string, type: 'income' | 'expense' | 'rp' | 'reputation' | 'neutral', x?: number, y?: number) => {
         const id = Date.now().toString() + Math.random().toString();
@@ -206,6 +223,8 @@ const App: React.FC = () => {
                         setShowSaveLoad(true);
                     }}
                     language={gameState.language}
+                    onTogglePremium={() => setGameState(prev => ({ ...prev, isPremium: !prev.isPremium }))}
+                    isPremium={gameState.isPremium}
                 />
                 <AchievementsModal
                     isOpen={showAchievements}
@@ -253,7 +272,7 @@ const App: React.FC = () => {
             )}
 
             {gameState.hacking.active && (<HackingMinigame type={gameState.hacking.type} difficulty={gameState.hacking.difficulty} onComplete={actions.handleHackingComplete} onCancel={() => setGameState(prev => ({ ...prev, hacking: { ...prev.hacking, active: false } }))} language={gameState.language} />)}
-            {gameState.offlineReport && (<OfflineReport data={gameState.offlineReport} language={gameState.language} onDismiss={() => setGameState(prev => ({ ...prev, money: prev.money + prev.offlineReport!.moneyEarned, rp: prev.rp + prev.offlineReport!.rpEarned, offlineReport: null }))} />)}
+            {gameState.offlineReport && (<OfflineReport data={gameState.offlineReport} language={gameState.language} isPremium={gameState.isPremium} onDismiss={(multiplier) => setGameState(prev => ({ ...prev, money: prev.money + (prev.offlineReport!.moneyEarned * multiplier), rp: prev.rp + (prev.offlineReport!.rpEarned * multiplier), offlineReport: null, offlineAdWatched: multiplier > 1 }))} />)}
 
             {gameState.gameSpeed === 'paused' && gameState.stage === 'game' && (
                 <div className="absolute inset-0 z-[50] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
@@ -271,7 +290,7 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto overscroll-none px-4 pb-32 pt-4 scroll-smooth no-scrollbar w-full">
-                {activeTab === 'factory' && (<FactoryTab gameState={gameState} language={gameState.language} onProduce={actions.handleProduce} onBuySilicon={actions.handleBuySilicon} onUpgradeOffice={actions.handleUpgradeOffice} onDowngradeOffice={actions.handleDowngradeOffice} onSetStrategy={(s) => setGameState(prev => ({ ...prev, productionQuality: s }))} onUpdateDesignSpec={actions.handleUpdateDesignSpec} />)}
+                {activeTab === 'factory' && (<FactoryTab gameState={gameState} language={gameState.language} onProduce={actions.handleProduce} onBuySilicon={actions.handleBuySilicon} onUpgradeOffice={actions.handleUpgradeOffice} onDowngradeOffice={actions.handleDowngradeOffice} onSetStrategy={(s) => setGameState(prev => ({ ...prev, productionQuality: s }))} onUpdateDesignSpec={actions.handleUpdateDesignSpec} onActivateOverdrive={actions.handleActivateOverdrive} />)}
 
                 {activeTab === 'rnd' && (
                     <ResearchTab
@@ -345,6 +364,19 @@ const App: React.FC = () => {
                         language={gameState.language}
                     />
                 )}
+                {/* Daily Bonus Button */}
+                {/* Daily Bonus Button */}
+                {(!gameState.dailySpinUsed || gameState.extraSpinsRemaining > 0) && (
+                    <button
+                        onClick={() => setShowDailyWheel(true)}
+                        className="absolute top-24 right-4 z-30 w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg border border-amber-400 hover:scale-110 transition-transform"
+                    >
+                        <Gift className="text-white" size={24} />
+                        {!gameState.dailySpinUsed && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border border-white" />
+                        )}
+                    </button>
+                )}
             </div>
 
             <div className="absolute bottom-0 w-full z-40 flex flex-col safe-area-pb">
@@ -377,6 +409,8 @@ const App: React.FC = () => {
                     setShowSaveLoad(true);
                 }}
                 language={gameState.language}
+                onTogglePremium={() => setGameState(prev => ({ ...prev, isPremium: !prev.isPremium }))}
+                isPremium={gameState.isPremium}
             />
             <AchievementsModal
                 isOpen={showAchievements}
@@ -404,9 +438,26 @@ const App: React.FC = () => {
                 onClose={() => setGameState(prev => ({ ...prev, hackingResult: null }))}
                 language={gameState.language}
             />
+            {showBailoutModal && (
+                <BailoutModal
+                    gameState={gameState}
+                    onBailoutReward={actions.handleBailoutReward}
+                    onClose={() => setShowBailoutModal(false)}
+                />
+            )}
+            {showDailyWheel && (
+                <DailyBonusWheel
+                    gameState={gameState}
+                    onSpin={actions.handleSpinWheel}
+                    onClose={() => setShowDailyWheel(false)}
+                    language={gameState.language}
+                />
+            )}
             <FloatingTextLayer items={floatingTexts} onComplete={handleFloatingTextComplete} />
         </div>
     );
+
+
 };
 
 export default App;

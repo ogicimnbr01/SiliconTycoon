@@ -5,14 +5,27 @@ import { Button } from './Button';
 import { Moon, DollarSign, FlaskConical } from 'lucide-react';
 import { TRANSLATIONS } from '../../constants';
 
+import { useAdMob } from '../../hooks/useAdMob';
+
 interface OfflineReportProps {
    data: OfflineReportData;
-   onDismiss: () => void;
+   onDismiss: (multiplier: number) => void;
    language: Language;
+   isPremium: boolean;
 }
 
-export const OfflineReport: React.FC<OfflineReportProps> = ({ data, onDismiss, language }) => {
+export const OfflineReport: React.FC<OfflineReportProps> = ({ data, onDismiss, language, isPremium }) => {
    const t = TRANSLATIONS[language];
+   const { showRewardedAd, isAdReady } = useAdMob(isPremium);
+   const [isAdLoading, setIsAdLoading] = React.useState(false);
+
+   const handleDouble = () => {
+      setIsAdLoading(true);
+      showRewardedAd('offline', () => {
+         setIsAdLoading(false);
+         onDismiss(2);
+      });
+   };
 
    return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in zoom-in-95 duration-300">
@@ -48,9 +61,23 @@ export const OfflineReport: React.FC<OfflineReportProps> = ({ data, onDismiss, l
                   </div>
                </div>
 
-               <Button variant="primary" size="lg" className="w-full mt-2" onClick={onDismiss}>
-                  {t.collectResources}
-               </Button>
+               <div className="flex flex-col gap-3 mt-4">
+                  <Button
+                     variant="success"
+                     size="lg"
+                     className="w-full h-14 text-lg shadow-lg shadow-emerald-900/20 relative overflow-hidden group"
+                     onClick={handleDouble}
+                     disabled={isAdLoading}
+                  >
+                     <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/0 via-emerald-400/20 to-emerald-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                     <span className="mr-2">📺</span>
+                     {isAdLoading ? 'Loading...' : 'DOUBLE EARNINGS'}
+                  </Button>
+
+                  <Button variant="secondary" size="sm" className="w-full" onClick={() => onDismiss(1)}>
+                     {t.collectResources}
+                  </Button>
+               </div>
             </div>
          </div>
       </div>

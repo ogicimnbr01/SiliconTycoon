@@ -20,7 +20,7 @@ interface MarketTabProps {
     onRetire: () => void;
     onTakeLoan: (amount: number) => void;
     onPayLoan: (loanId: string) => void;
-    onTradeOwnShares: (action: 'buy' | 'sell') => void;
+    onTradeOwnShares: (action: 'buy' | 'sell', amount: number) => void;
     unlockedTabs: TabType[];
 }
 
@@ -137,7 +137,16 @@ const MarketTab: React.FC<MarketTabProps> = ({
             marketSaturation: gameState.marketSaturation?.[type] ?? 0
         }) : { revenue: 0, breakdown: { baseRevenue: 0, afterDecay: 0, afterCrash: 0, afterSaturation: 0 }, warnings: [] };
 
-        const totalValue = economyResult.revenue; // Use economy system revenue, not simple price * count
+        // Apply reputation bonus to match actual sale calculation in handleSell
+        const reputationBonuses = (() => {
+            if (gameState.reputation >= 80) return { priceBonus: 1.2, siliconDiscount: 0.85, contractBonus: 1.3 };
+            if (gameState.reputation >= 60) return { priceBonus: 1.15, siliconDiscount: 0.9, contractBonus: 1.2 };
+            if (gameState.reputation >= 40) return { priceBonus: 1.1, siliconDiscount: 0.95, contractBonus: 1.1 };
+            if (gameState.reputation >= 20) return { priceBonus: 1.05, siliconDiscount: 0.98, contractBonus: 1.05 };
+            return { priceBonus: 1.0, siliconDiscount: 1.0, contractBonus: 1.0 };
+        })();
+
+        const totalValue = Math.floor(economyResult.revenue * reputationBonuses.priceBonus); // Match handleSell calculation
         const decayWarning = getPriceDecayWarning(techLevel, marketEra);
 
         return (
@@ -189,8 +198,8 @@ const MarketTab: React.FC<MarketTabProps> = ({
                             📊 {t.dailyDemand || 'DAILY DEMAND'}
                         </span>
                         <span className={`text-xs font-mono font-bold ${(gameState.dailyDemand?.[type] ?? 100) > 50 ? 'text-emerald-400' :
-                                (gameState.dailyDemand?.[type] ?? 100) > 20 ? 'text-yellow-400' :
-                                    'text-red-400'
+                            (gameState.dailyDemand?.[type] ?? 100) > 20 ? 'text-yellow-400' :
+                                'text-red-400'
                             }`}>
                             {gameState.dailyDemand?.[type] ?? 100} {t.units || 'units'}
                         </span>
@@ -198,8 +207,8 @@ const MarketTab: React.FC<MarketTabProps> = ({
                     <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
                         <div
                             className={`h-full transition-all duration-300 ${(gameState.dailyDemand?.[type] ?? 100) > 50 ? 'bg-emerald-500' :
-                                    (gameState.dailyDemand?.[type] ?? 100) > 20 ? 'bg-yellow-500' :
-                                        'bg-red-500'
+                                (gameState.dailyDemand?.[type] ?? 100) > 20 ? 'bg-yellow-500' :
+                                    'bg-red-500'
                                 }`}
                             style={{ width: `${Math.min(100, ((gameState.dailyDemand?.[type] ?? 100) / 100) * 100)}%` }}
                         />
@@ -477,8 +486,8 @@ const MarketTab: React.FC<MarketTabProps> = ({
                                         {gameState.playerCompanySharesOwned < 30 && (<div className="text-[9px] text-red-500 font-bold mt-1 animate-pulse">{t.ownershipWarning}</div>)}
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
-                                        <button onClick={() => onTradeOwnShares('buy')} disabled={gameState.money < (gameState.playerSharePrice * 500) || gameState.playerCompanySharesOwned >= 100} className="bg-emerald-900/30 border border-emerald-500/30 p-3 rounded-xl text-emerald-400 font-bold text-xs uppercase hover:bg-emerald-500/20 disabled:opacity-50 active:scale-95 transition-all">{t.buyBack} (+5%)</button>
-                                        <button onClick={() => onTradeOwnShares('sell')} disabled={gameState.playerCompanySharesOwned <= 10} className="bg-red-900/30 border border-red-500/30 p-3 rounded-xl text-red-400 font-bold text-xs uppercase hover:bg-red-500/20 disabled:opacity-50 active:scale-95 transition-all">{t.dilute} (-5%)</button>
+                                        <button onClick={() => onTradeOwnShares('buy', 5)} disabled={gameState.money < (gameState.playerSharePrice * 500) || gameState.playerCompanySharesOwned >= 100} className="bg-emerald-900/30 border border-emerald-500/30 p-3 rounded-xl text-emerald-400 font-bold text-xs uppercase hover:bg-emerald-500/20 disabled:opacity-50 active:scale-95 transition-all">{t.buyBack} (+5%)</button>
+                                        <button onClick={() => onTradeOwnShares('sell', 5)} disabled={gameState.playerCompanySharesOwned <= 10} className="bg-red-900/30 border border-red-500/30 p-3 rounded-xl text-red-400 font-bold text-xs uppercase hover:bg-red-500/20 disabled:opacity-50 active:scale-95 transition-all">{t.dilute} (-5%)</button>
                                     </div>
                                 </div>
                             )}

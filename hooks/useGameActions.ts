@@ -18,6 +18,7 @@ import {
     CPU_TECH_TREE,
     GPU_TECH_TREE
 } from '../constants';
+import { ECONOMY_CONFIG } from '../utils/economySystem';
 import { getReputationBonuses } from '../utils/gameUtils';
 import { calculateFinalRevenue, getEraTier } from '../utils/economySystem';
 
@@ -141,6 +142,19 @@ export const useGameActions = (
 
     const handleSell = useCallback((type: ProductType, currentPrice: number) => {
         setGameState(prev => {
+            // Check if we need to reset daily sales (new day)
+            if (prev.day !== prev.lastSalesResetDay) {
+                prev.dailySales = { [ProductType.CPU]: 0, [ProductType.GPU]: 0 };
+                prev.lastSalesResetDay = prev.day;
+            }
+
+            // Check market demand penalty
+            const DAILY_LIMIT = ECONOMY_CONFIG.DAILY_MARKET_DEMAND?.[type] || 1000;
+            const alreadySoldToday = prev.dailySales[type] || 0;
+            const priceMultiplier = (alreadySoldToday >= DAILY_LIMIT)
+                ? (1 - (ECONOMY_CONFIG.OVERSELL_PENALTY || 0.20))
+                : 1;
+
             const count = prev.inventory[type];
             if (count <= 0) {
                 playSfx('error');
@@ -155,7 +169,7 @@ export const useGameActions = (
 
             // Calculate final revenue with ALL penalties
             const { revenue, breakdown, warnings } = calculateFinalRevenue({
-                basePrice: currentPrice,
+                basePrice: currentPrice * priceMultiplier, // Apply daily demand penalty
                 amount: count,
                 productTier,
                 productType: type,
@@ -226,6 +240,10 @@ export const useGameActions = (
                 reputation: Math.min(100, prev.reputation + repGain),
                 marketSaturation: newSaturation,
                 dailyDemand: newDailyDemand,
+                dailySales: {  // <-- BU SATIRI EKLE
+                    ...prev.dailySales,
+                    [type]: (prev.dailySales[type] || 0) + count
+                },
                 logs: [...prev.logs, {
                     id: Date.now(),
                     message: logMessage,

@@ -13,7 +13,7 @@ const AD_UNIT_IDS = {
 // For production, you would replace these with real IDs based on platform (iOS/Android)
 // const PROD_AD_UNIT_IDS = { ... };
 
-export function useAdMob(isPremium: boolean = false) {
+export function useAdMob(isPremium: boolean = false, onAdStart?: () => void, onAdEnd?: () => void) {
     const [preloadedAds, setPreloadedAds] = useState<Record<string, boolean>>({});
     const [isInitialized, setIsInitialized] = useState(false);
 

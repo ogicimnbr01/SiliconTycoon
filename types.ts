@@ -330,6 +330,9 @@ export interface GameState {
 
   // Premium
   isPremium: boolean;
+
+  dailySales: Record<ProductType, number>;
+  lastSalesResetDay: number;
 }
 
 export interface LogEntry {

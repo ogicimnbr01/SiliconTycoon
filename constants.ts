@@ -2151,6 +2151,8 @@ export const INITIAL_GAME_STATE: GameState = {
   brandAwareness: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
   marketSaturation: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
   dailyDemand: { [ProductType.CPU]: 80, [ProductType.GPU]: 90 },
+  dailySales: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },  // EKLE
+  lastSalesResetDay: 1,  // EKLE
   competitors: INITIAL_COMPETITORS,
   boardMissions: [],
   loans: [],

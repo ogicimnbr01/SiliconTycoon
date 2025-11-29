@@ -1,7 +1,7 @@
 import React from 'react';
 import { ProductType, Language, MarketingCampaign, ActiveCampaign } from '../types';
 import { MARKETING_CAMPAIGNS, TRANSLATIONS } from '../constants';
-import { TrendingUp, Zap, DollarSign, Clock } from 'lucide-react';
+import { TrendingUp, Zap, DollarSign, Clock, AlertTriangle } from 'lucide-react';
 import { Button } from './ui/Button';
 
 interface MarketingTabProps {
@@ -23,6 +23,14 @@ export const MarketingTab: React.FC<MarketingTabProps> = ({
 
     return (
         <div className="p-4 space-y-6">
+            {activeCampaigns.length === 0 && (
+                <div className="mb-4 px-4 py-3 bg-orange-500/10 border border-orange-500/30 rounded-xl">
+                    <div className="flex items-center gap-2 text-orange-400 text-sm font-bold">
+                        <AlertTriangle size={16} />
+                        <span>No active marketing campaigns! Brand awareness will decay.</span>
+                    </div>
+                </div>
+            )}
             {/* Brand Awareness Display */}
             <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
                 <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">

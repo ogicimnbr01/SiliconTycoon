@@ -208,15 +208,15 @@ export const useGameActions = (
             console.groupEnd();
 
             // Update daily demand (reduce by amount sold)
+            const demandBefore = prev.dailyDemand?.[type] ?? 100;
             const newDailyDemand = {
                 ...prev.dailyDemand,
-                [type]: Math.max(0, (prev.dailyDemand?.[type] ?? 100) - count)
+                [type]: Math.max(0, demandBefore - count)
             };
 
-            // Add warning if demand was exceeded (already applied in economy system)
-            const demandRemaining = prev.dailyDemand?.[type] ?? 100;
-            if (count > demandRemaining && demandRemaining > 0) {
-                logMessage += ` ⚠️ DEMAND EXCEEDED! Severe penalty applied.`;
+            // Add warning ONLY if we actually sold MORE than available demand
+            if (count > demandBefore) {
+                logMessage += ` ⚠️ Oversold!`;
             }
 
             return {

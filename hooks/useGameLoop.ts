@@ -429,21 +429,19 @@ export const useGameLoop = (
                             remainingMissions.push(mission);
                         }
                     }
-                });
+                })
                 boardMissions = remainingMissions;
 
                 // Generate new mission if ownership < 50%
                 if (prev.playerCompanySharesOwned < 50 && boardMissions.length === 0 && Math.random() < 0.1) {
-                    const missionType = ['profit', 'quality', 'prestige'][Math.floor(Math.random() * 3)] as 'profit' | 'quality' | 'prestige';
+                    // Only profit and prestige missions (quality mechanic doesn't exist)
+                    const missionType = ['profit', 'prestige'][Math.floor(Math.random() * 2)] as 'profit' | 'prestige';
                     let target = 0;
                     let desc = "";
 
                     if (missionType === 'profit') {
                         target = Math.floor(newMoney * 1.5) + 10000;
                         desc = format(t.mission_profit, target);
-                    } else if (missionType === 'quality') {
-                        target = 70 + Math.floor(Math.random() * 20);
-                        desc = format(t.mission_quality, target);
                     } else {
                         target = Math.min(100, prev.reputation + 10);
                         desc = format(t.mission_prestige, target);
@@ -455,7 +453,7 @@ export const useGameLoop = (
                         type: missionType,
                         targetValue: target,
                         deadlineDay: newDay + 30,
-                        penalty: 30
+                        penalty: 10
                     });
 
                     newLogs.push({

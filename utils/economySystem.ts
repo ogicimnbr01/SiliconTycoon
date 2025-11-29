@@ -239,9 +239,9 @@ export function executeBatchSell(
     // Generate warning
     let warning: string | null = null;
     if (oversupplyRatio > 2) {
-        warning = `⚠️ MARKET CRASH! Selling ${amount} units crashed price by ${(crashPenalty * 100).toFixed(0)}%`;
+        warning = `⚠️ Crash -${(crashPenalty * 100).toFixed(0)}%`;
     } else if (oversupplyRatio > 1) {
-        warning = `Oversupply detected. Price reduced ${(crashPenalty * 100).toFixed(0)}%`;
+        warning = `Oversupply -${(crashPenalty * 100).toFixed(0)}%`;
     }
 
     return {
@@ -297,11 +297,11 @@ export function calculateFinalRevenue(params: {
     const decayWarning = getPriceDecayWarning(productTier, marketEra);
 
     if (decayWarning === 'hype') {
-        warnings.push('🔥 CURRENT GEN! +50% Hype Bonus!');
+        warnings.push('🔥 +50% Hype!');
     } else if (decayWarning === 'trash') {
-        warnings.push('🗑️ Ancient tech! Minimal value');
+        warnings.push('🗑️ Old tech');
     } else if (decayWarning === 'danger') {
-        warnings.push('⚠️ Outdated tech. Reduced price');
+        warnings.push('⚠️ Outdated');
     }
 
     // 2. Apply market crash
@@ -318,7 +318,7 @@ export function calculateFinalRevenue(params: {
     const finalRevenue = crashedRevenue * saturationPenalty;
 
     if (marketSaturation > 0.5) {
-        warnings.push(`📉 Market saturated! ${(marketSaturation * 100).toFixed(0)}% flooded`);
+        warnings.push(`📉 Market ${(marketSaturation * 100).toFixed(0)}% flooded`);
     }
 
     return {

@@ -1382,6 +1382,7 @@ export const INITIAL_GAME_STATE: GameState = {
   activeCampaigns: [],
   brandAwareness: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
   marketSaturation: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
+  dailyDemand: { [ProductType.CPU]: 80, [ProductType.GPU]: 90 },
   competitors: INITIAL_COMPETITORS,
   boardMissions: [],
   loans: [],

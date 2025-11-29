@@ -115,7 +115,6 @@ const MarketTab: React.FC<MarketTabProps> = ({
         const currentPrice = Math.floor(tech.baseMarketPrice * finalMultiplier);
         const priceDiff = currentPrice - tech.baseMarketPrice;
         const isUp = priceDiff >= 0;
-        const totalValue = count * currentPrice;
 
         // Calculate Real Cost per Unit (including defects)
         const yieldRate = tech.yield || 100;
@@ -126,6 +125,20 @@ const MarketTab: React.FC<MarketTabProps> = ({
         const siliconCost = tech.productionCost / 10 * gameState.siliconPrice;
         const totalBaseCost = baseProductionCost + siliconCost;
         const realCostPerUnit = totalBaseCost / actualYield;
+
+        // Calculate actual revenue using ECONOMY SYSTEM
+        const marketEra = getEraTier(gameState.currentEraId);
+        const economyResult = count > 0 ? calculateFinalRevenue({
+            basePrice: currentPrice,
+            amount: count,
+            productTier: techLevel,
+            productType: type,
+            marketEra,
+            marketSaturation: gameState.marketSaturation?.[type] ?? 0
+        }) : { revenue: 0, breakdown: { baseRevenue: 0, afterDecay: 0, afterCrash: 0, afterSaturation: 0 }, warnings: [] };
+
+        const totalValue = economyResult.revenue; // Use economy system revenue, not simple price * count
+        const decayWarning = getPriceDecayWarning(techLevel, marketEra);
 
         return (
             <div className={`bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col gap-5 shadow-lg mb-4`}>
@@ -169,76 +182,86 @@ const MarketTab: React.FC<MarketTabProps> = ({
                     </div>
                 </div>
 
+                {/* DAILY DEMAND DISPLAY */}
+                <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                    <div className="flex justify-between items-center mb-2">
+                        <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wide">
+                            📊 {t.dailyDemand || 'DAILY DEMAND'}
+                        </span>
+                        <span className={`text-xs font-mono font-bold ${(gameState.dailyDemand?.[type] ?? 100) > 50 ? 'text-emerald-400' :
+                                (gameState.dailyDemand?.[type] ?? 100) > 20 ? 'text-yellow-400' :
+                                    'text-red-400'
+                            }`}>
+                            {gameState.dailyDemand?.[type] ?? 100} {t.units || 'units'}
+                        </span>
+                    </div>
+                    <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
+                        <div
+                            className={`h-full transition-all duration-300 ${(gameState.dailyDemand?.[type] ?? 100) > 50 ? 'bg-emerald-500' :
+                                    (gameState.dailyDemand?.[type] ?? 100) > 20 ? 'bg-yellow-500' :
+                                        'bg-red-500'
+                                }`}
+                            style={{ width: `${Math.min(100, ((gameState.dailyDemand?.[type] ?? 100) / 100) * 100)}%` }}
+                        />
+                    </div>
+                    {(gameState.dailyDemand?.[type] ?? 100) < 20 && (
+                        <div className="mt-2 text-[9px] text-red-400 font-bold uppercase tracking-wide text-center">
+                            ⚠️ {t.lowDemand || 'LOW DEMAND - SEVERE PENALTY IF OVERSELLING'}
+                        </div>
+                    )}
+                </div>
+
                 {/* PROFIT BREAKDOWN - WITH ECONOMY SYSTEM */}
                 <div className="mt-2 bg-slate-950/50 p-3 rounded-xl border border-slate-800/50 text-xs">
-                    {count > 0 ? (() => {
-                        // Calculate actual revenue using economy system
-                        const marketEra = getEraTier(gameState.currentEraId);
-                        const { revenue, breakdown, warnings } = calculateFinalRevenue({
-                            basePrice: currentPrice,
-                            amount: count,
-                            productTier: techLevel,
-                            productType: type,
-                            marketEra,
-                            marketSaturation: gameState.marketSaturation?.[type] ?? 0
-                        });
-
-                        const revenuePerUnit = revenue / count;
-                        const profitPerUnit = revenuePerUnit - realCostPerUnit;
-                        const profitMargin = (profitPerUnit / revenuePerUnit) * 100;
-
-                        const decayWarning = getPriceDecayWarning(techLevel, marketEra);
-
-                        return (
-                            <>
-                                {/* Warning Banner */}
-                                {decayWarning === 'hype' && (
-                                    <div className="mb-2 px-2 py-1.5 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400 font-bold text-[10px] uppercase tracking-wide text-center">
-                                        🔥 {t.currentGen || 'CURRENT GEN'} +50% {t.bonus || 'BONUS'}!
-                                    </div>
-                                )}
-                                {decayWarning === 'danger' && (
-                                    <div className="mb-2 px-2 py-1.5 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 font-bold text-[10px] uppercase tracking-wide text-center">
-                                        ⚠️ {t.outdatedTech || 'OUTDATED TECH'}
-                                    </div>
-                                )}
-                                {decayWarning === 'trash' && (
-                                    <div className="mb-2 px-2 py-1.5 bg-red-600/20 border border-red-600/40 rounded-lg text-red-300 font-bold text-[10px] uppercase tracking-wide text-center">
-                                        🗑️ {t.ancientTech || 'ANCIENT TECH'}
-                                    </div>
-                                )}
-
-                                <div className="flex justify-between mb-1">
-                                    <span className="text-slate-500">{t.basePrice || 'Base Price'}</span>
-                                    <span className="text-slate-300 font-mono">${currentPrice}</span>
+                    {count > 0 ? (
+                        <>
+                            {/* Warning Banner */}
+                            {decayWarning === 'hype' && (
+                                <div className="mb-2 px-2 py-1.5 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400 font-bold text-[10px] uppercase tracking-wide text-center">
+                                    🔥 {t.currentGen || 'CURRENT GEN'} +50% {t.bonus || 'BONUS'}!
                                 </div>
-                                <div className="flex justify-between mb-1">
-                                    <span className="text-slate-500">{t.afterEconomy || 'After Economy'}</span>
-                                    <span className={`font-mono ${revenuePerUnit < currentPrice ? 'text-orange-400' : 'text-emerald-400'}`}>
-                                        ${revenuePerUnit.toFixed(0)}
-                                    </span>
+                            )}
+                            {decayWarning === 'danger' && (
+                                <div className="mb-2 px-2 py-1.5 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 font-bold text-[10px] uppercase tracking-wide text-center">
+                                    ⚠️ {t.outdatedTech || 'OUTDATED TECH'}
                                 </div>
-                                <div className="flex justify-between mb-1">
-                                    <span className="text-slate-500">{t.estUnitCost}</span>
-                                    <span className="text-slate-400 font-mono">${realCostPerUnit.toFixed(0)}</span>
+                            )}
+                            {decayWarning === 'trash' && (
+                                <div className="mb-2 px-2 py-1.5 bg-red-600/20 border border-red-600/40 rounded-lg text-red-300 font-bold text-[10px] uppercase tracking-wide text-center">
+                                    🗑️ {t.ancientTech || 'ANCIENT TECH'}
                                 </div>
-                                <div className="border-t border-slate-800 my-1 pt-1 flex justify-between font-bold">
-                                    <span className="text-slate-400">{t.netProfit}</span>
-                                    <span className={`font-mono ${profitPerUnit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                        {profitPerUnit >= 0 ? '+' : ''}${profitPerUnit.toFixed(0)} ({profitMargin.toFixed(0)}%)
-                                    </span>
-                                </div>
+                            )}
 
-                                {/* Total Revenue Display */}
-                                <div className="mt-2 pt-2 border-t border-slate-700 flex justify-between items-center">
-                                    <span className="text-slate-400 font-bold text-xs">{t.totalRevenue || 'Total Revenue'}</span>
-                                    <span className="text-emerald-400 font-mono font-bold text-sm">
-                                        ${revenue.toFixed(0)}
-                                    </span>
-                                </div>
-                            </>
-                        );
-                    })() : (
+                            <div className="flex justify-between mb-1">
+                                <span className="text-slate-500">{t.basePrice || 'Base Price'}</span>
+                                <span className="text-slate-300 font-mono">${currentPrice}</span>
+                            </div>
+                            <div className="flex justify-between mb-1">
+                                <span className="text-slate-500">{t.afterEconomy || 'After Economy'}</span>
+                                <span className={`font-mono ${economyResult.revenue / count < currentPrice ? 'text-orange-400' : 'text-emerald-400'}`}>
+                                    ${(economyResult.revenue / count).toFixed(0)}
+                                </span>
+                            </div>
+                            <div className="flex justify-between mb-1">
+                                <span className="text-slate-500">{t.estUnitCost}</span>
+                                <span className="text-slate-400 font-mono">${realCostPerUnit.toFixed(0)}</span>
+                            </div>
+                            <div className="border-t border-slate-800 my-1 pt-1 flex justify-between font-bold">
+                                <span className="text-slate-400">{t.netProfit}</span>
+                                <span className={`font-mono ${(economyResult.revenue / count - realCostPerUnit) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {(economyResult.revenue / count - realCostPerUnit) >= 0 ? '+' : ''}${(economyResult.revenue / count - realCostPerUnit).toFixed(0)} ({((economyResult.revenue / count - realCostPerUnit) / (economyResult.revenue / count) * 100).toFixed(0)}%)
+                                </span>
+                            </div>
+
+                            {/* Total Revenue Display */}
+                            <div className="mt-2 pt-2 border-t border-slate-700 flex justify-between items-center">
+                                <span className="text-slate-400 font-bold text-xs">{t.totalRevenue || 'Total Revenue'}</span>
+                                <span className="text-emerald-400 font-mono font-bold text-sm">
+                                    ${economyResult.revenue.toFixed(0)}
+                                </span>
+                            </div>
+                        </>
+                    ) : (
                         <div className="text-center text-slate-500 py-2">
                             {t.noInventory || 'No inventory to sell'}
                         </div>

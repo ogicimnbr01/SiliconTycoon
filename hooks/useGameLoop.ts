@@ -116,6 +116,30 @@ export const useGameLoop = (
                 newSaturation[ProductType.CPU] = Math.max(0, newSaturation[ProductType.CPU] - ECONOMY_CONFIG.MARKET_RECOVERY_RATE);
                 newSaturation[ProductType.GPU] = Math.max(0, newSaturation[ProductType.GPU] - ECONOMY_CONFIG.MARKET_RECOVERY_RATE);
 
+
+                // Daily Market Demand (Random refresh each day)
+                const baseDemandCPU = 100;
+                const baseDemandGPU = 100;
+
+                // Random variation: ±30%
+                const cpuVariation = 0.7 + Math.random() * 0.6; // 0.7 to 1.3
+                const gpuVariation = 0.7 + Math.random() * 0.6;
+
+                // Scale with tech level (higher tier = lower base demand)
+                const cpuTierScaling = Math.pow(0.85, prev.techLevels[ProductType.CPU]);
+                const gpuTierScaling = Math.pow(0.85, prev.techLevels[ProductType.GPU]);
+
+                // Scale with office level (bigger warehouse = bigger market!)
+                // Garage (0) = 1x, Basement (1) = 2x, Startup (2) = 4x, etc.
+                const officeScaling = Math.pow(2, prev.officeLevel);
+
+                const newDailyDemand = {
+                    [ProductType.CPU]: Math.floor(baseDemandCPU * cpuVariation * cpuTierScaling * officeScaling),
+                    [ProductType.GPU]: Math.floor(baseDemandGPU * gpuVariation * gpuTierScaling * officeScaling)
+                };
+
+
+
                 // Hero salaries
                 let heroSalary = 0;
                 prev.hiredHeroes.forEach(hId => {
@@ -700,6 +724,7 @@ export const useGameLoop = (
                     productionLines: updatedProductionLines,
                     boardMissions,
                     marketSaturation: newSaturation,
+                    dailyDemand: newDailyDemand,
                 };
             });
         };

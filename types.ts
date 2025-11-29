@@ -307,6 +307,7 @@ export interface GameState {
 
   // Advanced Economy (Hardcore Mode)
   marketSaturation: Record<ProductType, number>; // 0-1, how flooded market is
+  dailyDemand: Record<ProductType, number>; // Daily maximum sellable units before severe penalty
 
   // Competitors
   competitors: Competitor[];

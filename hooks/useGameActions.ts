@@ -207,12 +207,25 @@ export const useGameActions = (
             }
             console.groupEnd();
 
+            // Update daily demand (reduce by amount sold)
+            const newDailyDemand = {
+                ...prev.dailyDemand,
+                [type]: Math.max(0, (prev.dailyDemand?.[type] ?? 100) - count)
+            };
+
+            // Add warning if demand was exceeded (already applied in economy system)
+            const demandRemaining = prev.dailyDemand?.[type] ?? 100;
+            if (count > demandRemaining && demandRemaining > 0) {
+                logMessage += ` ⚠️ DEMAND EXCEEDED! Severe penalty applied.`;
+            }
+
             return {
                 ...prev,
                 money: prev.money + finalRevenue,
                 inventory: { ...prev.inventory, [type]: 0 },
                 reputation: Math.min(100, prev.reputation + repGain),
                 marketSaturation: newSaturation,
+                dailyDemand: newDailyDemand,
                 logs: [...prev.logs, {
                     id: Date.now(),
                     message: logMessage,

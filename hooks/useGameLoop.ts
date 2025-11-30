@@ -136,7 +136,9 @@ export const useGameLoop = (
                 let salaryMultiplier = 1.0;
                 if (prev.workPolicy === 'relaxed') salaryMultiplier = 0.8;
                 if (prev.workPolicy === 'crunch') salaryMultiplier = 1.5;
-                const staffCost = prev.researchers * RESEARCHER_DAILY_SALARY * salaryMultiplier;
+
+                const researcherCount = Array.isArray(prev.researchers) ? prev.researchers.length : prev.researchers;
+                const staffCost = researcherCount * RESEARCHER_DAILY_SALARY * salaryMultiplier;
 
                 // Storage Costs (Progressive Economy)
                 const currentOfficeConfig = OFFICE_CONFIGS[prev.officeLevel];
@@ -298,12 +300,17 @@ export const useGameLoop = (
                 if (prev.researchPolicy === 'safe') rpPolicyMult = 0.8;
 
                 let newMorale = prev.staffMorale;
-                if (prev.workPolicy === 'crunch' && prev.researchers > 0) newMorale = Math.max(0, newMorale - 1);
+                if (prev.workPolicy === 'crunch' && researcherCount > 0) newMorale = Math.max(0, newMorale - 1);
                 if (prev.workPolicy === 'relaxed') newMorale = Math.min(100, newMorale + 1);
 
                 let newResearchers = prev.researchers;
-                if (newMorale < 20 && Math.random() < 0.05 && prev.researchers > 0) {
-                    newResearchers -= 1;
+                if (newMorale < 20 && Math.random() < 0.05 && researcherCount > 0) {
+                    if (Array.isArray(newResearchers)) {
+                        newResearchers = [...newResearchers];
+                        newResearchers.pop(); // Remove last hired
+                    } else {
+                        newResearchers = (newResearchers as number) - 1;
+                    }
                     addLog({
                         id: Date.now(),
                         message: t.logResearcherQuit,
@@ -316,7 +323,7 @@ export const useGameLoop = (
                 const rpModifier = prev.hiredHeroes.includes('hero_linus') ? 2 : 1;
                 const prestigeMult = 1 + prev.prestigePoints * 0.01;
                 const rpGain =
-                    prev.researchers *
+                    researcherCount *
                     RP_PER_RESEARCHER_PER_DAY *
                     rpModifier *
                     prestigeMult *

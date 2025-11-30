@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { GameState, ProductType, TabType, OfficeLevel, DesignSpec, Loan } from '../types';
+import { GameState, ProductType, TabType, OfficeLevel, DesignSpec, Loan, Researcher } from '../types';
 import {
     TRANSLATIONS,
     OFFICE_CONFIGS,
@@ -17,11 +17,12 @@ import {
     INITIAL_GAME_STATE,
     CPU_TECH_TREE,
     GPU_TECH_TREE,
-    MANUFACTURING_TECH_TREE
+    MANUFACTURING_TECH_TREE,
+    RP_PER_RESEARCHER_PER_DAY
 } from '../constants';
-import { ECONOMY_CONFIG } from '../utils/economySystem';
+import { ECONOMY_CONFIG, calculateFinalRevenue, getEraTier } from '../utils/economySystem';
 import { getReputationBonuses } from '../utils/gameUtils';
-import { calculateFinalRevenue, getEraTier } from '../utils/economySystem';
+import { generateResearcherName } from '../utils/nameGenerator';
 
 export const useGameActions = (
     gameState: GameState,
@@ -422,36 +423,74 @@ export const useGameActions = (
     const handleHireResearcher = useCallback((cost: number) => {
         setGameState(prev => {
             const office = OFFICE_CONFIGS[prev.officeLevel];
-            if (prev.researchers >= office.maxResearchers || prev.money < cost) {
+            // Check capacity
+            const currentCount = Array.isArray(prev.researchers) ? prev.researchers.length : prev.researchers;
+            if (currentCount >= office.maxResearchers || prev.money < cost) {
                 playSfx('error');
                 return prev;
             }
-            playSfx('click');
-            vibrate('light');
-            if (onShowFloatingText) onShowFloatingText(`-$${cost}`, 'expense');
-            return { ...prev, money: prev.money - cost, researchers: prev.researchers + 1 };
-        });
-    }, [setGameState, playSfx, vibrate, onShowFloatingText]);
 
-    const handleHireHero = useCallback((heroId: string) => {
-        setGameState(prev => {
-            const hero = HEROES.find(h => h.id === heroId);
-            if (!hero || prev.money < hero.hiringCost) return prev;
-            playSfx('success');
-            vibrate('success');
-            if (onShowFloatingText) onShowFloatingText(`-$${hero.hiringCost}`, 'expense');
+            // Migration check: if number, convert to array
+            let currentResearchers = Array.isArray(prev.researchers) ? [...prev.researchers] : [];
+            if (typeof prev.researchers === 'number') {
+                // Create dummy researchers for existing count
+                for (let i = 0; i < prev.researchers; i++) {
+                    currentResearchers.push({
+                        id: `legacy_${Date.now()}_${i}`,
+                        name: `Researcher #${i + 1}`,
+                        hiredAt: prev.day
+                    });
+                }
+            }
+
+            const newResearcher: Researcher = {
+                id: `res_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                name: generateResearcherName(),
+                hiredAt: prev.day
+            };
+
+            playSfx('upgrade');
+            vibrate('medium');
+            if (onShowFloatingText) onShowFloatingText(`-$${cost.toLocaleString()}`, 'expense');
+
             return {
                 ...prev,
-                money: prev.money - hero.hiringCost,
-                hiredHeroes: [...prev.hiredHeroes, heroId],
-                logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logHeadhunted.replace('{0}', hero.name), type: 'success' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10)
+                money: prev.money - cost,
+                researchers: [...currentResearchers, newResearcher],
+                logs: [...prev.logs, { id: Date.now(), message: (TRANSLATIONS[prev.language] as any).hiredAlert || "Researcher Hired!", type: 'success' as const, timestamp: `Day ${prev.day}` }].slice(-10)
             };
         });
     }, [setGameState, playSfx, vibrate, onShowFloatingText]);
 
-    const handleFireResearcher = useCallback(() => {
+    const handleFireResearcher = useCallback((researcherId?: string) => {
         setGameState(prev => {
-            if (prev.researchers <= 0) return prev;
+            const currentResearchers = Array.isArray(prev.researchers) ? prev.researchers : [];
+            // If number (legacy), just decrement
+            if (typeof prev.researchers === 'number') {
+                if (prev.researchers <= 0) return prev;
+                const severancePay = 500;
+                const newMorale = Math.max(0, prev.staffMorale - 5);
+                playSfx('error');
+                vibrate('medium');
+                if (onShowFloatingText) onShowFloatingText(`-$${severancePay}`, 'expense');
+                return {
+                    ...prev,
+                    money: prev.money - severancePay,
+                    researchers: prev.researchers - 1,
+                    staffMorale: newMorale,
+                    logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].firedAlert, type: 'warning' as const, timestamp: `Day ${prev.day}` }].slice(-10)
+                };
+            }
+
+            if (currentResearchers.length <= 0) return prev;
+
+            let newResearchers = [...currentResearchers];
+            if (researcherId) {
+                newResearchers = newResearchers.filter(r => r.id !== researcherId);
+            } else {
+                newResearchers.pop(); // Remove last if no ID
+            }
+
             const severancePay = 500;
             const newMorale = Math.max(0, prev.staffMorale - 5);
             playSfx('error');
@@ -460,17 +499,32 @@ export const useGameActions = (
             return {
                 ...prev,
                 money: prev.money - severancePay,
-                researchers: prev.researchers - 1,
+                researchers: newResearchers,
                 staffMorale: newMorale,
                 logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].firedAlert, type: 'warning' as const, timestamp: `Day ${prev.day}` }].slice(-10)
             };
         });
     }, [setGameState, playSfx, vibrate, onShowFloatingText]);
 
-    const handleSetWorkPolicy = useCallback((policy: 'relaxed' | 'normal' | 'crunch') => {
-        playSfx('click');
-        setGameState(prev => ({ ...prev, workPolicy: policy }));
-    }, [setGameState, playSfx]);
+    const handleHireHero = useCallback((heroId: string) => {
+        setGameState(prev => {
+            const hero = HEROES.find(h => h.id === heroId);
+            if (!hero || prev.money < hero.hiringCost) {
+                playSfx('error');
+                return prev;
+            }
+            playSfx('upgrade');
+            vibrate('heavy');
+            if (onShowFloatingText) onShowFloatingText(`-$${hero.hiringCost.toLocaleString()}`, 'expense');
+
+            return {
+                ...prev,
+                money: prev.money - hero.hiringCost,
+                hiredHeroes: [...prev.hiredHeroes, heroId],
+                logs: [...prev.logs, { id: Date.now(), message: `${hero.name} Hired!`, type: 'success' as const, timestamp: `Day ${prev.day}` }].slice(-10)
+            };
+        });
+    }, [setGameState, playSfx, vibrate, onShowFloatingText]);
 
     const handleBuyStock = useCallback((stockId: string, amount: number) => {
         setGameState(prev => {
@@ -516,6 +570,13 @@ export const useGameActions = (
             };
         });
     }, [setGameState, playSfx, onShowFloatingText]);
+
+    const handleSetWorkPolicy = useCallback((policy: 'relaxed' | 'normal' | 'crunch') => {
+        playSfx('click');
+        setGameState(prev => ({ ...prev, workPolicy: policy }));
+    }, [setGameState, playSfx]);
+
+
 
     const handleIPO = useCallback(() => {
         setGameState(prev => {

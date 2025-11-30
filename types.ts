@@ -18,6 +18,12 @@ export enum OfficeLevel {
   HEADQUARTERS = 5
 }
 
+export interface Researcher {
+  id: string;
+  name: string;
+  hiredAt: number;
+}
+
 export type Language = 'en' | 'tr';
 export type TabType = 'factory' | 'rnd' | 'market' | 'finance' | 'automation' | 'management';
 export type GameStage = 'menu' | 'game' | 'game_over';
@@ -254,10 +260,14 @@ export interface GameState {
   siliconPrice: number;
 
   // Infrastructure & Staff
+
   officeLevel: OfficeLevel;
-  researchers: number;
-  hiredHeroes: string[];
   productionLines: ProductionLine[];
+
+  // Research
+  researchers: number | Researcher[]; // Migration support: number -> Researcher[]
+  hiredHeroes: string[]; // IDs of hired heroes
+
 
   // Reputation & Brand
   reputation: number;

@@ -1,7 +1,7 @@
 import { ProductType, TechNode, Stock, OfficeLevel, GameEvent, Hero, GameEra, MarketTrend, Achievement, MarketingCampaign, Competitor, GameState } from './types';
 
-export const INITIAL_MONEY = 50000000;
-export const INITIAL_RP = 50000;
+export const INITIAL_MONEY = 5000;
+export const INITIAL_RP = 0;
 export const INITIAL_RESEARCHERS = 0;
 export const INITIAL_SILICON = 200;
 export const INITIAL_REPUTATION = 10;
@@ -321,7 +321,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: 'Lab Rat',
     description: 'Hire 5 Researchers.',
     icon: 'Users',
-    condition: (state) => state.researchers >= 5,
+    condition: (state) => (Array.isArray(state.researchers) ? state.researchers.length : state.researchers) >= 5,
     reward: { type: 'rp', value: 100 }
   },
   {
@@ -329,7 +329,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: 'Research Institute',
     description: 'Hire 20 Researchers.',
     icon: 'Microscope',
-    condition: (state) => state.researchers >= 20,
+    condition: (state) => (Array.isArray(state.researchers) ? state.researchers.length : state.researchers) >= 20,
     reward: { type: 'rp', value: 1000 }
   },
   {
@@ -594,6 +594,7 @@ export const TRANSLATIONS = {
     tryAgain: "TRY AGAIN",
     fireStaff: "FIRE (-$500)",
     firedAlert: "Staff fired. Morale dropped!",
+    hiredAlert: "Researcher Hired!",
     settings: "SETTINGS",
     soundEffects: "Sound Effects",
     soundDesc: "Enable game audio",
@@ -1158,10 +1159,11 @@ export const TRANSLATIONS = {
     automation: "OTOMASYON",
     bankruptcyWarning: "İFLAS UYARISI! 60 gün içinde pozitif bakiye gerekli!",
     gameOver: "OYUN BİTTİ",
+    firedAlert: "Personel kovuldu. Moral düştü!",
+    hiredAlert: "Araştırmacı İşe Alındı!",
     fired: "İflas nedeniyle kovuldunuz.",
     tryAgain: "TEKRAR DENE",
     fireStaff: "KOV (-$500)",
-    firedAlert: "Personel kovuldu. Moral düştü!",
     settings: "AYARLAR",
     soundEffects: "Ses Efektleri",
     soundDesc: "Oyun seslerini aç",
@@ -2122,7 +2124,7 @@ export const INITIAL_GAME_STATE: GameState = {
   lastSaveTime: Date.now(),
   money: INITIAL_MONEY,
   rp: INITIAL_RP,
-  researchers: 0,
+  researchers: [],
   hiredHeroes: [],
   officeLevel: OfficeLevel.GARAGE,
   silicon: INITIAL_SILICON,

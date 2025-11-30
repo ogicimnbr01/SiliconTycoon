@@ -27,6 +27,9 @@ export const useGameLoop = (
     onShowFloatingText?: (text: string, type: 'income' | 'expense' | 'rp' | 'reputation' | 'neutral', x?: number, y?: number) => void,
     isPaused?: boolean
 ) => {
+    // Define tickRate based on gameSpeed
+    const tickRate = gameState.gameSpeed === 'fast' ? TICK_RATE_MS / 2 : TICK_RATE_MS;
+
     useEffect(() => {
         // Pause if watching ad or if game speed is paused
         if (gameState.gameSpeed === 'paused' || isPaused) return;
@@ -115,13 +118,6 @@ export const useGameLoop = (
                     newBankruptcyTimer = 0;
                 }
 
-                // Bailout Offer Check (Trigger at -3000)
-                if (newMoney < -3000 && !bailoutUsedToday && newBankruptcyTimer === 0) {
-                    // Note: We don't have a direct way to open modal from here without state.
-                    // But App.tsx checks for money < -3000 now? No, we need to ensure App.tsx handles it.
-                    // Actually, BailoutModal usually checks gameState.money.
-                }
-
                 // Loan interest
                 let dailyLoanCost = 0;
                 prev.loans.forEach(l => (dailyLoanCost += l.dailyPayment));
@@ -180,15 +176,12 @@ export const useGameLoop = (
                 const gpuTierScaling = Math.pow(0.85, prev.techLevels[ProductType.GPU]);
 
                 // Scale with office level (bigger warehouse = bigger market!)
-                // Garage (0) = 1x, Basement (1) = 2x, Startup (2) = 4x, etc.
                 const officeScaling = Math.pow(2, prev.officeLevel);
 
                 const newDailyDemand = {
                     [ProductType.CPU]: Math.floor(baseDemandCPU * cpuVariation * cpuTierScaling * officeScaling),
                     [ProductType.GPU]: Math.floor(baseDemandGPU * gpuVariation * gpuTierScaling * officeScaling)
                 };
-
-
 
                 // Hero salaries
                 let heroSalary = 0;
@@ -204,7 +197,6 @@ export const useGameLoop = (
                         onShowFloatingText(`-$${totalDailyExpenses.toFixed(0)}`, 'expense');
                     }
                 }
-
 
                 // Office rent (weekly)
                 const office = OFFICE_CONFIGS[prev.officeLevel];
@@ -300,7 +292,6 @@ export const useGameLoop = (
                     });
                 }
 
-
                 // RP gain
                 let rpPolicyMult = 1;
                 if (prev.researchPolicy === 'aggressive') rpPolicyMult = 1.5;
@@ -347,11 +338,9 @@ export const useGameLoop = (
                 let boardMissions = [...(prev.boardMissions || [])];
                 let prestigePenalty = 0;
 
-                // Check active missions
                 const remainingMissions: BoardMission[] = [];
                 boardMissions.forEach(mission => {
                     if (newDay > mission.deadlineDay) {
-                        // Mission Failed
                         prestigePenalty += mission.penalty;
                         newLogs.push({
                             id: Date.now(),
@@ -362,12 +351,11 @@ export const useGameLoop = (
                         playSfx('error');
                         vibrate('heavy');
                     } else {
-                        // Check completion
                         let completed = false;
                         if (mission.type === 'profit' && newMoney >= mission.targetValue) completed = true;
                         if (mission.type === 'prestige' && prev.reputation >= mission.targetValue) completed = true;
                         if (mission.type === 'quality') {
-                            const avgQuality = (prev.techLevels[ProductType.CPU] + prev.techLevels[ProductType.GPU]) * 5 + 50; // Rough estimate
+                            const avgQuality = (prev.techLevels[ProductType.CPU] + prev.techLevels[ProductType.GPU]) * 5 + 50;
                             if (avgQuality >= mission.targetValue) completed = true;
                         }
 
@@ -386,7 +374,6 @@ export const useGameLoop = (
                 });
                 boardMissions = remainingMissions;
 
-                // Generate new mission if ownership < 50%
                 if (prev.playerCompanySharesOwned < 50 && boardMissions.length === 0 && Math.random() < 0.1) {
                     const missionType = ['profit', 'prestige'][Math.floor(Math.random() * 2)] as 'profit' | 'prestige';
                     let target = 0;
@@ -407,8 +394,8 @@ export const useGameLoop = (
                         type: missionType,
                         targetValue: target,
                         deadlineDay: newDay + 30,
-                        penalty: 10, // Prestige penalty
-                        reward: 0 // No direct reward, just survival
+                        penalty: 10,
+                        reward: 0
                     });
 
                     addLog({
@@ -420,7 +407,7 @@ export const useGameLoop = (
                     playSfx('notification');
                 }
 
-                // Unlock new tabs (R&D, Finance)
+                // Unlock new tabs
                 let currentUnlocked = [...prev.unlockedTabs];
                 let newTabUnlocked = false;
                 if (!currentUnlocked.includes('rnd') && newMoney >= 10000) {
@@ -428,18 +415,20 @@ export const useGameLoop = (
                     addLog({ id: Date.now(), message: t.logRdEstablished, type: 'success', timestamp: `${t.day} ${newDay}` });
                     newTabUnlocked = true;
                 }
-                if (!currentUnlocked.includes('finance') && newMoney >= 0) {
+                if (!currentUnlocked.includes('finance') && newMoney >= 50000) {
                     currentUnlocked.push('finance');
-                    addLog({ id: Date.now(), message: t.logFinanceEstablished, type: 'success', timestamp: `${t.day} ${newDay}` });
+                    addLog({ id: Date.now(), message: "Finance Dept. Established", type: 'success', timestamp: `${t.day} ${newDay}` });
                     newTabUnlocked = true;
                 }
-                if (!currentUnlocked.includes('statistics') && newMoney >= 0) {
-                    currentUnlocked.push('statistics');
+                if (!currentUnlocked.includes('automation') && newMoney >= 0) {
+                    currentUnlocked.push('automation');
+                    addLog({ id: Date.now(), message: t.logAutomationEstablished, type: 'success', timestamp: `${t.day} ${newDay}` });
                     newTabUnlocked = true;
                 }
-                if (!currentUnlocked.includes('marketing') && newMoney >= 100000) {
-                    currentUnlocked.push('marketing');
-                    addLog({ id: Date.now(), message: "Marketing Dept. Established", type: 'success', timestamp: `${t.day} ${newDay}` });
+                if (!currentUnlocked.includes('management') && newMoney >= 100000) {
+                    currentUnlocked.push('management');
+                    addLog({ id: Date.now(), message: "Management Dept. Established", type: 'success', timestamp: `${t.day} ${newDay}` });
+                    newTabUnlocked = true;
                     if (newTabUnlocked) {
                         playSfx('success');
                         vibrate('medium');
@@ -472,21 +461,15 @@ export const useGameLoop = (
                     const amount = Math.floor(Math.random() * 50) + 10;
                     const techLevel = Math.max(0, prev.techLevels[type] - Math.floor(Math.random() * 2));
                     const basePrice = type === ProductType.CPU ? CPU_TECH_TREE[techLevel].baseMarketPrice : GPU_TECH_TREE[techLevel].baseMarketPrice;
-
-                    // Scale reward based on Office Level to make late-game contracts viable
-                    const officeScaling = 1 + (prev.officeLevel * 0.5); // +50% per office level
+                    const officeScaling = 1 + (prev.officeLevel * 0.5);
                     const totalReward = Math.floor(amount * basePrice * 1.3 * officeScaling);
 
-                    // Requirements
                     let minPerformance: number | undefined;
                     let minEfficiency: number | undefined;
 
                     if (type === ProductType.CPU) {
-                        // CPU contracts care about Performance
                         minPerformance = 30 + (techLevel * 15) + Math.floor(Math.random() * 10);
                     } else {
-                        // GPU contracts care about Efficiency (or Performance too)
-                        // Let's say 50% chance for either
                         if (Math.random() > 0.5) {
                             minEfficiency = 30 + (techLevel * 15) + Math.floor(Math.random() * 10);
                         } else {
@@ -513,27 +496,19 @@ export const useGameLoop = (
                     if (availableContracts.length > 3) availableContracts.shift();
                 }
 
-                // Production logic
+                // Manual Production logic
                 let productionSiliconConsumed = 0;
                 let productionOutput: Record<ProductType, number> = { [ProductType.CPU]: 0, [ProductType.GPU]: 0 };
 
-                // Marketing Bonus: Brand Awareness boosts demand (sales speed)
-                // 100% Awareness = 2x Sales Speed
-                const brandBonus = {
-                    [ProductType.CPU]: 1 + (prev.brandAwareness[ProductType.CPU] / 100),
-                    [ProductType.GPU]: 1 + (prev.brandAwareness[ProductType.GPU] / 100)
-                };
-
                 const updatedProductionLines = prev.productionLines.map(line => {
                     if (line.status === 'producing') {
-                        const degradation = Math.random() * 1 + 1; // 1‑2%
+                        const degradation = Math.random() * 1 + 1;
                         const newEfficiency = Math.max(0, line.efficiency - degradation);
                         const siliconPerUnit = line.specialization === 'efficiency' ? 6 : 10;
                         let baseOutput = line.dailyOutput;
                         if (line.specialization === 'speed') baseOutput = Math.floor(baseOutput * 1.5);
                         else if (line.specialization === 'quality') baseOutput = Math.floor(baseOutput * 0.7);
 
-                        // Apply Overdrive Multiplier
                         if (overdriveActive) {
                             baseOutput = baseOutput * 2;
                         }
@@ -556,6 +531,43 @@ export const useGameLoop = (
                     newInventory[t] += productionOutput[t];
                 });
 
+                // --- Factory Automation Logic ---
+                let factoryMoneyChange = 0;
+                let factoryProduction: Record<ProductType, number> = { [ProductType.CPU]: 0, [ProductType.GPU]: 0 };
+                let newSilicon = prev.silicon - productionSiliconConsumed;
+
+                if (prev.factory.landOwned) {
+                    // 1. Procurement (Buy Silicon)
+                    const procurementRate = prev.factory.modules.procurement.rate;
+                    const siliconSpace = currentOfficeConfig.siliconCap - newSilicon;
+                    const siliconToBuy = Math.min(procurementRate, siliconSpace);
+
+                    if (siliconToBuy > 0) {
+                        const cost = Math.floor(siliconToBuy * prev.siliconPrice);
+                        if (newMoney >= cost) {
+                            factoryMoneyChange -= cost;
+                            newSilicon += siliconToBuy;
+                        }
+                    }
+
+                    // 2. Assembly (Produce Chips)
+                    const assemblyRate = prev.factory.modules.assembly.rate;
+                    const amountPerType = Math.floor(assemblyRate / 2);
+
+                    [ProductType.CPU, ProductType.GPU].forEach(type => {
+                        const siliconPerUnit = 10;
+                        const needed = amountPerType * siliconPerUnit;
+                        if (newSilicon >= needed) {
+                            newSilicon -= needed;
+                            factoryProduction[type] += amountPerType;
+                        }
+                    });
+                }
+
+                newMoney += factoryMoneyChange;
+                newInventory[ProductType.CPU] += factoryProduction[ProductType.CPU];
+                newInventory[ProductType.GPU] += factoryProduction[ProductType.GPU];
+
                 // Campaign decay
                 const activeCampaigns = (prev.activeCampaigns || [])
                     .map(c => ({ ...c, daysRemaining: c.daysRemaining - 1 }))
@@ -570,41 +582,30 @@ export const useGameLoop = (
                     });
                 }
 
-                // Competitor Simulation (Daily)
+                // Competitor Simulation
                 let competitors = [...prev.competitors];
-
-                // 1. Competitor Earnings
                 competitors = competitors.map(comp => {
                     let dailyRevenue = 0;
                     Object.values(ProductType).forEach(type => {
-                        // Revenue based on market share. 
-                        // Base market size approx $10M/day distributed.
                         const marketSize = 10000000;
                         const share = comp.marketShare[type] / 100;
-                        dailyRevenue += marketSize * share * 0.01; // 1% profit margin for simplicity
+                        dailyRevenue += marketSize * share * 0.01;
                     });
 
-                    const newMoney = comp.money + dailyRevenue;
-                    const newHistory = [...(comp.history || []), newMoney].slice(-30); // Keep last 30 days
+                    const newCompMoney = comp.money + dailyRevenue;
+                    const newHistory = [...(comp.history || []), newCompMoney].slice(-30);
 
-                    return { ...comp, money: newMoney, history: newHistory };
+                    return { ...comp, money: newCompMoney, history: newHistory };
                 });
 
-                // 2. Competitor Actions (Every 5 days)
                 if (newDay % 5 === 0 && competitors.length > 0) {
                     competitors = competitors.map(comp => {
                         const newComp = { ...comp };
-
-                        // Check for Product Release
-                        // Needs: Money > $1M, Time since last release > 30 days
                         const daysSinceRelease = newDay - (newComp.lastReleaseDay || -999);
                         if (newComp.money > 1000000 && daysSinceRelease > 30) {
-                            // Release Logic
-                            if (Math.random() < 0.3) { // 30% chance if conditions met
-                                newComp.money -= 1000000; // Cost of launch
+                            if (Math.random() < 0.3) {
+                                newComp.money -= 1000000;
                                 newComp.lastReleaseDay = newDay;
-
-                                // Pick a product type to upgrade
                                 const type = Math.random() > 0.5 ? ProductType.CPU : ProductType.GPU;
                                 newComp.productQuality[type] = Math.min(100, newComp.productQuality[type] + 5);
                                 newComp.techLevel[type] += 1;
@@ -617,15 +618,12 @@ export const useGameLoop = (
                                 });
                             }
                         }
-
                         return newComp;
                     });
 
-                    // Recalculate market share
                     Object.values(ProductType).forEach(type => {
                         const playerQuality = prev.techLevels[type] * 10 + 50;
                         const playerAwareness = brandAwareness[type] || 0;
-                        // Brand Awareness significantly boosts player score now
                         const playerScore = playerQuality * (1 + playerAwareness / 50);
 
                         let totalScore = playerScore;
@@ -645,136 +643,46 @@ export const useGameLoop = (
                     });
                 }
 
-                // Era and Trend Logic
-                let activeRivalLaunch = prev.activeRivalLaunch;
-                if (activeRivalLaunch) {
-                    activeRivalLaunch = { ...activeRivalLaunch, daysRemaining: activeRivalLaunch.daysRemaining - 1 };
-                    if (activeRivalLaunch.daysRemaining <= 0) activeRivalLaunch = null;
-                }
-
-                let financialHistory = prev.financialHistory;
-                if (newDay % 7 === 0) {
-                    financialHistory = [...prev.financialHistory, { day: newDay, money: newMoney }].slice(-20);
-                }
-
-                // Factory Automation Logic
-                let factory = prev.factory;
-                let automationSiliconChange = 0;
-
-                if (factory.landOwned) {
-                    // 1. Procurement (Buy Silicon)
-                    const procurement = factory.modules.procurement;
-                    if (procurement.level > 0) {
-                        const office = OFFICE_CONFIGS[prev.officeLevel];
-                        const currentSilicon = prev.silicon - productionSiliconConsumed + automationSiliconChange;
-                        const spaceAvailable = office.siliconCap - currentSilicon;
-
-                        if (spaceAvailable > 0) {
-                            const amountToBuy = Math.min(procurement.rate, spaceAvailable);
-                            const cost = amountToBuy * newSiliconPrice;
-
-                            if (newMoney >= cost) {
-                                newMoney -= cost;
-                                automationSiliconChange += amountToBuy;
-                            }
-                        }
-                    }
-
-                    // 2. Assembly (Produce Chips)
-                    const assembly = factory.modules.assembly;
-                    if (assembly.level > 0) {
-                        const amount = Math.ceil(assembly.rate / 2);
-
-                        [ProductType.CPU, ProductType.GPU].forEach(type => {
-                            const tech = type === ProductType.CPU ? CPU_TECH_TREE[prev.techLevels.CPU] : GPU_TECH_TREE[prev.techLevels.GPU];
-                            const siliconPerUnit = tech.productionCost / 10;
-                            const totalSiliconNeeded = Math.ceil(siliconPerUnit * amount);
-                            const currentSilicon = prev.silicon - productionSiliconConsumed + automationSiliconChange;
-
-                            if (currentSilicon >= totalSiliconNeeded) {
-                                const productionCost = tech.productionCost * amount;
-
-                                if (newMoney >= productionCost) {
-                                    newMoney -= productionCost;
-                                    automationSiliconChange -= totalSiliconNeeded;
-                                    newInventory[type] += amount;
-                                }
-                            }
-                        });
-                    }
-
-                    // 3. Logistics (Auto-Sell)
-                    const logistics = factory.modules.logistics;
-                    if (logistics.level > 0) {
-                        const amountToSell = Math.ceil(logistics.rate / 2);
-
-                        [ProductType.CPU, ProductType.GPU].forEach(type => {
-                            if (newInventory[type] >= amountToSell) {
-                                const tech = type === ProductType.CPU ? CPU_TECH_TREE[prev.techLevels.CPU] : GPU_TECH_TREE[prev.techLevels.GPU];
-                                const basePrice = tech.baseMarketPrice;
-                                const qualityBonus = 1 + (prev.designSpecs[type].performance + prev.designSpecs[type].efficiency) / 200;
-                                const marketPrice = basePrice * newMultiplier * qualityBonus;
-
-                                const revenue = amountToSell * marketPrice;
-                                newMoney += revenue;
-                                newInventory[type] -= amountToSell;
-
-                                // Track sales for daily limit
-                                if (!prev.dailySales[type]) prev.dailySales[type] = 0;
-                                prev.dailySales[type] += amountToSell;
-                            }
-                        });
-                    }
-                }
-
                 return {
                     ...prev,
                     day: newDay,
                     money: newMoney,
                     rp: prev.rp + rpGain,
-                    silicon: prev.silicon - productionSiliconConsumed + automationSiliconChange,
-                    siliconPrice: newSiliconPrice,
-                    inventory: newInventory,
-                    reputation: Math.min(100, Math.max(0, prev.reputation - repPenalty)),
-                    staffMorale: newMorale,
+                    silicon: newSilicon,
                     researchers: newResearchers,
-                    stocks: newStocks,
-                    activeContracts: keptContracts,
-                    availableContracts,
-                    activeEvent,
-                    bankruptcyTimer: newBankruptcyTimer,
-                    globalTechLevels: { [ProductType.CPU]: newGlobalTechCPU, [ProductType.GPU]: newGlobalTechGPU },
-                    unlockedTabs: currentUnlocked,
+                    staffMorale: newMorale,
                     logs: newLogs,
-                    activeCampaigns,
-                    brandAwareness,
-                    competitors,
-                    productionLines: updatedProductionLines,
-                    boardMissions,
-                    marketSaturation: newSaturation,
-                    dailyDemand: newDailyDemand,
+                    bankruptcyTimer: newBankruptcyTimer,
+                    activeEvent,
+                    overdriveActive,
                     dailySpinCount,
                     bailoutUsedToday,
                     lastDailyReset,
-                    overdriveActive,
-                    activeRivalLaunch,
-                    financialHistory,
-                    marketMultiplier: newMultiplier
+                    productionLines: updatedProductionLines,
+                    inventory: newInventory,
+                    activeCampaigns,
+                    brandAwareness,
+                    competitors,
+                    stocks: newStocks,
+                    boardMissions,
+                    unlockedTabs: currentUnlocked,
+                    activeContracts: keptContracts,
+                    availableContracts,
+                    marketMultiplier: newMultiplier,
+                    siliconPrice: newSiliconPrice,
+                    globalTechLevels: { CPU: newGlobalTechCPU, GPU: newGlobalTechGPU },
+                    prestigePoints: Math.max(0, prev.prestigePoints - prestigePenalty),
+                    reputation: Math.max(0, prev.reputation - repPenalty),
                 };
             });
         };
-
-        let tickRate = TICK_RATE_MS;
-        if (gameState.gameSpeed === 'fast') tickRate = TICK_RATE_MS / 3;
-        else if (gameState.gameSpeed === 'normal') tickRate = TICK_RATE_MS * 4.0;
 
         const interval = setInterval(tick, tickRate);
         return () => clearInterval(interval);
     }, [
         gameState.gameSpeed,
-        gameState.activeContracts,
-        gameState.activeEvent,
-        gameState.hacking.active,
+        isPaused,
+        tickRate,
         setGameState,
         playSfx,
         vibrate,

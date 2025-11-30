@@ -19,7 +19,7 @@ export enum OfficeLevel {
 }
 
 export type Language = 'en' | 'tr';
-export type TabType = 'factory' | 'rnd' | 'market' | 'finance' | 'marketing' | 'statistics';
+export type TabType = 'factory' | 'rnd' | 'market' | 'finance' | 'automation' | 'management';
 export type GameStage = 'menu' | 'game' | 'game_over';
 
 export interface Loan {
@@ -44,6 +44,7 @@ export interface TechNode {
     value: number;
   };
   yield?: number; // 0-100, default 100 if undefined
+  description?: string;
 }
 
 export interface Stock {
@@ -336,6 +337,7 @@ export interface GameState {
 
   // Factory Automation
   factory: FactoryState;
+  manufacturingTechLevels: Record<string, number>; // ID -> Level (0 or 1 for unlock)
 }
 
 export interface FactoryModule {

@@ -16,7 +16,8 @@ import {
     MARKETING_CAMPAIGNS,
     INITIAL_GAME_STATE,
     CPU_TECH_TREE,
-    GPU_TECH_TREE
+    GPU_TECH_TREE,
+    MANUFACTURING_TECH_TREE
 } from '../constants';
 import { ECONOMY_CONFIG } from '../utils/economySystem';
 import { getReputationBonuses } from '../utils/gameUtils';
@@ -149,7 +150,6 @@ export const useGameActions = (
     const handleSell = useCallback((type: ProductType, currentPrice: number) => {
         setGameState(prev => {
             // Check if we need to reset daily sales (new day)
-            // Check if we need to reset daily sales (new day)
             if (prev.day !== prev.lastSalesResetDay) {
                 prev.dailySales = { [ProductType.CPU]: 0, [ProductType.GPU]: 0 };
                 prev.lastSalesResetDay = prev.day;
@@ -250,7 +250,7 @@ export const useGameActions = (
                 reputation: Math.min(100, prev.reputation + repGain),
                 marketSaturation: newSaturation,
                 dailyDemand: newDailyDemand,
-                dailySales: {  // <-- BU SATIRI EKLE
+                dailySales: {
                     ...prev.dailySales,
                     [type]: (prev.dailySales[type] || 0) + count
                 },
@@ -416,6 +416,8 @@ export const useGameActions = (
             };
         });
     }, [setGameState, playSfx, vibrate, onShowFloatingText]);
+
+
 
     const handleHireResearcher = useCallback((cost: number) => {
         setGameState(prev => {
@@ -822,6 +824,43 @@ export const useGameActions = (
         });
     }, [setGameState, playSfx, vibrate, onShowFloatingText]);
 
+    const handleManufacturingResearch = useCallback((techId: string) => {
+        setGameState(prev => {
+            const techNode = MANUFACTURING_TECH_TREE.find(t => t.id === techId);
+            if (!techNode) return prev;
+
+            if (prev.money < techNode.researchCost) {
+                playSfx('error');
+                return prev;
+            }
+
+            playSfx('upgrade');
+            vibrate('heavy');
+            if (onShowFloatingText) onShowFloatingText(`-$${techNode.researchCost}`, 'expense');
+
+            const newLevels = { ...prev.manufacturingTechLevels, [techId]: 1 };
+
+            // Unlock Automation Tab if Mass Production is researched
+            let newUnlockedTabs = [...prev.unlockedTabs];
+            if (techId === 'mass_production' && !newUnlockedTabs.includes('automation')) {
+                newUnlockedTabs.push('automation');
+            }
+
+            return {
+                ...prev,
+                money: prev.money - techNode.researchCost,
+                manufacturingTechLevels: newLevels,
+                unlockedTabs: newUnlockedTabs,
+                logs: [...prev.logs, {
+                    id: Date.now(),
+                    message: `Research Complete: ${techNode.name}`,
+                    type: 'success' as const,
+                    timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}`
+                }].slice(-10)
+            };
+        });
+    }, [setGameState, playSfx, vibrate, onShowFloatingText]);
+
     const handleBailoutReward = useCallback(() => {
         setGameState(prev => {
             const techLevel = Math.max(1, (prev.techLevels.CPU + prev.techLevels.GPU) / 2);
@@ -874,17 +913,33 @@ export const useGameActions = (
 
     const handleBuyFactoryLand = useCallback(() => {
         setGameState(prev => {
-            const cost = 50000; // FACTORY_UPGRADES.LAND_COST
-            if (prev.money < cost) {
+            if (prev.factory.landOwned) return prev;
+
+            const LAND_COST = 5000000;
+            const hasTech = prev.manufacturingTechLevels['mass_production'] > 0;
+
+            if (prev.money < LAND_COST) {
                 playSfx('error');
+                if (onShowFloatingText) onShowFloatingText('Insufficient Funds', 'expense');
                 return prev;
             }
-            playSfx('success');
+
+            if (!hasTech) {
+                playSfx('error');
+                if (onShowFloatingText) onShowFloatingText('Research Mass Production first!', 'expense');
+                return prev;
+            }
+
+            playSfx('upgrade');
             vibrate('heavy');
+
             return {
                 ...prev,
-                money: prev.money - cost,
-                factory: { ...prev.factory, landOwned: true },
+                money: prev.money - LAND_COST,
+                factory: {
+                    ...prev.factory,
+                    landOwned: true
+                },
                 logs: [...prev.logs, {
                     id: Date.now(),
                     message: '🏭 Factory Land Acquired! Automation unlocked.',
@@ -893,7 +948,7 @@ export const useGameActions = (
                 }].slice(-10)
             };
         });
-    }, [setGameState, playSfx, vibrate]);
+    }, [setGameState, playSfx, vibrate, onShowFloatingText]);
 
     const handleUpgradeFactoryModule = useCallback((moduleType: 'procurement' | 'assembly' | 'logistics') => {
         setGameState(prev => {
@@ -1005,33 +1060,34 @@ export const useGameActions = (
     return {
         handleTabSwitch,
         handleProduce,
-        handleUpdateDesignSpec,
-        handleSell,
         handleBuySilicon,
         handleUpgradeOffice,
-        handleAcceptContract,
-        handleEventDismiss,
+        handleDowngradeOffice,
+        handleSetWorkPolicy,
+        handleUpdateDesignSpec,
         handleResearch,
         handleHireResearcher,
-        handleHireHero,
         handleFireResearcher,
-        handleSetWorkPolicy,
+        handleHireHero,
+        handleSell,
         handleBuyStock,
         handleSellStock,
         handleIPO,
+        handleAcceptContract,
         handleCovertOpTrigger,
-        handleHackingComplete,
         handleRetire,
         handleTakeLoan,
         handlePayLoan,
         handleTradeOwnShares,
+        handleEventDismiss,
+        handleHackingComplete,
+        handleActivateOverdrive,
+        handleBuyFactoryLand,
+        handleUpgradeFactoryModule,
+        handleSpinWheel,
+        handleBailoutReward,
         handleLaunchCampaign,
         handleMaintainLine,
-        handleDowngradeOffice,
-        handleBailoutReward,
-        handleActivateOverdrive,
-        handleSpinWheel,
-        handleBuyFactoryLand,
-        handleUpgradeFactoryModule
+        handleManufacturingResearch
     };
 };

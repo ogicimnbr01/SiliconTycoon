@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GameState, ProductType, DesignSpec, OfficeLevel } from '../types';
 import { TRANSLATIONS } from '../constants';
 import { CPU_TECH_TREE, GPU_TECH_TREE, OFFICE_CONFIGS, MARKET_TRENDS } from '../constants';
-import { getReputationBonuses } from '../utils/gameUtils';
-import { Zap, TrendingUp, TrendingDown, AlertTriangle, Lock, Unlock, Factory, Briefcase, DollarSign, Clock, Shield, ChevronRight, ChevronDown, ArrowLeft, Cpu, Building, Settings, Package } from 'lucide-react';
+import { Zap, TrendingUp, TrendingDown, AlertTriangle, Lock, Unlock, Factory, Briefcase, DollarSign, Clock, Shield, ChevronRight, ChevronDown, ArrowLeft, Cpu, Building, Settings, Package, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { useAdMob } from '../hooks/useAdMob';
 
 interface FactoryTabProps {
@@ -13,11 +12,8 @@ interface FactoryTabProps {
     onBuySilicon: (amount: number) => void;
     onUpgradeOffice: () => void;
     onDowngradeOffice: () => void;
-    onSetStrategy: (strategy: 'low' | 'medium' | 'high') => void;
     onUpdateDesignSpec: (type: ProductType, specs: { performance: number; efficiency: number }) => void;
     onActivateOverdrive: () => void;
-    onBuyFactoryLand: () => void;
-    onUpgradeFactoryModule: (type: 'procurement' | 'assembly' | 'logistics') => void;
     onAdStart?: () => void;
     onAdEnd?: () => void;
 }
@@ -29,11 +25,8 @@ export const FactoryTab: React.FC<FactoryTabProps> = ({
     onBuySilicon,
     onUpgradeOffice,
     onDowngradeOffice,
-    onSetStrategy,
     onUpdateDesignSpec,
     onActivateOverdrive,
-    onBuyFactoryLand,
-    onUpgradeFactoryModule,
     onAdStart,
     onAdEnd
 }) => {
@@ -43,6 +36,7 @@ export const FactoryTab: React.FC<FactoryTabProps> = ({
     const [productionAmount, setProductionAmount] = useState(10);
     const [showUpgradeConfirm, setShowUpgradeConfirm] = useState(false);
     const [upgradeError, setUpgradeError] = useState<string | null>(null);
+    const [siliconBuyAmount, setSiliconBuyAmount] = useState(100);
 
     // Overdrive Logic
     const { showRewardedAd, isAdReady } = useAdMob(gameState.isPremium);
@@ -111,8 +105,7 @@ export const FactoryTab: React.FC<FactoryTabProps> = ({
         const currentOffice = OFFICE_CONFIGS[gameState.officeLevel];
         const nextLevel = (gameState.officeLevel + 1) as any;
         const nextOffice = OFFICE_CONFIGS[nextLevel];
-
-        if (!nextOffice) return null;
+        const hasNextLevel = !!nextOffice;
 
         const getOfficeName = (level: number) => {
             const keys = [
@@ -123,7 +116,7 @@ export const FactoryTab: React.FC<FactoryTabProps> = ({
                 'office_campus_name',
                 'office_hq_name'
             ];
-            return t[keys[level] as keyof typeof t] || OFFICE_CONFIGS[level as any].name;
+            return t[keys[level] as keyof typeof t] || OFFICE_CONFIGS[level as any]?.name;
         };
 
         return (
@@ -148,218 +141,88 @@ export const FactoryTab: React.FC<FactoryTabProps> = ({
                             <div className="text-xs font-bold text-emerald-500 uppercase text-center">{t.nextLevel}</div>
                             <div className="bg-slate-950 p-3 rounded-xl border border-emerald-500/30 text-center relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-3 h-3 bg-emerald-500 rounded-bl-lg"></div>
-                                <div className="font-bold text-emerald-400 mb-1">{getOfficeName(gameState.officeLevel + 1)}</div>
-                                <div className="text-[10px] text-emerald-300/70">{t.cap}: {nextOffice.siliconCap}</div>
+                                <div className="font-bold text-emerald-400 mb-1">{hasNextLevel ? getOfficeName(gameState.officeLevel + 1) : t.maxed}</div>
+                                <div className="text-[10px] text-emerald-400/70">{hasNextLevel ? `${t.cap}: ${nextOffice.siliconCap}` : '-'}</div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="space-y-3 mb-6">
-                        <div className="flex justify-between text-sm border-b border-slate-800 pb-2">
-                            <span className="text-slate-400">{t.rent}</span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-slate-300">${currentOffice.rent}</span>
-                                <span className="text-slate-600">→</span>
-                                <span className="text-white font-bold">${nextOffice.rent}</span>
-                            </div>
-                        </div>
-                        <div className="flex justify-between text-sm border-b border-slate-800 pb-2">
-                            <span className="text-slate-400">{t.maxResearchers}</span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-slate-300">{currentOffice.maxResearchers}</span>
-                                <span className="text-slate-600">→</span>
-                                <span className="text-white font-bold">{nextOffice.maxResearchers}</span>
-                            </div>
-                        </div>
-                        <div className="flex justify-between text-sm pb-2">
-                            <span className="text-slate-400">{t.upgradeCost}</span>
-                            <span className="text-emerald-400 font-bold font-mono">${currentOffice.upgradeCost.toLocaleString()}</span>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="flex gap-3">
                         <button
                             onClick={() => setShowUpgradeConfirm(false)}
-                            className="py-3 rounded-xl font-bold text-slate-400 hover:bg-slate-800 transition-colors"
+                            className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors"
                         >
                             {t.cancel}
                         </button>
-                        <button
-                            onClick={() => {
-                                if (gameState.money < currentOffice.upgradeCost) {
-                                    setUpgradeError(t.insufficientFunds);
-                                    onUpgradeOffice();
-                                    return;
-                                }
-                                onUpgradeOffice();
-                                setShowUpgradeConfirm(false);
-                            }}
-                            className="py-3 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
-                        >
-                            {t.confirm}
-                        </button>
+                        {hasNextLevel && (
+                            <button
+                                onClick={() => {
+                                    if (gameState.money >= nextOffice.upgradeCost) {
+                                        onUpgradeOffice();
+                                        setShowUpgradeConfirm(false);
+                                    } else {
+                                        setUpgradeError(t.insufficientFunds);
+                                    }
+                                }}
+                                className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-colors"
+                            >
+                                {t.upgrade} (${nextOffice.upgradeCost.toLocaleString()})
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
         );
     };
 
-    const renderSelectionStep = () => {
-        const office = OFFICE_CONFIGS[gameState.officeLevel];
-        const hasNextLevel = OFFICE_CONFIGS[(gameState.officeLevel + 1) as any] !== undefined;
-        const bonuses = getReputationBonuses(gameState.reputation);
-        const siliconPrice = gameState.siliconPrice * bonuses.siliconDiscount;
+    const renderSelectionStep = () => (
+        <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-left duration-300">
+            {[ProductType.CPU, ProductType.GPU].map(type => {
+                const techTree = type === ProductType.CPU ? CPU_TECH_TREE : GPU_TECH_TREE;
+                const tech = techTree[gameState.techLevels[type]];
+                const isCPU = type === ProductType.CPU;
 
-        return (
-            <div className="space-y-6 h-full content-center p-4">
-                {/* Active Trend Banner */}
-                {(() => {
-                    const activeTrend = MARKET_TRENDS.find(tr => tr.id === gameState.activeTrendId);
-                    if (activeTrend && activeTrend.id !== 'trend_neutral') {
-                        return (
-                            <div className="bg-gradient-to-r from-indigo-900/80 to-purple-900/80 p-4 rounded-2xl border border-indigo-500/30 shadow-lg mb-4">
-                                <div className="flex items-start gap-3">
-                                    <div className="p-2 bg-indigo-500/20 rounded-lg shrink-0">
-                                        <TrendingUp size={24} className="text-indigo-300" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-white leading-tight mb-1">
-                                            {t[`${activeTrend.id}_name` as keyof typeof t] || activeTrend.name}
-                                        </h3>
-                                        <p className="text-sm text-indigo-200 leading-snug">
-                                            {t[`${activeTrend.id}_desc` as keyof typeof t] || activeTrend.description}
-                                        </p>
-                                        <div className="mt-2 flex flex-wrap gap-2">
-                                            <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                                +{Math.round((activeTrend.priceBonus - 1) * 100)}% {t.price}
-                                            </span>
-                                            <span className="text-xs font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                                                {activeTrend.requiredSpec === 'performance' ? t.performance : t.efficiency} &gt; {activeTrend.minSpecValue}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    }
-                    return null;
-                })()}
-
-                <div className="grid grid-cols-2 gap-4">
+                return (
                     <button
-                        onClick={() => { setSelectedProduct(ProductType.CPU); setStep('produce'); }}
-                        className="group relative bg-slate-900 border border-slate-800 hover:border-blue-500 rounded-2xl p-6 transition-all hover:shadow-xl hover:shadow-blue-500/20 text-left flex flex-col items-center justify-center gap-4 aspect-square"
+                        key={type}
+                        onClick={() => {
+                            setSelectedProduct(type);
+                            setStep('produce');
+                        }}
+                        className={`relative group p-4 rounded-2xl border transition-all hover:scale-[1.02] active:scale-95 ${isCPU
+                            ? 'bg-slate-900/80 border-indigo-500/30 hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/20'
+                            : 'bg-slate-900/80 border-emerald-500/30 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20'
+                            }`}
                     >
-                        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <ArrowLeft className="rotate-180 text-blue-500" size={20} />
-                        </div>
-                        <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Cpu size={32} className="text-blue-400" />
-                        </div>
-                        <div className="text-center">
-                            <h3 className="text-xl font-black text-white leading-tight">{t.produceCpu}</h3>
-                            <p className="text-slate-400 text-[10px] mt-2">{t.balancedMarket}</p>
-                        </div>
-                    </button>
+                        <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity ${isCPU ? 'bg-indigo-500' : 'bg-emerald-500'}`} />
 
-                    <button
-                        onClick={() => { setSelectedProduct(ProductType.GPU); setStep('produce'); }}
-                        className="group relative bg-slate-900 border border-slate-800 hover:border-purple-500 rounded-2xl p-6 transition-all hover:shadow-xl hover:shadow-purple-500/20 text-left flex flex-col items-center justify-center gap-4 aspect-square"
-                    >
-                        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <ArrowLeft className="rotate-180 text-purple-500" size={20} />
-                        </div>
-                        <div className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Zap size={32} className="text-purple-400" />
-                        </div>
-                        <div className="text-center">
-                            <h3 className="text-xl font-black text-white leading-tight">{t.produceGpu}</h3>
-                            <p className="text-slate-400 text-[10px] mt-2">{t.highVolatility}</p>
-                        </div>
-                    </button>
-                </div>
-
-                {/* Infrastructure Section */}
-                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg">
-                    <div className="flex items-center gap-2 mb-3 text-slate-400">
-                        <Building size={14} />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">{t.infrastructure}</span>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4">
-                        {/* Silicon Supply */}
-                        <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                            <div className="flex justify-between items-center mb-3">
-                                <div className="text-[10px] text-slate-500 font-bold uppercase">{t.siliconSupply}</div>
-                                <div className="flex items-end gap-1">
-                                    <div className="text-lg font-mono text-blue-400">{gameState.silicon}</div>
-                                    <div className="text-xs text-slate-600">/ {office.siliconCap}</div>
-                                </div>
+                        <div className="flex flex-col items-center text-center space-y-3">
+                            <div className={`p-3 rounded-xl ${isCPU ? 'bg-indigo-500/20 text-indigo-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                                {isCPU ? <Cpu size={32} /> : <Zap size={32} />}
                             </div>
-                            <div className="grid grid-cols-3 gap-2">
-                                {(() => {
-                                    const remaining = office.siliconCap - gameState.silicon;
-                                    const amounts = [
-                                        { label: '25%', val: Math.floor(remaining * 0.25) },
-                                        { label: '50%', val: Math.floor(remaining * 0.50) },
-                                        { label: 'MAX', val: remaining }
-                                    ];
-                                    return amounts.map((opt, i) => {
-                                        const cost = Math.floor(opt.val * siliconPrice);
-                                        const canAfford = gameState.money >= cost;
-                                        const isValid = opt.val > 0;
-                                        return (
-                                            <button
-                                                key={i}
-                                                onClick={() => onBuySilicon(opt.val)}
-                                                disabled={!canAfford || !isValid}
-                                                className="py-3 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-xl text-blue-300 transition-colors disabled:opacity-50 flex flex-col items-center justify-center"
-                                            >
-                                                <span>{opt.label}</span>
-                                                <span className="text-[9px] opacity-60 font-mono mt-0.5">
-                                                    {isValid ? `$${cost.toLocaleString()}` : '-'}
-                                                </span>
-                                            </button>
-                                        );
-                                    });
-                                })()}
-                            </div>
-                        </div>
 
-                        {/* Office Upgrade */}
-                        <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-4">
                             <div>
-                                <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">{t.officeLevel}</div>
-                                <div className="text-sm font-bold text-white">{t[`office_${['garage', 'basement', 'startup', 'corporate', 'campus', 'hq'][gameState.officeLevel]}_name` as keyof typeof t] || office.name}</div>
+                                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{type}</div>
+                                <div className="text-lg font-black text-white leading-tight">{t[`${tech.id}_name` as keyof typeof t] || tech.name}</div>
+                                <div className="text-[10px] font-mono text-slate-400 mt-1">Tier {tech.tier}</div>
                             </div>
 
-                            <div className="flex flex-col items-end gap-1">
-                                {hasNextLevel ? (
-                                    <button
-                                        onClick={() => setShowUpgradeConfirm(true)}
-                                        className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded text-purple-300 transition-colors"
-                                    >
-                                        {t.upgrade}
-                                    </button>
-                                ) : (
-                                    <div className="px-6 py-2 text-center text-[10px] font-bold text-slate-600 bg-slate-900 rounded border border-slate-800">
-                                        {t.maxed}
-                                    </div>
-                                )}
-                                {gameState.officeLevel > 0 && (
-                                    <button
-                                        onClick={onDowngradeOffice}
-                                        className="text-[10px] font-bold text-red-400/60 hover:text-red-400 transition-colors underline decoration-red-400/30 hover:decoration-red-400"
-                                    >
-                                        {t.downgrade}
-                                    </button>
-                                )}
+                            <div className="w-full pt-3 border-t border-slate-800">
+                                <div className="flex justify-between text-[10px] font-bold">
+                                    <span className="text-slate-500">{t.cost}</span>
+                                    <span className="text-white">${tech.productionCost}</span>
+                                </div>
+                                <div className="flex justify-between text-[10px] font-bold mt-1">
+                                    <span className="text-slate-500">{t.yield}</span>
+                                    <span className={tech.yield >= 90 ? 'text-emerald-400' : 'text-yellow-400'}>{tech.yield}%</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
+                    </button>
+                );
+            })}
+        </div>
+    );
 
     const renderProductionStep = () => {
         const spec = gameState.designSpecs[selectedProduct];
@@ -374,11 +237,6 @@ export const FactoryTab: React.FC<FactoryTabProps> = ({
         const totalSiliconNeeded = Math.ceil(siliconPerUnit * productionAmount);
         const totalCost = tech.productionCost * productionAmount;
         const canProduce = gameState.money >= totalCost && gameState.silicon >= totalSiliconNeeded;
-
-        const yieldRate = tech.yield || 100;
-        const qualityMod = gameState.productionQuality === 'high' ? 5 : gameState.productionQuality === 'medium' ? 0 : -5;
-        const actualYield = Math.min(100, Math.max(10, yieldRate + qualityMod));
-        const defectRate = 100 - actualYield;
 
         return (
             <div className="space-y-4 animate-in slide-in-from-right duration-300 pb-4">
@@ -502,21 +360,17 @@ export const FactoryTab: React.FC<FactoryTabProps> = ({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3 mb-4">
-                        <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
-                            <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">{t.siliconNeeded}</div>
-                            <div className={`font-mono font-bold text-sm ${canProduce ? 'text-orange-400' : 'text-red-500'}`}>
-                                {totalSiliconNeeded} Wafer
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                        <div className="p-2 bg-slate-950 rounded-lg border border-slate-800 text-center">
+                            <div className="text-[10px] text-slate-500 font-bold uppercase">{t.cost}</div>
+                            <div className={`text-sm font-mono font-bold ${gameState.money >= totalCost ? 'text-white' : 'text-red-400'}`}>
+                                ${totalCost.toLocaleString()}
                             </div>
                         </div>
-                        <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
-                            <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">{t.totalCost}</div>
-                            <div className="font-mono font-bold text-sm text-emerald-400">${totalCost.toFixed(0)}</div>
-                        </div>
-                        <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
-                            <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">{t.defectRate}</div>
-                            <div className={`font-mono font-bold text-sm ${defectRate > 15 ? 'text-red-400' : 'text-emerald-400'}`}>
-                                %{defectRate}
+                        <div className="p-2 bg-slate-950 rounded-lg border border-slate-800 text-center">
+                            <div className="text-[10px] text-slate-500 font-bold uppercase">{t.silicon}</div>
+                            <div className={`text-sm font-mono font-bold ${gameState.silicon >= totalSiliconNeeded ? 'text-blue-300' : 'text-red-400'}`}>
+                                {totalSiliconNeeded}
                             </div>
                         </div>
                     </div>
@@ -531,110 +385,6 @@ export const FactoryTab: React.FC<FactoryTabProps> = ({
                     >
                         {canProduce ? t.produce : t.noSilicon}
                     </button>
-                </div>
-            </div>
-        );
-    };
-
-    const renderAutomation = () => {
-        if (!gameState.factory.landOwned) {
-            return (
-                <div className="mb-6 p-6 bg-slate-900/80 border border-slate-700 rounded-2xl shadow-xl text-center">
-                    <Factory size={48} className="mx-auto text-slate-500 mb-4" />
-                    <h3 className="text-xl font-black text-white mb-2">FACTORY AUTOMATION</h3>
-                    <p className="text-slate-400 text-sm mb-6 max-w-xs mx-auto">
-                        Purchase industrial land to build automated production lines. Stop clicking, start managing.
-                    </p>
-                    <button
-                        onClick={onBuyFactoryLand}
-                        className="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
-                    >
-                        BUY LAND ($50,000)
-                    </button>
-                </div>
-            );
-        }
-
-        return (
-            <div className="mb-6 space-y-4">
-                <div className="flex items-center gap-2 text-slate-400 px-1">
-                    <Factory size={16} />
-                    <span className="text-xs font-bold uppercase tracking-wider">Automation Modules</span>
-                </div>
-
-                {/* Procurement */}
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-500/10 rounded-lg">
-                            <Package size={24} className="text-blue-400" />
-                        </div>
-                        <div>
-                            <div className="text-sm font-bold text-white">Procurement</div>
-                            <div className="text-xs text-slate-500">Auto-buys Silicon</div>
-                            <div className="text-xs text-blue-400 font-mono mt-1">
-                                Rate: {gameState.factory.modules.procurement.rate}/tick
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-right">
-                        <div className="text-xs text-slate-500 mb-1">Lv {gameState.factory.modules.procurement.level}</div>
-                        <button
-                            onClick={() => onUpgradeFactoryModule('procurement')}
-                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white rounded-lg border border-slate-700"
-                        >
-                            UPGRADE
-                        </button>
-                    </div>
-                </div>
-
-                {/* Assembly */}
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-purple-500/10 rounded-lg">
-                            <Cpu size={24} className="text-purple-400" />
-                        </div>
-                        <div>
-                            <div className="text-sm font-bold text-white">Assembly</div>
-                            <div className="text-xs text-slate-500">Auto-produces Chips</div>
-                            <div className="text-xs text-purple-400 font-mono mt-1">
-                                Rate: {gameState.factory.modules.assembly.rate}/tick
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-right">
-                        <div className="text-xs text-slate-500 mb-1">Lv {gameState.factory.modules.assembly.level}</div>
-                        <button
-                            onClick={() => onUpgradeFactoryModule('assembly')}
-                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white rounded-lg border border-slate-700"
-                        >
-                            UPGRADE
-                        </button>
-                    </div>
-                </div>
-
-                {/* Logistics */}
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-emerald-500/10 rounded-lg">
-                            <TrendingUp size={24} className="text-emerald-400" />
-                        </div>
-                        <div>
-                            <div className="text-sm font-bold text-white">Logistics</div>
-                            <div className="text-xs text-slate-500">Auto-sells Chips</div>
-                            <div className="text-xs text-emerald-400 font-mono mt-1">
-                                Rate: {gameState.factory.modules.logistics.rate}/tick
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-right">
-                        <div className="text-xs text-slate-500 mb-1">Lv {gameState.factory.modules.logistics.level}</div>
-                        <button
-                            onClick={() => onUpgradeFactoryModule('logistics')}
-                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white rounded-lg border border-slate-700"
-                        >
-                            UPGRADE
-                        </button>
-                    </div>
                 </div>
             </div>
         );
@@ -671,8 +421,97 @@ export const FactoryTab: React.FC<FactoryTabProps> = ({
                 </div>
             )}
 
-            {/* Automation Section (New) */}
-            {renderAutomation()}
+            {/* Office Upgrade/Downgrade Section */}
+            <div className="mb-4 px-1 flex flex-col gap-2">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+                    <div>
+                        <div className="text-xs text-slate-500 font-bold uppercase">Office Level</div>
+                        <div className="text-sm font-bold text-white flex items-center gap-2">
+                            <span>Lv {gameState.officeLevel}</span>
+                            <span className="text-slate-400">•</span>
+                            <span className="text-emerald-400">
+                                {(() => {
+                                    const keys = [
+                                        'office_garage_name',
+                                        'office_basement_name',
+                                        'office_startup_name',
+                                        'office_corporate_name',
+                                        'office_campus_name',
+                                        'office_hq_name'
+                                    ];
+                                    return t[keys[gameState.officeLevel] as keyof typeof t] || OFFICE_CONFIGS[gameState.officeLevel]?.name;
+                                })()}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex gap-1">
+                        <button
+                            onClick={onDowngradeOffice}
+                            disabled={gameState.officeLevel === 0}
+                            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-lg disabled:opacity-30"
+                        >
+                            <ArrowDownCircle size={16} />
+                        </button>
+                        <button
+                            onClick={() => setShowUpgradeConfirm(true)}
+                            className="p-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-lg"
+                        >
+                            <ArrowUpCircle size={16} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Silicon Purchase Section */}
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                    <div className="flex justify-between items-center mb-2">
+                        <div className="text-xs text-slate-500 font-bold uppercase">Buy Silicon</div>
+                        <div className="text-[10px] text-blue-400 font-mono">${Math.floor(gameState.siliconPrice)}/unit</div>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-2 mb-2">
+                        {(() => {
+                            const currentOffice = OFFICE_CONFIGS[gameState.officeLevel];
+                            const maxStorage = currentOffice.siliconCap;
+                            const spaceAvailable = Math.max(0, maxStorage - gameState.silicon);
+                            const maxAffordable = Math.floor(gameState.money / gameState.siliconPrice);
+                            const maxBuyable = Math.min(spaceAvailable, maxAffordable);
+
+                            return [
+                                { label: '25%', amount: Math.floor(maxBuyable * 0.25) },
+                                { label: '50%', amount: Math.floor(maxBuyable * 0.50) },
+                                { label: '100%', amount: maxBuyable },
+                                { label: 'MAX', amount: maxBuyable }
+                            ].slice(0, 3).map((opt, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => onBuySilicon(opt.amount)}
+                                    disabled={opt.amount <= 0}
+                                    className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold py-1 rounded disabled:opacity-30"
+                                >
+                                    {opt.label}
+                                </button>
+                            ));
+                        })()}
+                        <button
+                            onClick={() => onBuySilicon(siliconBuyAmount)}
+                            disabled={siliconBuyAmount <= 0 || gameState.money < siliconBuyAmount * gameState.siliconPrice}
+                            className="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold py-1 rounded disabled:opacity-30"
+                        >
+                            BUY {siliconBuyAmount}
+                        </button>
+                    </div>
+
+                    <div className="flex gap-2">
+                        <input
+                            type="number"
+                            value={siliconBuyAmount}
+                            onChange={(e) => setSiliconBuyAmount(Math.max(1, parseInt(e.target.value) || 0))}
+                            className="w-full bg-slate-950 border border-slate-800 rounded text-center text-xs text-white py-1"
+                            placeholder="Custom Amount"
+                        />
+                    </div>
+                </div>
+            </div>
 
             {step === 'select' ? renderSelectionStep() : renderProductionStep()}
             {renderUpgradeModal()}

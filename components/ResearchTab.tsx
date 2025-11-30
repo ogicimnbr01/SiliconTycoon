@@ -1,16 +1,17 @@
 import React from 'react';
 import { ProductType, GameState, Language } from '../types';
-import { CPU_TECH_TREE, GPU_TECH_TREE, RESEARCHER_BASE_COST, RESEARCHER_COST_GROWTH, RP_PER_RESEARCHER_PER_DAY, HEROES, TRANSLATIONS } from '../constants';
+import { CPU_TECH_TREE, GPU_TECH_TREE, MANUFACTURING_TECH_TREE, RESEARCHER_BASE_COST, RESEARCHER_COST_GROWTH, RP_PER_RESEARCHER_PER_DAY, HEROES, TRANSLATIONS } from '../constants';
 import { Button } from './ui/Button';
-import { Microscope, Lock, Check, Users, BrainCircuit, Activity, Crown } from 'lucide-react';
+import { Microscope, Lock, Check, Users, BrainCircuit, Activity, Crown, Factory } from 'lucide-react';
 
 interface ResearchTabProps {
     gameState: GameState;
     language: Language;
     onResearch: (type: ProductType, nextLevelIndex: number, cost: number) => void;
+    onManufacturingResearch: (techId: string) => void;
     onHireResearcher: (cost: number) => void;
     onHireHero: (heroId: string) => void;
-    onSetWorkPolicy: (policy: 'relaxed' | 'normal' | 'crunch') => void; // <-- YENİ EKLENDİ
+    onSetWorkPolicy: (policy: 'relaxed' | 'normal' | 'crunch') => void;
     onFireResearcher: () => void;
 }
 
@@ -18,9 +19,10 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
     gameState,
     language,
     onResearch,
+    onManufacturingResearch,
     onHireResearcher,
     onHireHero,
-    onSetWorkPolicy, // <-- BURAYA ALDIK
+    onSetWorkPolicy,
     onFireResearcher
 }) => {
     const t = TRANSLATIONS[language] || TRANSLATIONS['en'];
@@ -53,6 +55,30 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
         )
     };
 
+    const renderManufacturingTechCard = (tech: any) => {
+        const currentLevel = gameState.manufacturingTechLevels[tech.id] || 0;
+        const isUnlocked = currentLevel > 0;
+
+        return (
+            <div key={tech.id} className={`relative p-6 rounded-2xl border-2 transition-all mb-6 shadow-lg ${isUnlocked ? 'bg-slate-900 border-emerald-500/30' : 'bg-gradient-to-br from-slate-900 to-indigo-950 border-indigo-500 shadow-indigo-500/20'}`}>
+                {!isUnlocked && (<div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-indigo-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg uppercase tracking-widest">{t.nextMilestone}</div>)}
+                <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                        <h4 className={`text-lg font-black uppercase tracking-tight leading-none mb-2 ${isUnlocked ? 'text-emerald-400' : 'text-white'}`}>{tech.name}</h4>
+                        <p className="text-sm text-slate-400 font-medium leading-snug">{tech.description}</p>
+                    </div>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 shrink-0 ml-4 ${isUnlocked ? 'bg-emerald-500 border-emerald-500 text-slate-900' : 'bg-indigo-500 border-indigo-500 text-white'}`}>{isUnlocked ? <Check size={20} strokeWidth={4} /> : <Lock size={18} />}</div>
+                </div>
+                {!isUnlocked ? (
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                        <div className="flex items-center justify-between mb-4"><div className="text-center"><div className="text-[10px] text-indigo-300 uppercase font-bold opacity-70">{t.researchCost || "Research Cost"}</div><div className="font-mono font-bold text-indigo-300 text-sm">${tech.researchCost.toLocaleString()}</div></div></div>
+                        <Button size="lg" variant="primary" onClick={() => onManufacturingResearch(tech.id)} disabled={gameState.money < tech.researchCost} className="w-full h-14 text-base rounded-xl shadow-xl border-indigo-400 text-indigo-100 bg-indigo-500/20 hover:bg-indigo-500 hover:text-white">{t.researchBtn} • ${tech.researchCost.toLocaleString()}</Button>
+                    </div>
+                ) : (<div className="mt-2 flex items-center gap-2 text-xs font-bold text-emerald-500 uppercase tracking-widest bg-emerald-900/10 p-2 rounded-lg border border-emerald-500/10"><Check size={14} /> {t.techMastered}</div>)}
+            </div>
+        )
+    };
+
     return (
         <div className="flex flex-col gap-8 pt-2 pb-8">
             <div className="bg-gradient-to-br from-purple-900 to-slate-900 rounded-2xl p-6 border border-purple-500/30 shadow-xl relative overflow-hidden">
@@ -65,7 +91,6 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
                     <div className="flex items-center gap-3"><div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-300"><Users size={20} /></div><div><div className="text-sm font-bold text-white">{gameState.researchers} {t.researchers}</div><div className="text-[10px] text-purple-300 uppercase font-bold">{t.activeStaff}</div></div></div>
                 </div>
                 <div className="flex gap-2 relative z-10">
-                    {/* KOV BUTONU */}
                     <Button
                         onClick={onFireResearcher}
                         disabled={gameState.researchers <= 0}
@@ -75,7 +100,6 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
                         <span className="font-bold text-xs">{t.fireStaff}</span>
                     </Button>
 
-                    {/* AL BUTONU */}
                     <Button
                         onClick={() => onHireResearcher(nextHireCost)}
                         disabled={gameState.money < nextHireCost}
@@ -90,7 +114,6 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
                 </div>
             </div>
 
-            {/* HR POLICY PANEL - ARTIK ÇALIŞIYOR */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
                 <div className="flex justify-between items-center mb-4 relative z-10">
                     <div className="flex items-center gap-2">
@@ -110,9 +133,9 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
                     {(['relaxed', 'normal', 'crunch'] as const).map(policy => (
                         <button
                             key={policy}
-                            onClick={() => onSetWorkPolicy(policy)} // <-- PROP BURADA BAĞLANDI
+                            onClick={() => onSetWorkPolicy(policy)}
                             className={`py-3 rounded-xl text-[10px] font-bold uppercase transition-all border ${gameState.workPolicy === policy
-                                ? 'bg-blue-600 text-white border-blue-500 shadow-lg scale-105' // SEÇİLİ HALİ MAVİ
+                                ? 'bg-blue-600 text-white border-blue-500 shadow-lg scale-105'
                                 : 'bg-slate-950 text-slate-500 border-slate-800 hover:border-slate-600'
                                 }`}
                         >
@@ -150,6 +173,15 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
 
             <div>
                 <div className="flex items-center gap-3 mb-6 px-1"><div className="w-8 h-8 rounded bg-slate-800 flex items-center justify-center text-slate-400"><BrainCircuit size={18} /></div><span className="text-sm font-bold text-white uppercase tracking-wide">{t.techRoadmap}</span></div>
+
+                {/* Manufacturing Tech */}
+                <div className="mb-2 px-2 flex items-center gap-2">
+                    <Factory size={14} className="text-slate-500" />
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Manufacturing</span>
+                </div>
+                {MANUFACTURING_TECH_TREE.map((node, i) => renderManufacturingTechCard(node))}
+                <div className="my-6 h-px bg-slate-800"></div>
+
                 <div className="mb-2 px-2"><span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">{t.cpuArch}</span></div>
                 {CPU_TECH_TREE.map((node, i) => renderTechCard(ProductType.CPU, node, i))}
                 <div className="my-6 h-px bg-slate-800"></div>

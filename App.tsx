@@ -19,13 +19,14 @@ import {
     INITIAL_GAME_STATE
 } from './constants';
 import { FactoryTab } from './components/FactoryTab';
+import { AutomationTab } from './components/AutomationTab';
 import { ResearchTab } from './components/ResearchTab';
 import { ResourceHeader } from './components/ResourceHeader';
 import { NewsTicker } from './components/NewsTicker';
 import { HackingMinigame } from './components/HackingMinigame';
 import { OfflineReport } from './components/ui/OfflineReport';
 import { MainMenu } from './components/MainMenu';
-import { LayoutGrid, FlaskConical, LineChart, AlertTriangle, Loader2, Pause, Play, LogOut, Landmark, Skull, MailWarning, Lock, Megaphone, BarChart, Gift } from 'lucide-react';
+import { LayoutGrid, FlaskConical, LineChart, AlertTriangle, Loader2, Pause, Play, LogOut, Landmark, Skull, MailWarning, Lock, Megaphone, BarChart, Gift, Bot, Briefcase } from 'lucide-react';
 import { playSfx, setSoundEnabled } from './utils/SoundManager';
 import { SettingsModal } from './components/SettingsModal';
 import { AchievementsModal } from './components/AchievementsModal';
@@ -36,8 +37,7 @@ import { HackingResultModal } from './components/HackingResultModal';
 import { BailoutModal } from './components/BailoutModal';
 import { DailyBonusWheel } from './components/DailyBonusWheel';
 
-import { MarketingTab } from './components/MarketingTab';
-import { StatisticsTab } from './components/StatisticsTab';
+import { ManagementTab } from './components/ManagementTab';
 import { useSaveLoad } from './hooks/useSaveLoad';
 import { useGameLoop } from './hooks/useGameLoop';
 import { useGameActions } from './hooks/useGameActions';
@@ -47,6 +47,7 @@ import { FloatingTextLayer } from './components/ui/FloatingTextLayer';
 import { FloatingTextItem } from './components/ui/FloatingText';
 
 const MarketTab = React.lazy(() => import('./components/MarketTab'));
+const FinanceTab = React.lazy(() => import('./components/FinanceTab'));
 
 import { loadGlobalAchievements } from './utils/achievementManager';
 
@@ -171,14 +172,14 @@ const App: React.FC = () => {
         let lockReason = "";
         if (id === 'rnd') lockReason = "$10k";
         if (id === 'finance') lockReason = "$50k";
-        if (id === 'marketing') lockReason = "$100k";
-        // if (id === 'statistics') lockReason = "$1k";
+        if (id === 'automation') lockReason = "Mass Prod.";
+        if (id === 'management') lockReason = "$100k";
 
         return (
             <button
                 onClick={() => { if (!isLocked) actions.handleTabSwitch(id); }}
                 data-tutorial={`${id}-tab`}
-                className={`flex flex-col items-center justify-center py-1 flex-1 transition-all active:scale-95 touch-manipulation relative ${activeTab === id ? 'text-corp-accent bg-slate-800/80 rounded-xl mx-2 shadow-[0_0_15px_rgba(14,165,233,0.2)]' : isLocked ? 'opacity-50' : 'text-slate-500'}`}
+                className={`flex flex-col items-center justify-center py-1 flex-1 transition-all active:scale-95 touch-manipulation relative rounded-xl ${activeTab === id ? 'text-corp-accent bg-slate-800/80 shadow-[0_0_15px_rgba(14,165,233,0.2)]' : isLocked ? 'opacity-50' : 'text-slate-500'}`}
             >
                 {isLocked && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-10 rounded-xl backdrop-blur-[1px]">
@@ -302,13 +303,27 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto overscroll-none px-4 pb-32 pt-4 scroll-smooth no-scrollbar w-full">
-                {activeTab === 'factory' && (<FactoryTab gameState={gameState} language={gameState.language} onProduce={actions.handleProduce} onBuySilicon={actions.handleBuySilicon} onUpgradeOffice={actions.handleUpgradeOffice} onDowngradeOffice={actions.handleDowngradeOffice} onSetStrategy={(s) => setGameState(prev => ({ ...prev, productionQuality: s }))} onUpdateDesignSpec={actions.handleUpdateDesignSpec} onActivateOverdrive={actions.handleActivateOverdrive} onBuyFactoryLand={actions.handleBuyFactoryLand} onUpgradeFactoryModule={actions.handleUpgradeFactoryModule} onAdStart={handleAdStart} onAdEnd={handleAdEnd} />)}
+                {activeTab === 'factory' && (
+                    <FactoryTab
+                        gameState={gameState}
+                        language={gameState.language}
+                        onProduce={actions.handleProduce}
+                        onBuySilicon={actions.handleBuySilicon}
+                        onUpgradeOffice={actions.handleUpgradeOffice}
+                        onDowngradeOffice={actions.handleDowngradeOffice}
+                        onUpdateDesignSpec={actions.handleUpdateDesignSpec}
+                        onActivateOverdrive={actions.handleActivateOverdrive}
+                        onAdStart={handleAdStart}
+                        onAdEnd={handleAdEnd}
+                    />
+                )}
 
                 {activeTab === 'rnd' && (
                     <ResearchTab
                         gameState={gameState}
                         language={gameState.language}
                         onResearch={actions.handleResearch}
+                        onManufacturingResearch={actions.handleManufacturingResearch}
                         onHireResearcher={actions.handleHireResearcher}
                         onHireHero={actions.handleHireHero}
                         onSetWorkPolicy={actions.handleSetWorkPolicy}
@@ -319,19 +334,12 @@ const App: React.FC = () => {
                 {activeTab === 'market' && (
                     <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="animate-spin text-corp-accent" size={40} /></div>}>
                         <MarketTab
-                            mode="commercial"
                             gameState={gameState}
                             language={gameState.language}
                             onSell={actions.handleSell}
-                            onBuyStock={actions.handleBuyStock}
-                            onSellStock={actions.handleSellStock}
-                            onIPO={actions.handleIPO}
                             onAcceptContract={actions.handleAcceptContract}
                             onCovertOp={actions.handleCovertOpTrigger}
                             onRetire={actions.handleRetire}
-                            onTakeLoan={actions.handleTakeLoan}
-                            onPayLoan={actions.handlePayLoan}
-                            onTradeOwnShares={actions.handleTradeOwnShares}
                             unlockedTabs={gameState.unlockedTabs}
                         />
                     </Suspense>
@@ -339,17 +347,12 @@ const App: React.FC = () => {
 
                 {activeTab === 'finance' && (
                     <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="animate-spin text-corp-accent" size={40} /></div>}>
-                        <MarketTab
-                            mode="financial"
+                        <FinanceTab
                             gameState={gameState}
                             language={gameState.language}
-                            onSell={actions.handleSell}
                             onBuyStock={actions.handleBuyStock}
                             onSellStock={actions.handleSellStock}
                             onIPO={actions.handleIPO}
-                            onAcceptContract={actions.handleAcceptContract}
-                            onCovertOp={actions.handleCovertOpTrigger}
-                            onRetire={actions.handleRetire}
                             onTakeLoan={actions.handleTakeLoan}
                             onPayLoan={actions.handlePayLoan}
                             onTradeOwnShares={actions.handleTradeOwnShares}
@@ -358,36 +361,35 @@ const App: React.FC = () => {
                     </Suspense>
                 )}
 
-                {activeTab === 'marketing' && (
+                {activeTab === 'automation' && (
                     <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="animate-spin text-corp-accent" size={40} /></div>}>
-                        <MarketingTab
-                            money={gameState.money}
-                            brandAwareness={gameState.brandAwareness}
-                            activeCampaigns={gameState.activeCampaigns}
-                            onLaunchCampaign={actions.handleLaunchCampaign}
+                        <AutomationTab
+                            gameState={gameState}
                             language={gameState.language}
+                            onBuyFactoryLand={actions.handleBuyFactoryLand}
+                            onUpgradeFactoryModule={actions.handleUpgradeFactoryModule}
                         />
                     </Suspense>
                 )}
 
-                {activeTab === 'statistics' && (
-                    <StatisticsTab
+
+                {activeTab === 'management' && (
+                    <ManagementTab
                         gameState={gameState}
                         language={gameState.language}
+                        onLaunchCampaign={actions.handleLaunchCampaign}
                     />
                 )}
                 {/* Daily Bonus Button */}
                 {/* Daily Bonus Button */}
                 {/* Daily Bonus Button */}
-                {(gameState.dailySpinCount < 5) && (
+                {(gameState.dailySpinCount < 5 && Date.now() >= gameState.nextSpinTime) && (
                     <button
                         onClick={() => setShowDailyWheel(true)}
                         className="absolute top-24 right-4 z-30 w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg border border-amber-400 hover:scale-110 transition-transform"
                     >
                         <Gift className="text-white" size={24} />
-                        {Date.now() >= gameState.nextSpinTime && (
-                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border border-white" />
-                        )}
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border border-white" />
                     </button>
                 )}
             </div>
@@ -396,13 +398,13 @@ const App: React.FC = () => {
                 <div className="w-full bg-slate-950 border-t border-slate-800 relative z-50">
                     <NewsTicker logs={gameState.logs} />
                 </div>
-                <div className="w-full h-[70px] bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 flex items-center px-4 shadow-[0_-5px_30px_rgba(0,0,0,0.8)] relative z-50">
+                <div className="w-full h-[70px] bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 flex items-center px-2 shadow-[0_-5px_30px_rgba(0,0,0,0.8)] relative z-50 justify-between">
                     <TabButton id="factory" label="FACTORY" icon={LayoutGrid} />
                     <TabButton id="rnd" label="R&D" icon={FlaskConical} />
                     <TabButton id="market" label="MARKET" icon={LineChart} />
                     <TabButton id="finance" label="FINANCE" icon={Landmark} />
-                    <TabButton id="marketing" label="MARKETING" icon={Megaphone} />
-                    <TabButton id="statistics" label="STATISTICS" icon={BarChart} />
+                    <TabButton id="automation" label="AUTOMATION" icon={Bot} />
+                    <TabButton id="management" label="MANAGEMENT" icon={Briefcase} />
                 </div>
             </div>
 

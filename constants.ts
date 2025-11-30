@@ -519,6 +519,7 @@ export const TRANSLATIONS = {
     rndDept: "R&D Department",
     dailyOutput: "Daily Output",
     researchers: "Researchers",
+    researchCost: "Research Cost",
     activeStaff: "Active Staff",
     hireStaff: "HIRE STAFF",
     headhunters: "Headhunters",
@@ -584,7 +585,9 @@ export const TRANSLATIONS = {
     dilute: "SELL SHARES (DILUTE)",
     ownershipWarning: "Danger! Ownership too low!",
     needUpgrade: "Need Office Upgrade",
-    finance: "FINANCE",
+    automation: "AUTOMATION",
+    management: "MANAGEMENT",
+    marketing: "MARKETING",
     bankruptcyWarning: "BANKRUPTCY ALERT! Positive balance required in 60 days!",
     gameOver: "GAME OVER",
     fired: "You have been fired for insolvency.",
@@ -625,7 +628,7 @@ export const TRANSLATIONS = {
     collectResources: "COLLECT RESOURCES",
     achievements: "ACHIEVEMENTS",
     achievementUnlocked: "Achievement Unlocked!",
-    marketing: "MARKETING",
+
     campaigns: "Campaigns",
     brandAwareness: "Brand Awareness",
     activeCampaigns: "Active Campaigns",
@@ -831,7 +834,7 @@ export const TRANSLATIONS = {
     // Market Tab
     boardIntervention: "Board Intervention",
     penaltyPrestige: "Penalty: -{0} Prestige",
-    logFinanceEstablished: "Finance Dept. Established. IPO ready.",
+    logAutomationEstablished: "Automation Dept. Established.",
     logContractFailed: "Contract FAILED! Client furious.",
     logContractOrder: "ORDER: {0}x {1}",
     logContractDeadline: "Deadline: {0} Days",
@@ -866,6 +869,7 @@ export const TRANSLATIONS = {
     selectProduct: "Select Product",
     designSpecs: "Design Specifications",
     production: "Production",
+    yield: "Yield Rate",
     amount: "Amount",
     insufficientFunds: "Insufficient Funds",
     statistics: "STATISTICS",
@@ -1024,6 +1028,8 @@ export const TRANSLATIONS = {
     factory: "FABRİKA",
     rnd: "AR-GE",
     market: "PAZAR",
+    finance: "FİNANS",
+    management: "YÖNETİM",
     paused: "DURAKLATILDI",
     productionHalted: "Üretim Durduruldu",
     resume: "DEVAM ET",
@@ -1083,6 +1089,7 @@ export const TRANSLATIONS = {
     rndDept: "Ar-Ge Departmanı",
     dailyOutput: "Günlük Çıktı",
     researchers: "Araştırmacılar",
+    researchCost: "Araştırma Maliyeti",
     activeStaff: "Aktif Personel",
     hireStaff: "PERSONEL AL",
     headhunters: "Kelle Avcıları",
@@ -1148,7 +1155,7 @@ export const TRANSLATIONS = {
     dilute: "HİSSE SAT (SEYRELT)",
     ownershipWarning: "Tehlike! Sahiplik çok düşük!",
     needUpgrade: "Ofis Yükseltmesi Gerekli",
-    finance: "FİNANS",
+    automation: "OTOMASYON",
     bankruptcyWarning: "İFLAS UYARISI! 60 gün içinde pozitif bakiye gerekli!",
     gameOver: "OYUN BİTTİ",
     fired: "İflas nedeniyle kovuldunuz.",
@@ -1373,7 +1380,7 @@ export const TRANSLATIONS = {
     // Market Tab
     boardIntervention: "Yönetim Kurulu Müdahalesi",
     penaltyPrestige: "Ceza: -{0} Prestij",
-    logFinanceEstablished: "Finans Departmanı Kuruldu. Halka Arz hazır.",
+    logAutomationEstablished: "Automation Department Established.",
     logContractFailed: "Sözleşme BAŞARISIZ! Müşteri öfkeli.",
     logContractOrder: "SİPARİŞ: {0}x {1}",
     logContractDeadline: "Son Tarih: {0} Gün",
@@ -1419,6 +1426,7 @@ export const TRANSLATIONS = {
     noInventory: "Envanter Yok",
     designSpecs: "Tasarım Özellikleri",
     production: "Üretim",
+    yield: "Verim Oranı",
     amount: "Miktar",
     insufficientFunds: "Yetersiz Bakiye",
     premium: "Premium",
@@ -2164,6 +2172,7 @@ export const INITIAL_GAME_STATE: GameState = {
       logistics: { level: 0, rate: 0 }
     }
   },
+  manufacturingTechLevels: { mass_production: 0 },
   competitors: INITIAL_COMPETITORS,
   boardMissions: [],
   loans: [],
@@ -2184,4 +2193,66 @@ export const INITIAL_GAME_STATE: GameState = {
   isPremium: false,
   bankruptcyTimer: 0,
   productionLines: []
+};
+
+export const MANUFACTURING_TECH_TREE: TechNode[] = [
+  {
+    id: 'mass_production',
+    name: 'Mass Production',
+    tier: 1,
+    baseMarketPrice: 0,
+    researchCost: 5000,
+    productionCost: 0,
+    description: "Unlocks Factory Automation."
+  },
+  {
+    id: 'improved_logistics',
+    name: 'Improved Logistics',
+    tier: 2,
+    baseMarketPrice: 0,
+    researchCost: 15000,
+    productionCost: 0,
+    description: "Boosts Logistics Module efficiency by 50%."
+  },
+  {
+    id: 'automated_assembly',
+    name: 'Automated Assembly',
+    tier: 3,
+    baseMarketPrice: 0,
+    researchCost: 50000,
+    productionCost: 0,
+    description: "Boosts Assembly Module efficiency by 50%."
+  },
+  {
+    id: 'ai_procurement',
+    name: 'AI Procurement',
+    tier: 4,
+    baseMarketPrice: 0,
+    researchCost: 200000,
+    productionCost: 0,
+    description: "Boosts Procurement Module efficiency by 50%."
+  },
+  {
+    id: 'quantum_manufacturing',
+    name: 'Quantum Manufacturing',
+    tier: 5,
+    baseMarketPrice: 0,
+    researchCost: 1000000,
+    productionCost: 0,
+    description: "Doubles efficiency of all modules."
+  }
+];
+
+export const FACTORY_UPGRADES = {
+  LAND_COST: 5000000, // $5M
+  MODULE_COSTS: {
+    procurement: 10000,
+    assembly: 25000,
+    logistics: 15000
+  },
+  MODULE_RATES: {
+    procurement: 5, // Silicon per tick
+    assembly: 1,    // Chips per tick
+    logistics: 2    // Sales per tick
+  }
 };

@@ -872,6 +872,78 @@ export const useGameActions = (
         playSfx('success');
     }, [setGameState, playSfx]);
 
+    const handleBuyFactoryLand = useCallback(() => {
+        setGameState(prev => {
+            const cost = 50000; // FACTORY_UPGRADES.LAND_COST
+            if (prev.money < cost) {
+                playSfx('error');
+                return prev;
+            }
+            playSfx('success');
+            vibrate('heavy');
+            return {
+                ...prev,
+                money: prev.money - cost,
+                factory: { ...prev.factory, landOwned: true },
+                logs: [...prev.logs, {
+                    id: Date.now(),
+                    message: '🏭 Factory Land Acquired! Automation unlocked.',
+                    type: 'success' as const,
+                    timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}`
+                }].slice(-10)
+            };
+        });
+    }, [setGameState, playSfx, vibrate]);
+
+    const handleUpgradeFactoryModule = useCallback((moduleType: 'procurement' | 'assembly' | 'logistics') => {
+        setGameState(prev => {
+            const module = prev.factory.modules[moduleType];
+            const costs = {
+                procurement: { base: 10000, multiplier: 1.5 },
+                assembly: { base: 25000, multiplier: 1.6 },
+                logistics: { base: 15000, multiplier: 1.4 }
+            };
+            const config = costs[moduleType];
+            const cost = Math.floor(config.base * Math.pow(config.multiplier, module.level));
+
+            if (prev.money < cost) {
+                playSfx('error');
+                return prev;
+            }
+
+            playSfx('upgrade');
+            vibrate('medium');
+
+            const rates = {
+                procurement: 5,
+                assembly: 1,
+                logistics: 2
+            };
+            const baseRate = rates[moduleType];
+
+            return {
+                ...prev,
+                money: prev.money - cost,
+                factory: {
+                    ...prev.factory,
+                    modules: {
+                        ...prev.factory.modules,
+                        [moduleType]: {
+                            level: module.level + 1,
+                            rate: baseRate * (module.level + 1)
+                        }
+                    }
+                },
+                logs: [...prev.logs, {
+                    id: Date.now(),
+                    message: `🔧 ${moduleType.charAt(0).toUpperCase() + moduleType.slice(1)} Module Upgraded to Lv${module.level + 1}`,
+                    type: 'success' as const,
+                    timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}`
+                }].slice(-10)
+            };
+        });
+    }, [setGameState, playSfx, vibrate]);
+
     const handleActivateOverdrive = useCallback(() => {
         setGameState(prev => {
             // Check unlock conditions: Office Level 2 OR Day 15+
@@ -958,6 +1030,8 @@ export const useGameActions = (
         handleDowngradeOffice,
         handleBailoutReward,
         handleActivateOverdrive,
-        handleSpinWheel
+        handleSpinWheel,
+        handleBuyFactoryLand,
+        handleUpgradeFactoryModule
     };
 };

@@ -302,7 +302,7 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto overscroll-none px-4 pb-32 pt-4 scroll-smooth no-scrollbar w-full">
-                {activeTab === 'factory' && (<FactoryTab gameState={gameState} language={gameState.language} onProduce={actions.handleProduce} onBuySilicon={actions.handleBuySilicon} onUpgradeOffice={actions.handleUpgradeOffice} onDowngradeOffice={actions.handleDowngradeOffice} onSetStrategy={(s) => setGameState(prev => ({ ...prev, productionQuality: s }))} onUpdateDesignSpec={actions.handleUpdateDesignSpec} onActivateOverdrive={actions.handleActivateOverdrive} onAdStart={handleAdStart} onAdEnd={handleAdEnd} />)}
+                {activeTab === 'factory' && (<FactoryTab gameState={gameState} language={gameState.language} onProduce={actions.handleProduce} onBuySilicon={actions.handleBuySilicon} onUpgradeOffice={actions.handleUpgradeOffice} onDowngradeOffice={actions.handleDowngradeOffice} onSetStrategy={(s) => setGameState(prev => ({ ...prev, productionQuality: s }))} onUpdateDesignSpec={actions.handleUpdateDesignSpec} onActivateOverdrive={actions.handleActivateOverdrive} onBuyFactoryLand={actions.handleBuyFactoryLand} onUpgradeFactoryModule={actions.handleUpgradeFactoryModule} onAdStart={handleAdStart} onAdEnd={handleAdEnd} />)}
 
                 {activeTab === 'rnd' && (
                     <ResearchTab

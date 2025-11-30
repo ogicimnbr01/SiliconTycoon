@@ -1,6 +1,6 @@
 import { ProductType, TechNode, Stock, OfficeLevel, GameEvent, Hero, GameEra, MarketTrend, Achievement, MarketingCampaign, Competitor, GameState } from './types';
 
-export const INITIAL_MONEY = 5000;
+export const INITIAL_MONEY = 50000000;
 export const INITIAL_RP = 0;
 export const INITIAL_RESEARCHERS = 0;
 export const INITIAL_SILICON = 200;
@@ -2151,8 +2151,19 @@ export const INITIAL_GAME_STATE: GameState = {
   brandAwareness: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
   marketSaturation: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },
   dailyDemand: { [ProductType.CPU]: 80, [ProductType.GPU]: 90 },
-  dailySales: { [ProductType.CPU]: 0, [ProductType.GPU]: 0 },  // EKLE
-  lastSalesResetDay: 1,  // EKLE
+  dailySales: {
+    [ProductType.CPU]: 0,
+    [ProductType.GPU]: 0
+  },
+  lastSalesResetDay: 1,
+  factory: {
+    landOwned: false,
+    modules: {
+      procurement: { level: 0, rate: 0 },
+      assembly: { level: 0, rate: 0 },
+      logistics: { level: 0, rate: 0 }
+    }
+  },
   competitors: INITIAL_COMPETITORS,
   boardMissions: [],
   loans: [],

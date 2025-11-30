@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameState, ProductType, DesignSpec, OfficeLevel } from '../types';
 import { TRANSLATIONS } from '../constants';
 import { CPU_TECH_TREE, GPU_TECH_TREE, OFFICE_CONFIGS, MARKET_TRENDS } from '../constants';
@@ -14,13 +14,15 @@ interface FactoryTabProps {
     onUpgradeOffice: () => void;
     onDowngradeOffice: () => void;
     onSetStrategy: (strategy: 'low' | 'medium' | 'high') => void;
-    onUpdateDesignSpec: (type: ProductType, spec: DesignSpec) => void;
+    onUpdateDesignSpec: (type: ProductType, specs: { performance: number; efficiency: number }) => void;
     onActivateOverdrive: () => void;
+    onBuyFactoryLand: () => void;
+    onUpgradeFactoryModule: (type: 'procurement' | 'assembly' | 'logistics') => void;
     onAdStart?: () => void;
     onAdEnd?: () => void;
 }
 
-const FactoryTabComponent: React.FC<FactoryTabProps> = ({
+export const FactoryTab: React.FC<FactoryTabProps> = ({
     gameState,
     language,
     onProduce,
@@ -30,6 +32,8 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
     onSetStrategy,
     onUpdateDesignSpec,
     onActivateOverdrive,
+    onBuyFactoryLand,
+    onUpgradeFactoryModule,
     onAdStart,
     onAdEnd
 }) => {
@@ -44,10 +48,15 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
     const { showRewardedAd, isAdReady } = useAdMob(gameState.isPremium);
     const [isAdLoading, setIsAdLoading] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
-    // Check if ad is ready (isAdReady is a function)
-    const adReady = isAdReady('boost');
 
-    React.useEffect(() => {
+    // Derived State for Overdrive
+    const isUnlocked = gameState.officeLevel >= 2 || gameState.day >= 15;
+    const COOLDOWN_MS = 45 * 60 * 1000;
+    const timeSinceLastUse = Date.now() - (gameState.lastOverdriveTime || 0);
+    const isOnCooldown = !!gameState.lastOverdriveTime && timeSinceLastUse < COOLDOWN_MS;
+    const cooldownMinutes = isOnCooldown ? Math.ceil((COOLDOWN_MS - timeSinceLastUse) / 60000) : 0;
+
+    useEffect(() => {
         if (!gameState.overdriveActive) {
             setTimeLeft(0);
             return;
@@ -63,27 +72,23 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
         return () => clearInterval(interval);
     }, [gameState.overdriveActive, gameState.overdriveEndsAt]);
 
+    useEffect(() => {
+        if (showUpgradeConfirm) setUpgradeError(null);
+    }, [showUpgradeConfirm]);
+
     const handleOverdriveClick = async () => {
         if (gameState.overdriveActive) return;
 
-        // Check unlock conditions
-        const isUnlocked = gameState.officeLevel >= 2 || gameState.day >= 15;
         if (!isUnlocked) {
-            // Unlock condition not met - function will show error message
-            onActivateOverdrive();
+            onActivateOverdrive(); // Will trigger locked message
             return;
         }
 
-        // Check cooldown
-        const COOLDOWN_MS = 45 * 60 * 1000;
-        const timeSinceLastUse = Date.now() - (gameState.lastOverdriveTime || 0);
-        if (gameState.lastOverdriveTime && timeSinceLastUse < COOLDOWN_MS) {
-            // Cooldown not finished - function will show error message
-            onActivateOverdrive();
+        if (isOnCooldown) {
+            onActivateOverdrive(); // Will trigger cooldown message
             return;
         }
 
-        // All checks passed - show ad
         setIsAdLoading(true);
         if (onAdStart) onAdStart();
         await showRewardedAd('boost', () => {
@@ -98,15 +103,6 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
         return `${m}:${s.toString().padStart(2, '0')}`;
-    };
-
-    React.useEffect(() => {
-        if (showUpgradeConfirm) setUpgradeError(null);
-    }, [showUpgradeConfirm]);
-
-    const handleSelectProduct = (type: ProductType) => {
-        setSelectedProduct(type);
-        setStep('produce');
     };
 
     const renderUpgradeModal = () => {
@@ -192,7 +188,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                             onClick={() => {
                                 if (gameState.money < currentOffice.upgradeCost) {
                                     setUpgradeError(t.insufficientFunds);
-                                    onUpgradeOffice(); // Trigger error sfx
+                                    onUpgradeOffice();
                                     return;
                                 }
                                 onUpgradeOffice();
@@ -216,7 +212,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
 
         return (
             <div className="space-y-6 h-full content-center p-4">
-                {/* Active Trend Banner - Moved from MarketTab */}
+                {/* Active Trend Banner */}
                 {(() => {
                     const activeTrend = MARKET_TRENDS.find(tr => tr.id === gameState.activeTrendId);
                     if (activeTrend && activeTrend.id !== 'trend_neutral') {
@@ -370,10 +366,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
         const techTree = selectedProduct === ProductType.CPU ? CPU_TECH_TREE : GPU_TECH_TREE;
         const tech = techTree[gameState.techLevels[selectedProduct]];
 
-        // Fix: Correctly find active trend using ID
         const activeTrend = MARKET_TRENDS.find(tr => tr.id === gameState.activeTrendId);
-
-        // Fix: Correct trend applicability check
         const isTrendApplicable = activeTrend?.affectedProducts.includes(selectedProduct);
         const meetsTrend = isTrendApplicable && activeTrend && spec[activeTrend.requiredSpec] >= activeTrend.minSpecValue;
 
@@ -382,7 +375,6 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
         const totalCost = tech.productionCost * productionAmount;
         const canProduce = gameState.money >= totalCost && gameState.silicon >= totalSiliconNeeded;
 
-        // Yield Calculation
         const yieldRate = tech.yield || 100;
         const qualityMod = gameState.productionQuality === 'high' ? 5 : gameState.productionQuality === 'medium' ? 0 : -5;
         const actualYield = Math.min(100, Math.max(10, yieldRate + qualityMod));
@@ -544,11 +536,109 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
         );
     };
 
-    const isUnlocked = gameState.officeLevel >= 2 || gameState.day >= 15;
-    const COOLDOWN_MS = 45 * 60 * 1000;
-    const timeSinceLastUse = Date.now() - (gameState.lastOverdriveTime || 0);
-    const isOnCooldown = gameState.lastOverdriveTime && timeSinceLastUse < COOLDOWN_MS;
-    const cooldownMinutes = isOnCooldown ? Math.ceil((COOLDOWN_MS - timeSinceLastUse) / 60000) : 0;
+    const renderAutomation = () => {
+        if (!gameState.factory.landOwned) {
+            return (
+                <div className="mb-6 p-6 bg-slate-900/80 border border-slate-700 rounded-2xl shadow-xl text-center">
+                    <Factory size={48} className="mx-auto text-slate-500 mb-4" />
+                    <h3 className="text-xl font-black text-white mb-2">FACTORY AUTOMATION</h3>
+                    <p className="text-slate-400 text-sm mb-6 max-w-xs mx-auto">
+                        Purchase industrial land to build automated production lines. Stop clicking, start managing.
+                    </p>
+                    <button
+                        onClick={onBuyFactoryLand}
+                        className="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                    >
+                        BUY LAND ($50,000)
+                    </button>
+                </div>
+            );
+        }
+
+        return (
+            <div className="mb-6 space-y-4">
+                <div className="flex items-center gap-2 text-slate-400 px-1">
+                    <Factory size={16} />
+                    <span className="text-xs font-bold uppercase tracking-wider">Automation Modules</span>
+                </div>
+
+                {/* Procurement */}
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-500/10 rounded-lg">
+                            <Package size={24} className="text-blue-400" />
+                        </div>
+                        <div>
+                            <div className="text-sm font-bold text-white">Procurement</div>
+                            <div className="text-xs text-slate-500">Auto-buys Silicon</div>
+                            <div className="text-xs text-blue-400 font-mono mt-1">
+                                Rate: {gameState.factory.modules.procurement.rate}/tick
+                            </div>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <div className="text-xs text-slate-500 mb-1">Lv {gameState.factory.modules.procurement.level}</div>
+                        <button
+                            onClick={() => onUpgradeFactoryModule('procurement')}
+                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white rounded-lg border border-slate-700"
+                        >
+                            UPGRADE
+                        </button>
+                    </div>
+                </div>
+
+                {/* Assembly */}
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-purple-500/10 rounded-lg">
+                            <Cpu size={24} className="text-purple-400" />
+                        </div>
+                        <div>
+                            <div className="text-sm font-bold text-white">Assembly</div>
+                            <div className="text-xs text-slate-500">Auto-produces Chips</div>
+                            <div className="text-xs text-purple-400 font-mono mt-1">
+                                Rate: {gameState.factory.modules.assembly.rate}/tick
+                            </div>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <div className="text-xs text-slate-500 mb-1">Lv {gameState.factory.modules.assembly.level}</div>
+                        <button
+                            onClick={() => onUpgradeFactoryModule('assembly')}
+                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white rounded-lg border border-slate-700"
+                        >
+                            UPGRADE
+                        </button>
+                    </div>
+                </div>
+
+                {/* Logistics */}
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-emerald-500/10 rounded-lg">
+                            <TrendingUp size={24} className="text-emerald-400" />
+                        </div>
+                        <div>
+                            <div className="text-sm font-bold text-white">Logistics</div>
+                            <div className="text-xs text-slate-500">Auto-sells Chips</div>
+                            <div className="text-xs text-emerald-400 font-mono mt-1">
+                                Rate: {gameState.factory.modules.logistics.rate}/tick
+                            </div>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <div className="text-xs text-slate-500 mb-1">Lv {gameState.factory.modules.logistics.level}</div>
+                        <button
+                            onClick={() => onUpgradeFactoryModule('logistics')}
+                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white rounded-lg border border-slate-700"
+                        >
+                            UPGRADE
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className="h-full pb-24 overflow-y-auto px-1">
@@ -581,10 +671,11 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                 </div>
             )}
 
+            {/* Automation Section (New) */}
+            {renderAutomation()}
+
             {step === 'select' ? renderSelectionStep() : renderProductionStep()}
             {renderUpgradeModal()}
         </div>
     );
 };
-
-export const FactoryTab = React.memo(FactoryTabComponent);

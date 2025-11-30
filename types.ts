@@ -333,6 +333,23 @@ export interface GameState {
 
   dailySales: Record<ProductType, number>;
   lastSalesResetDay: number;
+
+  // Factory Automation
+  factory: FactoryState;
+}
+
+export interface FactoryModule {
+  level: number;
+  rate: number; // Items per tick/second
+}
+
+export interface FactoryState {
+  landOwned: boolean;
+  modules: {
+    procurement: FactoryModule;
+    assembly: FactoryModule;
+    logistics: FactoryModule;
+  };
 }
 
 export interface LogEntry {

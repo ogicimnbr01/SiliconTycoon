@@ -1,7 +1,7 @@
 import { ProductType, TechNode, Stock, OfficeLevel, GameEvent, Hero, GameEra, MarketTrend, Achievement, MarketingCampaign, Competitor, GameState } from './types';
 
 export const INITIAL_MONEY = 50000000;
-export const INITIAL_RP = 0;
+export const INITIAL_RP = 50000;
 export const INITIAL_RESEARCHERS = 0;
 export const INITIAL_SILICON = 200;
 export const INITIAL_REPUTATION = 10;
@@ -2197,39 +2197,58 @@ export const INITIAL_GAME_STATE: GameState = {
 
 export const MANUFACTURING_TECH_TREE: TechNode[] = [
   {
-    id: 'mass_production',
-    name: 'Mass Production',
+    id: 'basic_tools',
+    name: 'Basic Tools',
+    tier: 0,
+    baseMarketPrice: 0,
+    researchCost: 0,
+    rpCost: 100,
+    productionCost: 0,
+    requiredTechId: null,
+    description: "Essential tools for manual chip production."
+  },
+  {
+    id: 'assembly_basics',
+    name: 'Assembly Basics',
     tier: 1,
     baseMarketPrice: 0,
-    researchCost: 5000,
+    researchCost: 0,
+    rpCost: 500,
     productionCost: 0,
-    description: "Unlocks Factory Automation."
+    requiredTechId: 'basic_tools',
+    description: "Optimized workspace layout. Improves manual crafting speed."
   },
   {
-    id: 'improved_logistics',
-    name: 'Improved Logistics',
+    id: 'mass_production',
+    name: 'Mass Production',
     tier: 2,
     baseMarketPrice: 0,
-    researchCost: 15000,
+    researchCost: 0,
+    rpCost: 3000,
     productionCost: 0,
-    description: "Boosts Logistics Module efficiency by 50%."
+    requiredTechId: 'assembly_basics',
+    description: "Unlocks Factory Automation Tab."
   },
   {
-    id: 'automated_assembly',
-    name: 'Automated Assembly',
+    id: 'advanced_logistics',
+    name: 'Advanced Logistics',
     tier: 3,
     baseMarketPrice: 0,
-    researchCost: 50000,
+    researchCost: 0,
+    rpCost: 5000,
     productionCost: 0,
-    description: "Boosts Assembly Module efficiency by 50%."
+    requiredTechId: 'mass_production',
+    description: "Boosts Logistics Module efficiency by 50%."
   },
   {
     id: 'ai_procurement',
     name: 'AI Procurement',
     tier: 4,
     baseMarketPrice: 0,
-    researchCost: 200000,
+    researchCost: 0,
+    rpCost: 10000,
     productionCost: 0,
+    requiredTechId: 'advanced_logistics',
     description: "Boosts Procurement Module efficiency by 50%."
   },
   {
@@ -2237,8 +2256,10 @@ export const MANUFACTURING_TECH_TREE: TechNode[] = [
     name: 'Quantum Manufacturing',
     tier: 5,
     baseMarketPrice: 0,
-    researchCost: 1000000,
+    researchCost: 0,
+    rpCost: 50000,
     productionCost: 0,
+    requiredTechId: 'ai_procurement',
     description: "Doubles efficiency of all modules."
   }
 ];

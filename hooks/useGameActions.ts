@@ -829,14 +829,25 @@ export const useGameActions = (
             const techNode = MANUFACTURING_TECH_TREE.find(t => t.id === techId);
             if (!techNode) return prev;
 
-            if (prev.money < techNode.researchCost) {
+            // Check Dependencies
+            if (techNode.requiredTechId) {
+                const parentLevel = prev.manufacturingTechLevels[techNode.requiredTechId] || 0;
+                if (parentLevel === 0) {
+                    playSfx('error');
+                    return prev;
+                }
+            }
+
+            // Check RP Cost
+            const cost = techNode.rpCost || 0;
+            if (prev.rp < cost) {
                 playSfx('error');
                 return prev;
             }
 
             playSfx('upgrade');
             vibrate('heavy');
-            if (onShowFloatingText) onShowFloatingText(`-$${techNode.researchCost}`, 'expense');
+            if (onShowFloatingText) onShowFloatingText(`-${cost} RP`, 'rp');
 
             const newLevels = { ...prev.manufacturingTechLevels, [techId]: 1 };
 
@@ -848,7 +859,7 @@ export const useGameActions = (
 
             return {
                 ...prev,
-                money: prev.money - techNode.researchCost,
+                rp: prev.rp - cost,
                 manufacturingTechLevels: newLevels,
                 unlockedTabs: newUnlockedTabs,
                 logs: [...prev.logs, {

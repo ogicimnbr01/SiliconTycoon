@@ -35,9 +35,11 @@ export interface TechNode {
   name: string;
   tier: number;
   baseMarketPrice: number;
-  researchCost: number;
+  researchCost: number; // Keep for legacy/compatibility if needed, or deprecate
+  rpCost?: number; // New RP cost
   productionCost: number;
   prerequisites?: string[]; // Required tech IDs to unlock this
+  requiredTechId?: string | null; // Single parent for strict tree (Manufacturing)
   branch?: 'performance' | 'efficiency' | 'balanced';
   specialBonus?: {
     type: 'production' | 'quality' | 'market';

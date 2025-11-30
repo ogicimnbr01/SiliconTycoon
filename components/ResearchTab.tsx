@@ -59,20 +59,31 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
         const currentLevel = gameState.manufacturingTechLevels[tech.id] || 0;
         const isUnlocked = currentLevel > 0;
 
+        // Check dependency
+        let isDependencyMet = true;
+        if (tech.requiredTechId) {
+            const parentLevel = gameState.manufacturingTechLevels[tech.requiredTechId] || 0;
+            if (parentLevel === 0) isDependencyMet = false;
+        }
+
+        const canAfford = gameState.rp >= (tech.rpCost || 0);
+        const isLocked = !isDependencyMet;
+
         return (
-            <div key={tech.id} className={`relative p-6 rounded-2xl border-2 transition-all mb-6 shadow-lg ${isUnlocked ? 'bg-slate-900 border-emerald-500/30' : 'bg-gradient-to-br from-slate-900 to-indigo-950 border-indigo-500 shadow-indigo-500/20'}`}>
-                {!isUnlocked && (<div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-indigo-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg uppercase tracking-widest">{t.nextMilestone}</div>)}
+            <div key={tech.id} className={`relative p-6 rounded-2xl border-2 transition-all mb-6 shadow-lg ${isUnlocked ? 'bg-slate-900 border-emerald-500/30' : isLocked ? 'bg-slate-950 border-slate-800 opacity-60 grayscale' : 'bg-gradient-to-br from-slate-900 to-indigo-950 border-indigo-500 shadow-indigo-500/20'}`}>
+                {!isUnlocked && !isLocked && (<div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-indigo-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg uppercase tracking-widest">{t.nextMilestone}</div>)}
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
-                        <h4 className={`text-lg font-black uppercase tracking-tight leading-none mb-2 ${isUnlocked ? 'text-emerald-400' : 'text-white'}`}>{tech.name}</h4>
+                        <h4 className={`text-lg font-black uppercase tracking-tight leading-none mb-2 ${isUnlocked ? 'text-emerald-400' : isLocked ? 'text-slate-500' : 'text-white'}`}>{tech.name}</h4>
                         <p className="text-sm text-slate-400 font-medium leading-snug">{tech.description}</p>
+                        {isLocked && tech.requiredTechId && <div className="mt-2 text-xs text-red-400 font-bold uppercase tracking-widest flex items-center gap-1"><Lock size={10} /> Requires: {MANUFACTURING_TECH_TREE.find((t: any) => t.id === tech.requiredTechId)?.name}</div>}
                     </div>
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 shrink-0 ml-4 ${isUnlocked ? 'bg-emerald-500 border-emerald-500 text-slate-900' : 'bg-indigo-500 border-indigo-500 text-white'}`}>{isUnlocked ? <Check size={20} strokeWidth={4} /> : <Lock size={18} />}</div>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 shrink-0 ml-4 ${isUnlocked ? 'bg-emerald-500 border-emerald-500 text-slate-900' : isLocked ? 'border-slate-700 text-slate-700' : 'bg-indigo-500 border-indigo-500 text-white'}`}>{isUnlocked ? <Check size={20} strokeWidth={4} /> : <Lock size={18} />}</div>
                 </div>
                 {!isUnlocked ? (
                     <div className="mt-4 pt-4 border-t border-white/10">
-                        <div className="flex items-center justify-between mb-4"><div className="text-center"><div className="text-[10px] text-indigo-300 uppercase font-bold opacity-70">{t.researchCost || "Research Cost"}</div><div className="font-mono font-bold text-indigo-300 text-sm">${tech.researchCost.toLocaleString()}</div></div></div>
-                        <Button size="lg" variant="primary" onClick={() => onManufacturingResearch(tech.id)} disabled={gameState.money < tech.researchCost} className="w-full h-14 text-base rounded-xl shadow-xl border-indigo-400 text-indigo-100 bg-indigo-500/20 hover:bg-indigo-500 hover:text-white">{t.researchBtn} • ${tech.researchCost.toLocaleString()}</Button>
+                        <div className="flex items-center justify-between mb-4"><div className="text-center"><div className="text-[10px] text-indigo-300 uppercase font-bold opacity-70">{t.researchCost || "Research Cost"}</div><div className="font-mono font-bold text-indigo-300 text-sm">{tech.rpCost} RP</div></div></div>
+                        <Button size="lg" variant="primary" onClick={() => onManufacturingResearch(tech.id)} disabled={!canAfford || isLocked} className={`w-full h-14 text-base rounded-xl shadow-xl border-indigo-400 text-indigo-100 ${isLocked ? 'bg-slate-800 border-slate-700 text-slate-500' : 'bg-indigo-500/20 hover:bg-indigo-500 hover:text-white'}`}>{isLocked ? t.locked : `${t.researchBtn} • ${tech.rpCost} RP`}</Button>
                     </div>
                 ) : (<div className="mt-2 flex items-center gap-2 text-xs font-bold text-emerald-500 uppercase tracking-widest bg-emerald-900/10 p-2 rounded-lg border border-emerald-500/10"><Check size={14} /> {t.techMastered}</div>)}
             </div>

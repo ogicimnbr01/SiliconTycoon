@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GameState, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import { useAdMob } from '../hooks/useAdMob';
-import { X, Gift, RotateCw } from 'lucide-react';
+import { X, Gift, RotateCw, Clock } from 'lucide-react';
 
 interface DailyBonusWheelProps {
     gameState: GameState;
@@ -13,15 +13,41 @@ interface DailyBonusWheelProps {
 
 export const DailyBonusWheel: React.FC<DailyBonusWheelProps> = ({ gameState, language, onClose, onSpin }) => {
     const t = TRANSLATIONS[language];
-    const { showRewardedAd, isAdReady } = useAdMob(gameState.isPremium);
+    const { showRewardedAd, isAdReady, isAvailable } = useAdMob(gameState.isPremium);
     const [isSpinning, setIsSpinning] = useState(false);
     const [rotation, setRotation] = useState(0);
     const [prizeIndex, setPrizeIndex] = useState<number | null>(null);
     const [showResult, setShowResult] = useState(false);
+    const [timeLeft, setTimeLeft] = useState<string>('');
 
-    const canSpinFree = !gameState.dailySpinUsed;
-    const spinsRemaining = gameState.extraSpinsRemaining;
-    const canSpinAd = !canSpinFree && spinsRemaining > 0;
+    const spinsUsed = gameState.dailySpinCount;
+    const spinsRemaining = 5 - spinsUsed;
+    const nextSpinTime = gameState.nextSpinTime;
+    const isCooldown = Date.now() < nextSpinTime;
+    const isLimitReached = spinsUsed >= 5;
+
+    // Update cooldown timer
+    useEffect(() => {
+        if (!isCooldown) return;
+        const interval = setInterval(() => {
+            const diff = nextSpinTime - Date.now();
+            if (diff <= 0) {
+                setTimeLeft('');
+                // Force re-render or let parent update? Parent updates on tick, but local state might need refresh.
+                // Actually, nextSpinTime is in gameState, so if parent re-renders, we re-render.
+                // But we need to trigger a re-render when cooldown ends if parent doesn't.
+                // Since we use Date.now() in render, we need state update to refresh.
+                // setTimeLeft will trigger re-render.
+            } else {
+                const m = Math.floor(diff / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                setTimeLeft(`${m}m ${s}s`);
+            }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [nextSpinTime, isCooldown]);
+
+    const canSpin = !isSpinning && !isLimitReached && !isCooldown;
 
     // Calculate dynamic prizes based on tech level
     const prizes = React.useMemo(() => {
@@ -39,11 +65,15 @@ export const DailyBonusWheel: React.FC<DailyBonusWheelProps> = ({ gameState, lan
     }, [gameState.techLevels]);
 
     const handleSpinClick = () => {
-        if (isSpinning) return;
+        if (!canSpin) return;
 
-        if (canSpinFree) {
+        // First spin of the day is free (optional logic, but let's stick to simple: all spins need ad unless premium?)
+        // Previous logic had "Free Spin" vs "Ad Spin".
+        // Let's make: First spin free (spinsUsed === 0), others need Ad.
+
+        if (spinsUsed === 0) {
             startSpin();
-        } else if (canSpinAd) {
+        } else {
             showRewardedAd('spin', () => {
                 startSpin();
             });
@@ -99,7 +129,12 @@ export const DailyBonusWheel: React.FC<DailyBonusWheelProps> = ({ gameState, lan
                     {t.dailyBonus}
                 </h2>
                 <p className="text-slate-400 mb-8 text-center">
-                    {canSpinFree ? t.freeSpinAvailable : t.adSpinsRemaining.replace('{0}', spinsRemaining.toString())}
+                    {isLimitReached
+                        ? "Daily limit reached. Come back tomorrow!"
+                        : isCooldown
+                            ? `Next spin available in: ${timeLeft}`
+                            : `${spinsRemaining} Spins Remaining Today`
+                    }
                 </p>
 
                 {/* Wheel Container */}
@@ -135,13 +170,6 @@ export const DailyBonusWheel: React.FC<DailyBonusWheelProps> = ({ gameState, lan
                                 ${prizes[4].color.replace('bg-', '').replace('-600', '') === 'purple' ? '#7c3aed' : '#059669'} 240deg 300deg,
                                 ${prizes[5].color.replace('bg-', '').replace('-500', '') === 'orange' ? '#f97316' : '#a855f7'} 300deg 360deg
                             )`
-                            // Note: The above color mapping is a bit hacky. Let's just hardcode the colors based on index since the order is fixed in useMemo.
-                            // Index 0: Emerald-500 (#10b981)
-                            // Index 1: Emerald-600 (#059669)
-                            // Index 2: Emerald-700 (#047857)
-                            // Index 3: Purple-500 (#a855f7)
-                            // Index 4: Purple-600 (#7c3aed)
-                            // Index 5: Orange-500 (#f97316)
                         }} />
 
                         {/* Better Gradient Implementation */}
@@ -182,17 +210,17 @@ export const DailyBonusWheel: React.FC<DailyBonusWheelProps> = ({ gameState, lan
                 {/* Spin Button */}
                 <button
                     onClick={handleSpinClick}
-                    disabled={isSpinning || (!canSpinFree && !canSpinAd)}
-                    className={`w-full max-w-xs py-4 rounded-2xl font-black text-xl uppercase tracking-widest shadow-xl transition-all active:scale-95 ${isSpinning ? 'bg-slate-800 text-slate-500' :
-                        canSpinFree ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white' :
-                            canSpinAd ? 'bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-400 hover:to-blue-400 text-white' :
-                                'bg-slate-800 text-slate-600'
+                    disabled={!canSpin}
+                    className={`w-full max-w-xs py-4 rounded-2xl font-black text-xl uppercase tracking-widest shadow-xl transition-all active:scale-95 ${!canSpin ? 'bg-slate-800 text-slate-500' :
+                        spinsUsed === 0 ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white' :
+                            'bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-400 hover:to-blue-400 text-white'
                         }`}
                 >
                     {isSpinning ? t.spinning :
-                        canSpinFree ? t.spinFree :
-                            canSpinAd ? t.watchAdToSpin :
-                                t.noSpinsLeft}
+                        isLimitReached ? t.noSpinsLeft :
+                            isCooldown ? `WAIT ${timeLeft}` :
+                                spinsUsed === 0 ? t.spinFree :
+                                    t.watchAdToSpin}
                 </button>
 
                 {showResult && prizeIndex !== null && (

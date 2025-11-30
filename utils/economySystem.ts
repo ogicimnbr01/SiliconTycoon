@@ -30,12 +30,19 @@ export const ECONOMY_CONFIG = {
     EARLY_STORAGE_RELIEF: 0.5,    // 50% discount for Tier 0-1
 
     // Market Dynamics - SOFTENED
-    CRASH_SEVERITY: 0.3,          // 30% max loss from oversupply (was 50%)
-    BASE_DAILY_DEMAND: 100,       // Baseline market absorption capacity
-    TIER_DEMAND_MULTIPLIER: 1.5,  // Higher tiers have more demand
+    CRASH_SEVERITY: 0.3,
+    BASE_DAILY_DEMAND: 100,
+    TIER_DEMAND_MULTIPLIER: 1.5,
+
+    // Daily Market Limits
+    DAILY_MARKET_DEMAND: {
+        [ProductType.CPU]: 500,
+        [ProductType.GPU]: 300
+    },
+    OVERSELL_PENALTY: 0.20,
 
     // Recovery
-    MARKET_RECOVERY_RATE: 0.15,   // 15% price recovery per day
+    MARKET_RECOVERY_RATE: 0.15,
 } as const;
 
 // ============================================================

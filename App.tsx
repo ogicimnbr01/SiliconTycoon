@@ -378,13 +378,14 @@ const App: React.FC = () => {
                 )}
                 {/* Daily Bonus Button */}
                 {/* Daily Bonus Button */}
-                {(!gameState.dailySpinUsed || gameState.extraSpinsRemaining > 0) && (
+                {/* Daily Bonus Button */}
+                {(gameState.dailySpinCount < 5) && (
                     <button
                         onClick={() => setShowDailyWheel(true)}
                         className="absolute top-24 right-4 z-30 w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg border border-amber-400 hover:scale-110 transition-transform"
                     >
                         <Gift className="text-white" size={24} />
-                        {!gameState.dailySpinUsed && (
+                        {Date.now() >= gameState.nextSpinTime && (
                             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border border-white" />
                         )}
                     </button>

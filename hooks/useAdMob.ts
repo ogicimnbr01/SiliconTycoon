@@ -136,6 +136,7 @@ export function useAdMob(isPremium: boolean = false, onAdStart?: () => void, onA
     return {
         showRewardedAd,
         isAdReady: (adType: keyof typeof AD_UNIT_IDS) => preloadedAds[adType] ?? false,
-        preloadAd
+        preloadAd,
+        isAvailable: isInitialized && !isPremium
     };
 }

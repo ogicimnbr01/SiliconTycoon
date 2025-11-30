@@ -2166,8 +2166,8 @@ export const INITIAL_GAME_STATE: GameState = {
   overdriveEndsAt: 0,
   lastOverdriveTime: 0,
   offlineAdWatched: false,
-  dailySpinUsed: false,
-  extraSpinsRemaining: 0,
+  dailySpinCount: 0,
+  nextSpinTime: 0,
   lastDailyReset: Date.now(),
 
   isPremium: false,

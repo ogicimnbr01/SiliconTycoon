@@ -324,8 +324,8 @@ export interface GameState {
   offlineAdWatched: boolean;
 
   // Daily Wheel
-  dailySpinUsed: boolean;
-  extraSpinsRemaining: number;
+  dailySpinCount: number;
+  nextSpinTime: number;
   lastDailyReset: number;
 
   // Premium

@@ -16,6 +16,8 @@ interface FactoryTabProps {
     onSetStrategy: (strategy: 'low' | 'medium' | 'high') => void;
     onUpdateDesignSpec: (type: ProductType, spec: DesignSpec) => void;
     onActivateOverdrive: () => void;
+    onAdStart?: () => void;
+    onAdEnd?: () => void;
 }
 
 const FactoryTabComponent: React.FC<FactoryTabProps> = ({
@@ -27,7 +29,9 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
     onDowngradeOffice,
     onSetStrategy,
     onUpdateDesignSpec,
-    onActivateOverdrive
+    onActivateOverdrive,
+    onAdStart,
+    onAdEnd
 }) => {
     const t = TRANSLATIONS[language] || TRANSLATIONS['en'];
     const [step, setStep] = useState<'select' | 'produce'>('select');
@@ -63,7 +67,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
         if (gameState.overdriveActive) return;
 
         // Check unlock conditions
-        const isUnlocked = gameState.officeLevel >= 1 || gameState.day >= 15;
+        const isUnlocked = gameState.officeLevel >= 2 || gameState.day >= 15;
         if (!isUnlocked) {
             // Unlock condition not met - function will show error message
             onActivateOverdrive();
@@ -81,8 +85,10 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
 
         // All checks passed - show ad
         setIsAdLoading(true);
+        if (onAdStart) onAdStart();
         await showRewardedAd('boost', () => {
             onActivateOverdrive();
+            if (onAdEnd) onAdEnd();
         });
         setIsAdLoading(false);
     };
@@ -302,7 +308,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
                                         { label: 'MAX', val: remaining }
                                     ];
                                     return amounts.map((opt, i) => {
-                                        const cost = opt.val * siliconPrice;
+                                        const cost = Math.floor(opt.val * siliconPrice);
                                         const canAfford = gameState.money >= cost;
                                         const isValid = opt.val > 0;
                                         return (
@@ -538,7 +544,7 @@ const FactoryTabComponent: React.FC<FactoryTabProps> = ({
         );
     };
 
-    const isUnlocked = gameState.officeLevel >= 1 || gameState.day >= 15;
+    const isUnlocked = gameState.officeLevel >= 2 || gameState.day >= 15;
     const COOLDOWN_MS = 45 * 60 * 1000;
     const timeSinceLastUse = Date.now() - (gameState.lastOverdriveTime || 0);
     const isOnCooldown = gameState.lastOverdriveTime && timeSinceLastUse < COOLDOWN_MS;

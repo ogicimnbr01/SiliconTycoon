@@ -76,14 +76,14 @@ export const useGameLoop = (
                 }
 
                 // Daily Reset Logic (Real-time)
-                let dailySpinUsed = prev.dailySpinUsed;
+                let dailySpinCount = prev.dailySpinCount;
                 let bailoutUsedToday = prev.bailoutUsedToday;
                 let lastDailyReset = prev.lastDailyReset;
 
                 const lastResetDate = new Date(prev.lastDailyReset);
                 const currentDate = new Date();
                 if (lastResetDate.getDate() !== currentDate.getDate()) {
-                    dailySpinUsed = false;
+                    dailySpinCount = 0;
                     bailoutUsedToday = false;
                     lastDailyReset = Date.now();
                     addLog({
@@ -685,7 +685,7 @@ export const useGameLoop = (
                     boardMissions,
                     marketSaturation: newSaturation,
                     dailyDemand: newDailyDemand,
-                    dailySpinUsed,
+                    dailySpinCount,
                     bailoutUsedToday,
                     lastDailyReset,
                     overdriveActive,

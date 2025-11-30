@@ -12,7 +12,7 @@ interface BailoutModalProps {
 }
 
 export const BailoutModal: React.FC<BailoutModalProps> = ({ gameState, onBailoutReward, onClose }) => {
-    const { showRewardedAd, isAdReady } = useAdMob();
+    const { showRewardedAd, isAdReady, isAvailable } = useAdMob();
     const t = TRANSLATIONS[gameState.language] || TRANSLATIONS['en'];
 
     const techLevel = Math.max(1, (gameState.techLevels.CPU + gameState.techLevels.GPU) / 2);
@@ -56,16 +56,17 @@ export const BailoutModal: React.FC<BailoutModalProps> = ({ gameState, onBailout
                     </div>
 
                     <div className="flex flex-col gap-3 w-full mt-2">
-                        <Button
-                            variant="success"
-                            size="lg"
-                            className="w-full h-14 text-lg shadow-lg shadow-emerald-900/20"
-                            onClick={handleWatchAd}
-                        >
-                            <span className="mr-2">📺</span>
-                            {t.watchAdGetFunds}
-                        </Button>
-
+                        {isAvailable && (
+                            <Button
+                                variant="success"
+                                size="lg"
+                                className="w-full h-14 text-lg shadow-lg shadow-emerald-900/20"
+                                onClick={handleWatchAd}
+                            >
+                                <span className="mr-2">📺</span>
+                                {t.watchAdGetFunds}
+                            </Button>
+                        )}
                         <button
                             onClick={onClose}
                             className="text-slate-500 text-xs hover:text-slate-300 transition-colors flex items-center justify-center gap-1 py-2"

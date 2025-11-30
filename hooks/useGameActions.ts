@@ -64,8 +64,14 @@ export const useGameActions = (
             const qualityMod = prev.productionQuality === 'high' ? 5 : prev.productionQuality === 'medium' ? 0 : -5;
             const actualYield = Math.min(100, Math.max(10, yieldRate + qualityMod));
 
-            const successfulAmount = Math.floor(amount * (actualYield / 100));
-            const wasteAmount = amount - successfulAmount;
+            let successfulAmount = Math.floor(amount * (actualYield / 100));
+
+            // Apply Overdrive Bonus (2x Production)
+            if (prev.overdriveActive) {
+                successfulAmount *= 2;
+            }
+
+            const wasteAmount = amount - Math.floor(amount * (actualYield / 100)); // Waste doesn't double, only success
 
             // Binning: Sell waste as "Budget/Scrap" immediately
             // Value is 20% of base price
@@ -143,23 +149,27 @@ export const useGameActions = (
     const handleSell = useCallback((type: ProductType, currentPrice: number) => {
         setGameState(prev => {
             // Check if we need to reset daily sales (new day)
+            // Check if we need to reset daily sales (new day)
             if (prev.day !== prev.lastSalesResetDay) {
                 prev.dailySales = { [ProductType.CPU]: 0, [ProductType.GPU]: 0 };
                 prev.lastSalesResetDay = prev.day;
             }
-
-            // Check market demand penalty
-            const DAILY_LIMIT = ECONOMY_CONFIG.DAILY_MARKET_DEMAND?.[type] || 1000;
-            const alreadySoldToday = prev.dailySales[type] || 0;
-            const priceMultiplier = (alreadySoldToday >= DAILY_LIMIT)
-                ? (1 - (ECONOMY_CONFIG.OVERSELL_PENALTY || 0.20))
-                : 1;
 
             const count = prev.inventory[type];
             if (count <= 0) {
                 playSfx('error');
                 return prev;
             }
+
+            // Check market demand penalty
+            const DAILY_LIMIT = ECONOMY_CONFIG.DAILY_MARKET_DEMAND?.[type] || 1000;
+            const alreadySoldToday = prev.dailySales[type] || 0;
+
+            const amountUnderLimit = Math.max(0, Math.min(count, DAILY_LIMIT - alreadySoldToday));
+            const amountOverLimit = Math.max(0, count - amountUnderLimit);
+            const penaltyRate = ECONOMY_CONFIG.OVERSELL_PENALTY || 0.20;
+
+            const priceMultiplier = ((amountUnderLimit * 1) + (amountOverLimit * (1 - penaltyRate))) / count;
 
             // Get current tech tier and market era
             const techTree = type === ProductType.CPU ? CPU_TECH_TREE : GPU_TECH_TREE;
@@ -258,7 +268,7 @@ export const useGameActions = (
         setGameState(prev => {
             const bonuses = getReputationBonuses(prev.reputation);
             const discountedPrice = prev.siliconPrice * bonuses.siliconDiscount;
-            const cost = amount * discountedPrice;
+            const cost = Math.floor(amount * discountedPrice);
             const office = OFFICE_CONFIGS[prev.officeLevel];
             if (prev.money < cost) {
                 playSfx('error');
@@ -815,7 +825,7 @@ export const useGameActions = (
     const handleBailoutReward = useCallback(() => {
         setGameState(prev => {
             const techLevel = Math.max(1, (prev.techLevels.CPU + prev.techLevels.GPU) / 2);
-            const bailoutAmount = Math.floor(5000 * Math.pow(1.5, techLevel));
+            const bailoutAmount = Math.floor(15000 * Math.pow(1.5, techLevel));
 
             return {
                 ...prev,
@@ -834,15 +844,19 @@ export const useGameActions = (
 
     const handleSpinWheel = useCallback((prizeLabel: string, amount: number, type: 'money' | 'rp' | 'silicon' | 'reputation') => {
         setGameState(prev => {
-            const isFreeSpin = !prev.dailySpinUsed;
-            const newExtraSpins = isFreeSpin ? prev.extraSpinsRemaining : Math.max(0, prev.extraSpinsRemaining - 1);
+            if (prev.dailySpinCount >= 5) return prev;
+            if (Date.now() < prev.nextSpinTime) return prev;
+
+            // Calculate cooldown: 15 to 120 minutes
+            const cooldownMinutes = 15 + Math.floor(Math.random() * 106); // 15 to 120
+            const nextSpinTime = Date.now() + (cooldownMinutes * 60 * 1000);
 
             let updates: Partial<GameState> = {
-                dailySpinUsed: true,
-                extraSpinsRemaining: newExtraSpins,
+                dailySpinCount: prev.dailySpinCount + 1,
+                nextSpinTime: nextSpinTime,
                 logs: [...prev.logs, {
                     id: Date.now(),
-                    message: `🎰 Daily Spin Win: ${prizeLabel}`,
+                    message: `🎰 Daily Spin Win: ${prizeLabel} (Next spin in ${cooldownMinutes}m)`,
                     type: 'success' as const,
                     timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}`
                 }].slice(-10)

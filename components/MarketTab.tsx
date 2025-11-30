@@ -5,7 +5,7 @@ import { Button } from './ui/Button';
 import { MiniChart } from './ui/MiniChart';
 import { DollarSign, Briefcase, Building2, Skull, Activity, BarChart3, Minus, Plus, Lock, Target, X, AlertTriangle, Building, TrendingUp, TrendingDown } from 'lucide-react';
 import { format } from '../utils/gameUtils';
-import { calculateFinalRevenue, getEraTier, getPriceDecayWarning } from '../utils/economySystem';
+import { calculateFinalRevenue, getEraTier, getPriceDecayWarning, ECONOMY_CONFIG } from '../utils/economySystem';
 
 interface MarketTabProps {
     mode: 'commercial' | 'financial';
@@ -128,8 +128,21 @@ const MarketTab: React.FC<MarketTabProps> = ({
 
         // Calculate actual revenue using ECONOMY SYSTEM
         const marketEra = getEraTier(gameState.currentEraId);
+
+        // Calculate Daily Demand Penalty (Blended Rate)
+        const DAILY_LIMIT = ECONOMY_CONFIG.DAILY_MARKET_DEMAND?.[type] || 1000;
+        const alreadySoldToday = gameState.dailySales?.[type] || 0;
+
+        const amountUnderLimit = Math.max(0, Math.min(count, DAILY_LIMIT - alreadySoldToday));
+        const amountOverLimit = Math.max(0, count - amountUnderLimit);
+        const penaltyRate = ECONOMY_CONFIG.OVERSELL_PENALTY || 0.20;
+
+        const priceMultiplier = count > 0
+            ? ((amountUnderLimit * 1) + (amountOverLimit * (1 - penaltyRate))) / count
+            : 1;
+
         const economyResult = count > 0 ? calculateFinalRevenue({
-            basePrice: currentPrice,
+            basePrice: currentPrice * priceMultiplier,
             amount: count,
             productTier: techLevel,
             productType: type,

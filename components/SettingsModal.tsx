@@ -16,6 +16,7 @@ interface SettingsModalProps {
     language: Language;
     onTogglePremium: () => void;
     isPremium: boolean;
+    onSetLanguage: (lang: Language) => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -29,7 +30,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     onOpenLoadGame,
     language,
     onTogglePremium,
-    isPremium
+    isPremium,
+    onSetLanguage
 }) => {
     if (!isOpen) return null;
     const t = TRANSLATIONS[language] || TRANSLATIONS['en'];
@@ -51,6 +53,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 {/* Content */}
                 <div className="p-6 space-y-6">
+
+                    {/* Language Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 rounded-lg bg-indigo-500/20 text-indigo-400">
+                                <span className="font-bold text-lg">TR/EN</span>
+                            </div>
+                            <div>
+                                <h3 className="text-white font-bold">Language / Dil</h3>
+                                <p className="text-xs text-slate-400">{language === 'tr' ? 'Türkçe' : 'English'}</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => onSetLanguage('en')}
+                                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${language === 'en' ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-400'}`}
+                            >
+                                EN
+                            </button>
+                            <button
+                                onClick={() => onSetLanguage('tr')}
+                                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${language === 'tr' ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-400'}`}
+                            >
+                                TR
+                            </button>
+                        </div>
+                    </div>
 
                     {/* Sound Toggle */}
                     <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-slate-700">

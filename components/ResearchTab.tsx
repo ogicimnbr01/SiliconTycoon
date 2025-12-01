@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ProductType, GameState, Language, OfficeLevel } from '../types';
 import { CPU_TECH_TREE, GPU_TECH_TREE, MANUFACTURING_TECH_TREE, RESEARCHER_BASE_COST, RESEARCHER_COST_GROWTH, RP_PER_RESEARCHER_PER_DAY, HEROES, TRANSLATIONS } from '../constants';
 import { Button } from './ui/Button';
-import { Microscope, Lock, Check, Users, BrainCircuit, Activity, Crown, Factory, LayoutDashboard, Cpu, Hammer, Atom, Clock, UserPlus, AlertTriangle, Trash2, Plus } from 'lucide-react';
+import { Microscope, Lock, Check, Users, BrainCircuit, Activity, Crown, Factory, LayoutDashboard, Cpu, Hammer, Atom, Clock, UserPlus, AlertTriangle, Trash2, Plus, Zap } from 'lucide-react';
 
 interface ResearchTabProps {
     gameState: GameState;
@@ -49,7 +49,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
 
     // Find Active Research Target (Next cheapest available tech)
     const activeResearch = useMemo(() => {
-        let bestCandidate: { name: string; cost: number; type: 'cpu' | 'gpu' | 'manufacturing'; id: string; icon: any } | null = null;
+        let bestCandidate: { name: string; cost: number; type: 'cpu' | 'gpu' | 'manufacturing'; id: string; icon: any; index?: number } | null = null;
         let minCost = Infinity;
 
         // Check CPU
@@ -58,7 +58,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
             const tech = CPU_TECH_TREE[nextCpuIndex];
             if (tech.researchCost < minCost) {
                 minCost = tech.researchCost;
-                bestCandidate = { name: tech.name, cost: tech.researchCost, type: 'cpu', id: tech.id, icon: Cpu };
+                bestCandidate = { name: tech.name, cost: tech.researchCost, type: 'cpu', id: tech.id, icon: Cpu, index: nextCpuIndex };
             }
         }
 
@@ -68,7 +68,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
             const tech = GPU_TECH_TREE[nextGpuIndex];
             if (tech.researchCost < minCost) {
                 minCost = tech.researchCost;
-                bestCandidate = { name: tech.name, cost: tech.researchCost, type: 'gpu', id: tech.id, icon: Cpu }; // Reusing Cpu icon for now or generic
+                bestCandidate = { name: tech.name, cost: tech.researchCost, type: 'gpu', id: tech.id, icon: Zap, index: nextGpuIndex };
             }
         }
 
@@ -141,7 +141,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
 
                 <div className="flex items-center gap-4 text-xs text-slate-400 pl-[52px]">
                     <div className="flex items-center gap-1"><Hammer size={12} /> Cost: ${node.productionCost}</div>
-                    <div className="flex items-center gap-1"><Activity size={12} /> Yield: {node.yield}%</div>
+                    <div className="flex items-center gap-1 bg-slate-800 px-1.5 py-0.5 rounded text-slate-300"><Activity size={10} /> Yield: {node.yield}%</div>
                 </div>
 
                 {isNext && (
@@ -172,10 +172,10 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
         const canResearch = !isUnlocked && !isLocked;
 
         return (
-            <div key={node.id} className={`relative p-4 rounded-xl border-2 mb-3 transition-all ${isUnlocked ? 'bg-emerald-900/20 border-emerald-900/50' : canResearch ? 'bg-slate-900 border-cyan-500 shadow-lg shadow-cyan-500/10' : 'bg-slate-950 border-slate-800 opacity-50'}`}>
+            <div key={node.id} className={`relative p-4 rounded-xl border-2 mb-3 transition-all ${isUnlocked ? 'bg-emerald-900/20 border-emerald-900/50' : canResearch ? 'bg-slate-900 border-amber-500 shadow-lg shadow-amber-500/10' : 'bg-slate-950 border-slate-800 opacity-50'}`}>
                 <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isUnlocked ? 'bg-emerald-500/20 text-emerald-400' : canResearch ? 'bg-cyan-500 text-black animate-pulse' : 'bg-slate-800 text-slate-600'}`}>
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isUnlocked ? 'bg-emerald-500/20 text-emerald-400' : canResearch ? 'bg-amber-500 text-black animate-pulse' : 'bg-slate-800 text-slate-600'}`}>
                             {isLocked ? <Lock size={20} /> : isUnlocked ? <Check size={20} strokeWidth={3} /> : <Factory size={20} />}
                         </div>
                         <div>
@@ -196,7 +196,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
                 {canResearch && (
                     <Button
                         size="sm"
-                        className="w-full"
+                        className="w-full bg-amber-600 hover:bg-amber-500 text-white"
                         disabled={gameState.rp < (node.rpCost || 0)}
                         onClick={() => onManufacturingResearch(node.id)}
                     >
@@ -232,7 +232,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
                 >
                     <Hammer size={14} />
                     Factory
-                    {hasMfgUpgrade && <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>}
+                    {hasMfgUpgrade && <div className="absolute top-1 right-1 w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>}
                 </button>
             </div>
 
@@ -242,13 +242,17 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                         {/* HERO SECTION: ACTIVE RESEARCH MONITOR */}
                         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden shadow-2xl">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                            {/* Dynamic Background Glow */}
+                            <div className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-20 -mt-20 ${activeResearch?.type === 'manufacturing' ? 'bg-amber-500/5' : 'bg-cyan-500/5'
+                                }`}></div>
 
                             <div className="flex items-start justify-between mb-6 relative z-10">
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <div className={`w-2 h-2 rounded-full ${activeResearch ? 'bg-cyan-400 animate-pulse' : 'bg-amber-500'}`}></div>
-                                        <span className={`text-xs font-bold uppercase tracking-widest ${activeResearch ? 'text-cyan-400' : 'text-amber-500'}`}>
+                                        <div className={`w-2 h-2 rounded-full ${activeResearch ? (activeResearch.type === 'manufacturing' ? 'bg-amber-500 animate-pulse' : 'bg-cyan-400 animate-pulse') : 'bg-slate-500'
+                                            }`}></div>
+                                        <span className={`text-xs font-bold uppercase tracking-widest ${activeResearch ? (activeResearch.type === 'manufacturing' ? 'text-amber-500' : 'text-cyan-400') : 'text-slate-500'
+                                            }`}>
                                             {activeResearch ? 'Active Project' : 'Lab Idle'}
                                         </span>
                                     </div>
@@ -264,38 +268,61 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
 
                             {activeResearch ? (
                                 <div className="relative z-10">
-                                    <div className="flex items-center justify-between text-xs font-bold text-slate-400 mb-2">
-                                        <span>Progress</span>
-                                        <span>{Math.min(100, (gameState.rp / activeResearch.cost) * 100).toFixed(1)}%</span>
-                                    </div>
-                                    <div className="h-3 bg-slate-800 rounded-full overflow-hidden mb-3">
-                                        <div
-                                            className={`h-full transition-all duration-500 ${gameState.rp >= activeResearch.cost ? 'bg-emerald-500' : 'bg-gradient-to-r from-cyan-600 to-blue-500'}`}
-                                            style={{ width: `${Math.min(100, (gameState.rp / activeResearch.cost) * 100)}%` }}
-                                        ></div>
-                                    </div>
-                                    <div className="flex items-center gap-4 text-xs">
-                                        <div className="flex items-center gap-1 text-slate-400">
-                                            <Clock size={12} />
-                                            <span className={`font-mono ${gameState.rp >= activeResearch.cost ? 'text-emerald-400 animate-pulse font-bold' : ''}`}>
-                                                {gameState.rp >= activeResearch.cost
-                                                    ? 'PROJECT COMPLETE'
-                                                    : dailyOutput > 0
-                                                        ? `${Math.max(0, Math.ceil((activeResearch.cost - gameState.rp) / dailyOutput))} days left`
-                                                        : 'Paused'
+                                    {gameState.rp >= activeResearch.cost ? (
+                                        <button
+                                            onClick={() => {
+                                                if (activeResearch.type === 'manufacturing') {
+                                                    onManufacturingResearch(activeResearch.id);
+                                                } else {
+                                                    // For CPU/GPU, we need the index. 
+                                                    // We added index to bestCandidate in useMemo.
+                                                    if (activeResearch.index !== undefined) {
+                                                        onResearch(activeResearch.type as ProductType, activeResearch.index, activeResearch.cost);
+                                                    }
                                                 }
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-slate-400">
-                                            <Atom size={12} />
-                                            <span className="font-mono">{activeResearch.cost.toLocaleString()} RP Target</span>
-                                        </div>
-                                    </div>
+                                            }}
+                                            className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-lg rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.4)] animate-pulse transition-all active:scale-95 flex items-center justify-center gap-2"
+                                        >
+                                            <Check size={24} strokeWidth={3} />
+                                            CLAIM COMPLETED TECH
+                                        </button>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-center justify-between text-xs font-bold text-slate-400 mb-2">
+                                                <span>Progress</span>
+                                                <span>{Math.min(100, (gameState.rp / activeResearch.cost) * 100).toFixed(1)}%</span>
+                                            </div>
+                                            <div className="h-3 bg-slate-800 rounded-full overflow-hidden mb-3">
+                                                <div
+                                                    className={`h-full transition-all duration-500 ${activeResearch.type === 'manufacturing'
+                                                            ? 'bg-gradient-to-r from-amber-600 to-orange-500'
+                                                            : 'bg-gradient-to-r from-cyan-600 to-blue-500'
+                                                        }`}
+                                                    style={{ width: `${Math.min(100, (gameState.rp / activeResearch.cost) * 100)}%` }}
+                                                ></div>
+                                            </div>
+                                            <div className="flex items-center gap-4 text-xs">
+                                                <div className="flex items-center gap-1 text-slate-400">
+                                                    <Clock size={12} />
+                                                    <span className="font-mono">
+                                                        {dailyOutput > 0
+                                                            ? `${Math.max(0, Math.ceil((activeResearch.cost - gameState.rp) / dailyOutput))} days left`
+                                                            : 'Paused'
+                                                        }
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-slate-400">
+                                                    <Atom size={12} />
+                                                    <span className="font-mono">{activeResearch.cost.toLocaleString()} RP Target</span>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             ) : (
-                                <div className="relative z-10 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3">
-                                    <AlertTriangle size={20} className="text-amber-500" />
-                                    <div className="text-xs text-amber-200">
+                                <div className="relative z-10 p-4 bg-slate-800/50 border border-slate-700 border-dashed rounded-xl flex items-center gap-3">
+                                    <AlertTriangle size={20} className="text-slate-500" />
+                                    <div className="text-xs text-slate-400">
                                         Select a technology from the <strong>Products</strong> or <strong>Factory</strong> tabs to begin research.
                                     </div>
                                 </div>
@@ -340,7 +367,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
 
                                                 <Users size={20} className="text-cyan-200 mb-1" />
                                                 <div className="text-[9px] text-slate-400 font-bold uppercase truncate w-full text-center px-1">
-                                                    {researcher ? researcher.name.split(' ')[0] : `Staff #${i + 1}`}
+                                                    {researcher ? researcher.name : `Staff #${i + 1}`}
                                                 </div>
                                                 <div className="absolute bottom-1 right-1 w-2 h-2 bg-emerald-500 rounded-full border border-slate-900"></div>
                                             </div>
@@ -431,7 +458,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
                 {activeTab === 'manufacturing' && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                         <div className="mb-2 px-2 flex items-center gap-2">
-                            <Factory size={14} className="text-slate-500" />
+                            <Factory size={14} className="text-amber-500" />
                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Manufacturing Tech</span>
                         </div>
                         {MANUFACTURING_TECH_TREE.map((node, i) => renderManufacturingTechCard(node))}

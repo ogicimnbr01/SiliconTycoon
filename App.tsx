@@ -18,15 +18,15 @@ import {
     OFFICE_CONFIGS,
     INITIAL_GAME_STATE
 } from './constants';
+import { ProductionTab } from './components/ProductionTab';
 import { FactoryTab } from './components/FactoryTab';
-import { AutomationTab } from './components/AutomationTab';
 import { ResearchTab } from './components/ResearchTab';
 import { ResourceHeader } from './components/ResourceHeader';
 import { NewsTicker } from './components/NewsTicker';
 import { HackingMinigame } from './components/HackingMinigame';
 import { OfflineReport } from './components/ui/OfflineReport';
 import { MainMenu } from './components/MainMenu';
-import { LayoutGrid, FlaskConical, LineChart, AlertTriangle, Loader2, Pause, Play, LogOut, Landmark, Skull, MailWarning, Lock, Megaphone, BarChart, Gift, Bot, Briefcase } from 'lucide-react';
+import { LayoutGrid, FlaskConical, LineChart, AlertTriangle, Loader2, Pause, Play, LogOut, Landmark, Skull, MailWarning, Lock, Megaphone, BarChart, Gift, Bot, Briefcase, Hammer } from 'lucide-react';
 import { playSfx, setSoundEnabled } from './utils/SoundManager';
 import { SettingsModal } from './components/SettingsModal';
 import { AchievementsModal } from './components/AchievementsModal';
@@ -71,8 +71,6 @@ const App: React.FC = () => {
     const [showDailyWheel, setShowDailyWheel] = useState(false);
     const [isPaused, setIsPaused] = useState(false); // For ad viewing
 
-
-
     useEffect(() => {
         const hideSystemBars = async () => {
             if (Capacitor.isNativePlatform()) {
@@ -87,8 +85,11 @@ const App: React.FC = () => {
 
     const [gameState, setGameState] = useState<GameState>(() => {
         const globalAchievements = loadGlobalAchievements();
+        const savedSettings = localStorage.getItem('siliconTycoonSettings');
+        const savedLanguage = savedSettings ? JSON.parse(savedSettings).language : 'en';
         return {
             ...INITIAL_GAME_STATE,
+            language: savedLanguage || 'en',
             unlockedAchievements: globalAchievements
         };
     });
@@ -107,10 +108,8 @@ const App: React.FC = () => {
     }, [vibrationEnabled]);
 
     // Check for Bankruptcy / Bailout
-    // Check for Bankruptcy / Bailout
     useEffect(() => {
         if (gameState.money < -3000 && !gameState.bailoutUsedToday && !showBailoutModal) {
-            // Small delay to let the "Bankrupt" log appear first or just to be safe
             const timer = setTimeout(() => setShowBailoutModal(true), 1000);
             return () => clearTimeout(timer);
         }
@@ -119,12 +118,15 @@ const App: React.FC = () => {
     // Update settings
     useEffect(() => {
         setSoundEnabledState(soundEnabled);
-        localStorage.setItem('siliconTycoonSettings', JSON.stringify({ sound: soundEnabled, vibration: vibrationEnabled }));
-    }, [soundEnabled, vibrationEnabled]);
+        localStorage.setItem('siliconTycoonSettings', JSON.stringify({
+            sound: soundEnabled,
+            vibration: vibrationEnabled,
+            language: gameState.language
+        }));
+    }, [soundEnabled, vibrationEnabled, gameState.language]);
 
     const handleShowFloatingText = useCallback((text: string, type: 'income' | 'expense' | 'rp' | 'reputation' | 'neutral', x?: number, y?: number) => {
         const id = Date.now().toString() + Math.random().toString();
-        // Default position: Center of screen + random offset
         const defaultX = window.innerWidth / 2 + (Math.random() * 40 - 20);
         const defaultY = window.innerHeight / 2 - 100 + (Math.random() * 40 - 20);
 
@@ -148,7 +150,6 @@ const App: React.FC = () => {
     // Hooks
     const { handleNewGame, loadGame, saveGame, deleteSave, getSlots, hasAnySave } = useSaveLoad(gameState, setGameState, setActiveTab, playSfx, vibrate);
 
-    // Ad pause/resume callbacks
     const handleAdStart = useCallback(() => {
         console.log('⏸️ Game paused for ad');
         setIsPaused(true);
@@ -164,8 +165,6 @@ const App: React.FC = () => {
         setActiveAchievement(ach);
     });
     const actions = useGameActions(gameState, setGameState, setActiveTab, playSfx, vibrate, handleShowFloatingText);
-
-
 
     const TabButton = useCallback(({ id, label, icon: Icon }: { id: TabType, label: string, icon: any }) => {
         const isLocked = !gameState.unlockedTabs.includes(id);
@@ -205,6 +204,39 @@ const App: React.FC = () => {
         }
     }, [gameState.officeLevel]);
 
+    const [showSplash, setShowSplash] = useState(true);
+    const [logoOpacity, setLogoOpacity] = useState(0);
+    const [containerOpacity, setContainerOpacity] = useState(1);
+
+    useEffect(() => {
+        const timer1 = setTimeout(() => setLogoOpacity(1), 100);
+        const timer2 = setTimeout(() => setLogoOpacity(0), 2500);
+        const timer3 = setTimeout(() => setContainerOpacity(0), 3500);
+        const timer4 = setTimeout(() => setShowSplash(false), 4000);
+        return () => {
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+            clearTimeout(timer3);
+            clearTimeout(timer4);
+        };
+    }, []);
+
+    if (showSplash) {
+        return (
+            <div
+                className="fixed inset-0 bg-black z-[100] flex items-center justify-center transition-opacity duration-500"
+                style={{ opacity: containerOpacity }}
+            >
+                <img
+                    src="/logo.png"
+                    alt="Umut Games"
+                    className="w-64 h-auto transition-opacity duration-1000 ease-in-out"
+                    style={{ opacity: logoOpacity }}
+                />
+            </div>
+        );
+    }
+
     if (gameState.stage === 'menu') {
         return (
             <>
@@ -238,6 +270,7 @@ const App: React.FC = () => {
                     language={gameState.language}
                     onTogglePremium={() => setGameState(prev => ({ ...prev, isPremium: !prev.isPremium }))}
                     isPremium={gameState.isPremium}
+                    onSetLanguage={(lang) => setGameState(prev => ({ ...prev, language: lang }))}
                 />
                 <AchievementsModal
                     isOpen={showAchievements}
@@ -304,7 +337,7 @@ const App: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto overscroll-none px-4 pb-32 pt-4 scroll-smooth no-scrollbar w-full">
                 {activeTab === 'factory' && (
-                    <FactoryTab
+                    <ProductionTab
                         gameState={gameState}
                         language={gameState.language}
                         onProduce={actions.handleProduce}
@@ -363,7 +396,7 @@ const App: React.FC = () => {
 
                 {activeTab === 'automation' && (
                     <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="animate-spin text-corp-accent" size={40} /></div>}>
-                        <AutomationTab
+                        <FactoryTab
                             gameState={gameState}
                             language={gameState.language}
                             onBuyFactoryLand={actions.handleBuyFactoryLand}
@@ -381,8 +414,6 @@ const App: React.FC = () => {
                     />
                 )}
                 {/* Daily Bonus Button */}
-                {/* Daily Bonus Button */}
-                {/* Daily Bonus Button */}
                 {(gameState.dailySpinCount < 5 && Date.now() >= gameState.nextSpinTime) && (
                     <button
                         onClick={() => setShowDailyWheel(true)}
@@ -399,11 +430,11 @@ const App: React.FC = () => {
                     <NewsTicker logs={gameState.logs} />
                 </div>
                 <div className="w-full h-[70px] bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 flex items-center px-2 shadow-[0_-5px_30px_rgba(0,0,0,0.8)] relative z-50 justify-between">
-                    <TabButton id="factory" label="FACTORY" icon={LayoutGrid} />
+                    <TabButton id="factory" label="PRODUCTION" icon={Hammer} />
                     <TabButton id="rnd" label="R&D" icon={FlaskConical} />
                     <TabButton id="market" label="MARKET" icon={LineChart} />
                     <TabButton id="finance" label="FINANCE" icon={Landmark} />
-                    <TabButton id="automation" label="AUTOMATION" icon={Bot} />
+                    <TabButton id="automation" label="FACTORY" icon={Bot} />
                     <TabButton id="management" label="MANAGEMENT" icon={Briefcase} />
                 </div>
             </div>
@@ -426,6 +457,7 @@ const App: React.FC = () => {
                 language={gameState.language}
                 onTogglePremium={() => setGameState(prev => ({ ...prev, isPremium: !prev.isPremium }))}
                 isPremium={gameState.isPremium}
+                onSetLanguage={(lang) => setGameState(prev => ({ ...prev, language: lang }))}
             />
             <AchievementsModal
                 isOpen={showAchievements}
@@ -471,8 +503,6 @@ const App: React.FC = () => {
             <FloatingTextLayer items={floatingTexts} onComplete={handleFloatingTextComplete} />
         </div>
     );
-
-
 };
 
 export default App;

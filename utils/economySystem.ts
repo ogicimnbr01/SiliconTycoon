@@ -36,10 +36,10 @@ export const ECONOMY_CONFIG = {
 
     // Daily Market Limits
     DAILY_MARKET_DEMAND: {
-        [ProductType.CPU]: 500,
-        [ProductType.GPU]: 300
+        [ProductType.CPU]: 1000,
+        [ProductType.GPU]: 600
     },
-    OVERSELL_PENALTY: 0.20,
+    OVERSELL_PENALTY: 0.10,
 
     // Recovery
     MARKET_RECOVERY_RATE: 0.15,
@@ -75,6 +75,38 @@ export const ECONOMY_CONFIG = {
  * calculateSellPrice(100, 1, 5)
  * // Returns: 100 * 0.75^4 = $31.64 (decay kicks in)
  */
+/**
+ * Gets the profit margin multiplier based on tech tier.
+ * 
+ * MARGIN CURVE:
+ * - Tier 0: 20% (Survival)
+ * - Tier 1: 50% (Breathing room)
+ * - Tier 2: 100% (Growth)
+ * - Tier 3: 150% (Expansion)
+ * - Tier 4+: 200% + (50% per tier) (Dominance)
+ */
+export function getTechMargin(tier: number): number {
+    if (tier === 0) return 0.20;
+    if (tier === 1) return 0.50;
+    if (tier === 2) return 1.00;
+    if (tier === 3) return 1.50;
+    return 2.00 + ((tier - 4) * 0.50);
+}
+
+/**
+ * Calculates sell price with progressive difficulty.
+ * 
+ * NEW FORMULA:
+ * Price = BasePrice * DecayMultiplier
+ * 
+ * Note: BasePrice in constants.ts is now pre-calculated based on:
+ * (SiliconCost * (1 + TechMargin))
+ * 
+ * @param basePrice - Original market price for this tech tier (from constants)
+ * @param productTier - Current product's tech level (0-9)
+ * @param marketEra - Global market's current era tier (0-9)
+ * @returns Final sell price (minimum $1)
+ */
 export function calculateSellPrice(
     basePrice: number,
     productTier: number,
@@ -87,7 +119,7 @@ export function calculateSellPrice(
 
     // Future tech (shouldn't happen, but just in case)
     if (productTier > marketEra) {
-        return basePrice;
+        return basePrice * 1.5; // Massive bonus for being ahead of time
     }
 
     const tierGap = marketEra - productTier;

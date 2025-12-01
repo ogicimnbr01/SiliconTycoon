@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { GameState, Language, ProductType, ActiveCampaign } from '../types';
+import { GameState, Language, ProductType } from '../types';
 import { TRANSLATIONS } from '../constants';
-import { MarketingTab } from './MarketingTab';
-import { StatisticsTab } from './StatisticsTab';
+import { MarketingView } from './management/MarketingView';
+import { StatisticsView } from './management/StatisticsView';
 import { Megaphone, BarChart, Lock } from 'lucide-react';
 
 interface ManagementTabProps {
@@ -18,10 +18,6 @@ export const ManagementTab: React.FC<ManagementTabProps> = ({
 }) => {
     const [view, setView] = useState<'marketing' | 'statistics'>('marketing');
     const t = TRANSLATIONS[language] || TRANSLATIONS['en'];
-
-    // Unlock logic for sub-tabs (if any)
-    // Marketing is unlocked by default in this context if the main tab is unlocked
-    // Statistics is unlocked by default if the main tab is unlocked
 
     const PillButton = ({ id, label, icon: Icon, locked }: { id: typeof view, label: string, icon: any, locked?: boolean }) => (
         <button
@@ -55,7 +51,7 @@ export const ManagementTab: React.FC<ManagementTabProps> = ({
 
             <div className="flex-1 overflow-y-auto">
                 {view === 'marketing' && (
-                    <MarketingTab
+                    <MarketingView
                         money={gameState.money}
                         brandAwareness={gameState.brandAwareness}
                         activeCampaigns={gameState.activeCampaigns}
@@ -65,7 +61,7 @@ export const ManagementTab: React.FC<ManagementTabProps> = ({
                 )}
 
                 {view === 'statistics' && (
-                    <StatisticsTab
+                    <StatisticsView
                         gameState={gameState}
                         language={language}
                     />

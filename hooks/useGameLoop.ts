@@ -28,7 +28,7 @@ export const useGameLoop = (
     isPaused?: boolean
 ) => {
     // Define tickRate based on gameSpeed
-    const tickRate = gameState.gameSpeed === 'fast' ? TICK_RATE_MS / 2 : TICK_RATE_MS;
+    const tickRate = gameState.gameSpeed === 'fast' ? TICK_RATE_MS / 4 : TICK_RATE_MS;
 
     useEffect(() => {
         // Pause if watching ad or if game speed is paused
@@ -95,6 +95,40 @@ export const useGameLoop = (
                         type: 'info',
                         timestamp: `${t.day} ${newDay}`,
                     });
+                }
+
+                // Era Progression
+                let currentEraId = prev.currentEraId;
+                const currentEraIndex = ERAS.findIndex(e => e.id === currentEraId);
+                const nextEra = ERAS[currentEraIndex + 1];
+                if (nextEra && newDay >= nextEra.startDay) {
+                    currentEraId = nextEra.id;
+                    addLog({
+                        id: Date.now(),
+                        message: format(t.logEraChange, t[`${nextEra.id}_name` as keyof typeof t] || nextEra.name),
+                        type: 'warning',
+                        timestamp: `${t.day} ${newDay}`,
+                    });
+                }
+
+                // Trend Rotation
+                let activeTrendId = prev.activeTrendId;
+                if (newDay % 30 === 0) {
+                    const availableTrends = MARKET_TRENDS.filter(trend => {
+                        if (!trend.requiredEra) return true;
+                        return trend.requiredEra.includes(currentEraId);
+                    });
+
+                    if (availableTrends.length > 0) {
+                        const randomTrend = availableTrends[Math.floor(Math.random() * availableTrends.length)];
+                        activeTrendId = randomTrend.id;
+                        addLog({
+                            id: Date.now(),
+                            message: format(t.logMarketShift, t[`${randomTrend.id}_name` as keyof typeof t] || randomTrend.name),
+                            type: 'info',
+                            timestamp: `${t.day} ${newDay}`,
+                        });
+                    }
                 }
 
                 // Bankruptcy handling
@@ -680,6 +714,8 @@ export const useGameLoop = (
                     globalTechLevels: { CPU: newGlobalTechCPU, GPU: newGlobalTechGPU },
                     prestigePoints: Math.max(0, prev.prestigePoints - prestigePenalty),
                     reputation: Math.max(0, prev.reputation - repPenalty),
+                    currentEraId,
+                    activeTrendId,
                 };
             });
         };

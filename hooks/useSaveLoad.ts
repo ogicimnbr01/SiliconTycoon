@@ -85,7 +85,12 @@ export const useSaveLoad = (
                 }
                 if (!loaded.competitors) loaded.competitors = [];
 
-                setGameState({ ...loaded, stage: 'game', lastSaveTime: Date.now() });
+                setGameState(prev => ({
+                    ...loaded,
+                    language: prev.language, // Preserve language from main menu
+                    stage: 'game',
+                    lastSaveTime: Date.now()
+                }));
                 setActiveSlotId(slotId);
                 playSfx('click');
             } catch (e) { console.error("Failed load", e); }
@@ -104,6 +109,7 @@ export const useSaveLoad = (
         setActiveSlotId('autosave'); // Auto-save slot for new games
         setGameState(prev => ({
             ...INITIAL_GAME_STATE,
+            language: prev.language, // Preserve language
             stage: 'game',
             gameSpeed: 'normal', // Changed from 'paused' - tutorial will handle pause if needed
             money: INITIAL_GAME_STATE.money + (prev.prestigePoints * 1000),

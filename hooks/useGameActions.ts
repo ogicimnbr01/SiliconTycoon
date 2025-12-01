@@ -151,9 +151,12 @@ export const useGameActions = (
     const handleSell = useCallback((type: ProductType, currentPrice: number) => {
         setGameState(prev => {
             // Check if we need to reset daily sales (new day)
+            let currentDailySales = { ...prev.dailySales };
+            let currentLastSalesResetDay = prev.lastSalesResetDay;
+
             if (prev.day !== prev.lastSalesResetDay) {
-                prev.dailySales = { [ProductType.CPU]: 0, [ProductType.GPU]: 0 };
-                prev.lastSalesResetDay = prev.day;
+                currentDailySales = { [ProductType.CPU]: 0, [ProductType.GPU]: 0 };
+                currentLastSalesResetDay = prev.day;
             }
 
             const count = prev.inventory[type];
@@ -164,7 +167,7 @@ export const useGameActions = (
 
             // Check market demand penalty
             const DAILY_LIMIT = ECONOMY_CONFIG.DAILY_MARKET_DEMAND?.[type] || 1000;
-            const alreadySoldToday = prev.dailySales[type] || 0;
+            const alreadySoldToday = currentDailySales[type] || 0;
 
             const amountUnderLimit = Math.max(0, Math.min(count, DAILY_LIMIT - alreadySoldToday));
             const amountOverLimit = Math.max(0, count - amountUnderLimit);
@@ -251,9 +254,10 @@ export const useGameActions = (
                 reputation: Math.min(100, prev.reputation + repGain),
                 marketSaturation: newSaturation,
                 dailyDemand: newDailyDemand,
+                lastSalesResetDay: currentLastSalesResetDay,
                 dailySales: {
-                    ...prev.dailySales,
-                    [type]: (prev.dailySales[type] || 0) + count
+                    ...currentDailySales,
+                    [type]: (currentDailySales[type] || 0) + count
                 },
                 logs: [...prev.logs, {
                     id: Date.now(),
@@ -531,23 +535,32 @@ export const useGameActions = (
             const stock = prev.stocks.find(s => s.id === stockId);
             if (!stock) return prev;
             const cost = stock.currentPrice * amount;
-            if (prev.money < cost) {
+            // Dynamic Brokerage Fee: Scales with Company Valuation (Money + Assets)
+            // Early Game: Low fee. Late Game: High fee to act as money sink.
+            const companyValuation = prev.money + (prev.techLevels[ProductType.CPU] * 50000);
+            const brokerageFee = Math.max(10, Math.floor(companyValuation * 0.005)); // 0.5% fee
+            const totalCost = cost + brokerageFee;
+
+            if (prev.money < totalCost) {
                 playSfx('error');
                 return prev;
             }
 
             // Calculate weighted average buy price
             const currentTotalCost = stock.owned * (stock.avgBuyPrice || 0);
-            const newTotalCost = currentTotalCost + cost;
+            const newTotalCost = currentTotalCost + cost; // Don't include fee in avg price calculation usually, or maybe do? Let's keep it simple.
             const newOwned = stock.owned + amount;
             const newAvgPrice = newTotalCost / newOwned;
 
             playSfx('money');
             vibrate('light');
-            if (onShowFloatingText) onShowFloatingText(`-$${cost.toFixed(0)}`, 'expense');
+            if (onShowFloatingText) {
+                onShowFloatingText(`-$${cost.toFixed(0)}`, 'expense');
+                onShowFloatingText(`-$${brokerageFee.toFixed(0)} Fee`, 'expense');
+            }
             return {
                 ...prev,
-                money: prev.money - cost,
+                money: prev.money - totalCost,
                 stocks: prev.stocks.map(s => s.id === stockId ? { ...s, owned: newOwned, avgBuyPrice: newAvgPrice } : s)
             };
         });
@@ -737,8 +750,12 @@ export const useGameActions = (
         setGameState(prev => {
             const companyValuation = prev.money + (prev.techLevels[ProductType.CPU] * 5000) + (prev.techLevels[ProductType.GPU] * 5000);
             const gainedPoints = Math.floor(companyValuation / 10000);
+
+            // Deep clone INITIAL_GAME_STATE to prevent reference issues
+            const newState = JSON.parse(JSON.stringify(INITIAL_GAME_STATE));
+
             return {
-                ...INITIAL_GAME_STATE,
+                ...newState,
                 stage: 'game',
                 money: INITIAL_GAME_STATE.money + (gainedPoints * 1000),
                 prestigePoints: prev.prestigePoints + gainedPoints,

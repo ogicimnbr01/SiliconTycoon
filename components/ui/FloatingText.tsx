@@ -20,7 +20,7 @@ export const FloatingText: React.FC<FloatingTextProps> = ({ item, onComplete }) 
         const timer = setTimeout(() => {
             setVisible(false);
             setTimeout(() => onComplete(item.id), 500); // Wait for fade out
-        }, 1000);
+        }, 3000);
         return () => clearTimeout(timer);
     }, [item.id, onComplete]);
 
@@ -41,7 +41,10 @@ export const FloatingText: React.FC<FloatingTextProps> = ({ item, onComplete }) 
     return (
         <div
             className={`fixed pointer-events-none z-[100] font-bold text-xl drop-shadow-md transition-opacity duration-500 ${visible ? 'opacity-100' : 'opacity-0'} ${getColorClass()} ${getAnimationClass()}`}
-            style={{ left: item.x, top: item.y }}
+            style={{
+                left: item.x + (Math.random() * 20 - 10),
+                top: item.y + (Math.random() * 20 - 10)
+            }}
         >
             {item.text}
         </div>

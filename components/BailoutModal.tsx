@@ -16,7 +16,7 @@ export const BailoutModal: React.FC<BailoutModalProps> = ({ gameState, onBailout
     const t = TRANSLATIONS[gameState.language] || TRANSLATIONS['en'];
 
     const techLevel = Math.max(1, (gameState.techLevels.CPU + gameState.techLevels.GPU) / 2);
-    const bailoutAmount = Math.floor(5000 * Math.pow(1.5, techLevel));
+    const bailoutAmount = Math.floor(15000 * Math.pow(1.5, techLevel));
 
     const handleWatchAd = () => {
         showRewardedAd('bailout', () => {

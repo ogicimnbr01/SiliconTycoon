@@ -53,7 +53,7 @@ export const useGameActions = (
             }
             playSfx('click');
             vibrate('light');
-            if (cost > 0 && onShowFloatingText) onShowFloatingText(`-$${cost}`, 'expense');
+            if (cost > 0 && onShowFloatingText) onShowFloatingText(`-$${cost} (Prod)`, 'expense');
 
             // Yield Rate Logic
             const techTree = type === ProductType.CPU ? CPU_TECH_TREE : GPU_TECH_TREE;
@@ -78,15 +78,21 @@ export const useGameActions = (
             // Binning: Sell waste as "Budget/Scrap" immediately
             // Value is 20% of base price
             const scrapValue = Math.floor(wasteAmount * (node.baseMarketPrice * 0.2));
-            if (scrapValue > 0 && onShowFloatingText) onShowFloatingText(`+$${scrapValue}`, 'income');
+            if (scrapValue > 0 && onShowFloatingText) onShowFloatingText(`+$${scrapValue} (Scrap)`, 'income');
 
             let remainingAmount = successfulAmount;
             const newContracts = prev.activeContracts.map(c => {
                 if (c.requiredProduct === type && remainingAmount > 0 && c.fulfilledAmount < c.requiredAmount) {
                     // Check requirements
                     const spec = prev.designSpecs[type];
-                    if (c.minPerformance && spec.performance < c.minPerformance) return c;
-                    if (c.minEfficiency && spec.efficiency < c.minEfficiency) return c;
+                    if (c.minPerformance && spec.performance < c.minPerformance) {
+                        if (onShowFloatingText) onShowFloatingText(`Need ${c.minPerformance} Perf!`, 'expense'); // 'expense' for red color
+                        return c;
+                    }
+                    if (c.minEfficiency && spec.efficiency < c.minEfficiency) {
+                        if (onShowFloatingText) onShowFloatingText(`Need ${c.minEfficiency} Eff!`, 'expense');
+                        return c;
+                    }
 
                     const take = Math.min(remainingAmount, c.requiredAmount - c.fulfilledAmount);
                     remainingAmount -= take;
@@ -108,7 +114,7 @@ export const useGameActions = (
                     playSfx('success');
                     vibrate('success');
                     if (onShowFloatingText) {
-                        onShowFloatingText(`+$${Math.floor(payment * bonuses.contractBonus)}`, 'income');
+                        onShowFloatingText(`+$${Math.floor(payment * bonuses.contractBonus)} (Contract)`, 'income');
                         onShowFloatingText(`+5 REP`, 'reputation');
                     }
                 }
@@ -202,10 +208,29 @@ export const useGameActions = (
             vibrate('medium');
 
             const bonuses = getReputationBonuses(prev.reputation);
-            const finalRevenue = Math.floor(revenue * bonuses.priceBonus);
+
+            // Apply Trend Price Bonus
+            const activeTrend = MARKET_TRENDS.find(t => t.id === prev.activeTrendId);
+            let trendBonus = 1.0;
+            if (activeTrend && activeTrend.affectedProducts.includes(type)) {
+                // Check if specs meet requirement for full bonus
+                const spec = prev.designSpecs[type];
+                const val = activeTrend.requiredSpec === 'performance' ? spec.performance : spec.efficiency;
+                if (val >= activeTrend.minSpecValue) {
+                    trendBonus = activeTrend.priceBonus;
+                } else {
+                    // Partial bonus if specs are close? Or just no bonus? 
+                    // Let's give half bonus if within 10 points
+                    if (val >= activeTrend.minSpecValue - 10) {
+                        trendBonus = 1 + ((activeTrend.priceBonus - 1) * 0.5);
+                    }
+                }
+            }
+
+            const finalRevenue = Math.floor(revenue * bonuses.priceBonus * trendBonus);
 
             if (onShowFloatingText && finalRevenue > 0) {
-                onShowFloatingText(`+$${finalRevenue}`, 'income');
+                onShowFloatingText(`+$${finalRevenue} (Sales)`, 'income');
             }
 
             // Rep gain (only if selling current-gen tech)
@@ -286,7 +311,7 @@ export const useGameActions = (
             }
             playSfx('click');
             vibrate('light');
-            if (onShowFloatingText) onShowFloatingText(`-$${cost.toFixed(0)}`, 'expense');
+            if (onShowFloatingText) onShowFloatingText(`-$${cost.toFixed(0)} (Silicon)`, 'expense');
             return { ...prev, money: prev.money - cost, silicon: prev.silicon + amount };
         });
     }, [setGameState, playSfx, vibrate, onShowFloatingText]);
@@ -319,7 +344,7 @@ export const useGameActions = (
             if (prev.money >= nextConfig.upgradeCost) {
                 playSfx('success');
                 vibrate('success');
-                if (onShowFloatingText) onShowFloatingText(`-$${nextConfig.upgradeCost}`, 'expense');
+                if (onShowFloatingText) onShowFloatingText(`-$${nextConfig.upgradeCost} (Upgrade)`, 'expense');
                 return {
                     ...prev,
                     money: prev.money - nextConfig.upgradeCost,
@@ -352,7 +377,7 @@ export const useGameActions = (
 
             playSfx('click');
             vibrate('medium');
-            if (onShowFloatingText) onShowFloatingText(`-$${moveCost}`, 'expense');
+            if (onShowFloatingText) onShowFloatingText(`-$${moveCost} (Move)`, 'expense');
 
             return {
                 ...prev,
@@ -373,7 +398,7 @@ export const useGameActions = (
             const upfront = contract.upfrontPayment || 0;
             if (upfront > 0) {
                 playSfx('money');
-                if (onShowFloatingText) onShowFloatingText(`+$${upfront}`, 'income');
+                if (onShowFloatingText) onShowFloatingText(`+$${upfront} (Advance)`, 'income');
             }
 
             const activeContract = { ...contract, deadlineDay: prev.day + contract.duration };
@@ -427,7 +452,7 @@ export const useGameActions = (
             }
             playSfx('success');
             vibrate('medium');
-            if (onShowFloatingText) onShowFloatingText(`-${cost} RP`, 'rp');
+            if (onShowFloatingText) onShowFloatingText(`-${cost} RP (Research)`, 'rp');
             let prestigeGain = 0;
             if (nextLevelIndex > prev.globalTechLevels[type]) prestigeGain = 10;
             const t = TRANSLATIONS[prev.language];
@@ -476,7 +501,7 @@ export const useGameActions = (
 
             playSfx('upgrade');
             vibrate('medium');
-            if (onShowFloatingText) onShowFloatingText(`-$${cost.toLocaleString()}`, 'expense');
+            if (onShowFloatingText) onShowFloatingText(`-$${cost.toLocaleString()} (Hiring)`, 'expense');
 
             return {
                 ...prev,
@@ -497,7 +522,7 @@ export const useGameActions = (
                 const newMorale = Math.max(0, prev.staffMorale - 5);
                 playSfx('error');
                 vibrate('medium');
-                if (onShowFloatingText) onShowFloatingText(`-$${severancePay}`, 'expense');
+                if (onShowFloatingText) onShowFloatingText(`-$${severancePay} (Severance)`, 'expense');
                 return {
                     ...prev,
                     money: prev.money - severancePay,
@@ -520,7 +545,7 @@ export const useGameActions = (
             const newMorale = Math.max(0, prev.staffMorale - 5);
             playSfx('error');
             vibrate('medium');
-            if (onShowFloatingText) onShowFloatingText(`-$${severancePay}`, 'expense');
+            if (onShowFloatingText) onShowFloatingText(`-$${severancePay} (Severance)`, 'expense');
             return {
                 ...prev,
                 money: prev.money - severancePay,
@@ -540,7 +565,7 @@ export const useGameActions = (
             }
             playSfx('upgrade');
             vibrate('heavy');
-            if (onShowFloatingText) onShowFloatingText(`-$${hero.hiringCost.toLocaleString()}`, 'expense');
+            if (onShowFloatingText) onShowFloatingText(`-$${hero.hiringCost.toLocaleString()} (Hero)`, 'expense');
 
             return {
                 ...prev,
@@ -576,8 +601,8 @@ export const useGameActions = (
             playSfx('money');
             vibrate('light');
             if (onShowFloatingText) {
-                onShowFloatingText(`-$${cost.toFixed(0)}`, 'expense');
-                onShowFloatingText(`-$${brokerageFee.toFixed(0)} Fee`, 'expense');
+                onShowFloatingText(`-$${cost.toFixed(0)} (Stock)`, 'expense');
+                onShowFloatingText(`-$${brokerageFee.toFixed(0)} (Fee)`, 'expense');
             }
             return {
                 ...prev,
@@ -596,7 +621,7 @@ export const useGameActions = (
             }
             playSfx('money');
             const income = stock.currentPrice * amt;
-            if (onShowFloatingText) onShowFloatingText(`+$${income.toFixed(0)}`, 'income');
+            if (onShowFloatingText) onShowFloatingText(`+$${income.toFixed(0)} (Stock)`, 'income');
             return {
                 ...prev,
                 money: prev.money + income,
@@ -627,7 +652,7 @@ export const useGameActions = (
 
             playSfx('success');
             vibrate('heavy');
-            if (onShowFloatingText) onShowFloatingText(`+$${(cashRaised / 1000000).toFixed(2)}M`, 'income');
+            if (onShowFloatingText) onShowFloatingText(`+$${(cashRaised / 1000000).toFixed(2)}M (IPO)`, 'income');
 
             return {
                 ...prev,
@@ -669,7 +694,7 @@ export const useGameActions = (
                 return { ...prev, logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logInsufficientFunds, type: 'danger' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10) };
             }
             playSfx('click');
-            if (onShowFloatingText) onShowFloatingText(`-$${cost.toLocaleString()}`, 'expense');
+            if (onShowFloatingText) onShowFloatingText(`-$${cost.toLocaleString()} (Op Cost)`, 'expense');
             return {
                 ...prev,
                 hacking: { active: true, type, difficulty: prev.reputation > 50 ? 1 : 2, targetId, cost }

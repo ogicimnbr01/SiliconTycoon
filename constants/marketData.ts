@@ -18,7 +18,7 @@ export const MARKET_TRENDS: MarketTrend[] = [
         description: 'Energy costs soaring! Efficiency is king.',
         requiredSpec: 'efficiency',
         minSpecValue: 70,
-        priceBonus: 1.6,
+        priceBonus: 2.5, // Was 1.6
         penalty: 0.5,
         affectedProducts: [ProductType.CPU, ProductType.GPU]
     },
@@ -30,7 +30,7 @@ export const MARKET_TRENDS: MarketTrend[] = [
         description: 'Data centers expanding! Efficient CPUs needed.',
         requiredSpec: 'efficiency',
         minSpecValue: 65,
-        priceBonus: 1.8,
+        priceBonus: 3.0, // Was 1.8
         penalty: 0.7,
         affectedProducts: [ProductType.CPU],
         requiredEra: ['era_pc', 'era_mobile']
@@ -41,7 +41,7 @@ export const MARKET_TRENDS: MarketTrend[] = [
         description: 'Cloud providers buying bulk CPUs!',
         requiredSpec: 'efficiency',
         minSpecValue: 60,
-        priceBonus: 1.5,
+        priceBonus: 2.5, // Was 1.5
         penalty: 0.8,
         affectedProducts: [ProductType.CPU],
         requiredEra: ['era_mobile', 'era_ai']
@@ -52,7 +52,7 @@ export const MARKET_TRENDS: MarketTrend[] = [
         description: 'Companies upgrading office PCs.',
         requiredSpec: 'efficiency',
         minSpecValue: 50,
-        priceBonus: 1.3,
+        priceBonus: 2.0, // Was 1.3
         penalty: 0.9,
         affectedProducts: [ProductType.CPU]
     },
@@ -64,7 +64,7 @@ export const MARKET_TRENDS: MarketTrend[] = [
         description: 'Machine learning boom! High GPU demand!',
         requiredSpec: 'performance',
         minSpecValue: 75,
-        priceBonus: 2.0,
+        priceBonus: 4.0, // Was 2.0
         penalty: 0.6,
         affectedProducts: [ProductType.GPU],
         requiredEra: ['era_ai']
@@ -75,7 +75,7 @@ export const MARKET_TRENDS: MarketTrend[] = [
         description: 'New AAA games released! Gamers need power!',
         requiredSpec: 'performance',
         minSpecValue: 80,
-        priceBonus: 1.9,
+        priceBonus: 3.0, // Was 1.9
         penalty: 0.5,
         affectedProducts: [ProductType.GPU]
     },
@@ -85,7 +85,7 @@ export const MARKET_TRENDS: MarketTrend[] = [
         description: 'Bitcoin rising! Miners buying all GPUs!',
         requiredSpec: 'performance',
         minSpecValue: 70,
-        priceBonus: 2.2,
+        priceBonus: 5.0, // Was 2.2 (Huge boom/bust potential)
         penalty: 0.4,
         affectedProducts: [ProductType.GPU],
         requiredEra: ['era_mobile', 'era_ai'] // Late mobile / AI
@@ -96,7 +96,7 @@ export const MARKET_TRENDS: MarketTrend[] = [
         description: 'Virtual reality entering mainstream!',
         requiredSpec: 'performance',
         minSpecValue: 75,
-        priceBonus: 1.7,
+        priceBonus: 2.5, // Was 1.7
         penalty: 0.6,
         affectedProducts: [ProductType.GPU],
         requiredEra: ['era_mobile', 'era_ai']
@@ -107,7 +107,7 @@ export const MARKET_TRENDS: MarketTrend[] = [
         description: 'Streamers and creators need powerful GPUs!',
         requiredSpec: 'performance',
         minSpecValue: 65,
-        priceBonus: 1.5,
+        priceBonus: 2.2, // Was 1.5
         penalty: 0.7,
         affectedProducts: [ProductType.GPU],
         requiredEra: ['era_mobile', 'era_ai']
@@ -118,7 +118,7 @@ export const MARKET_TRENDS: MarketTrend[] = [
         description: 'Everyone wants to live online. Graphics power needed!',
         requiredSpec: 'performance',
         minSpecValue: 85,
-        priceBonus: 2.5,
+        priceBonus: 3.5, // Was 2.5
         penalty: 0.3,
         affectedProducts: [ProductType.GPU],
         requiredEra: ['era_ai', 'era_quantum']
@@ -129,7 +129,7 @@ export const MARKET_TRENDS: MarketTrend[] = [
         description: 'Robots need efficient processing units.',
         requiredSpec: 'efficiency',
         minSpecValue: 80,
-        priceBonus: 2.0,
+        priceBonus: 3.0, // Was 2.0
         penalty: 0.5,
         affectedProducts: [ProductType.CPU, ProductType.GPU],
         requiredEra: ['era_ai', 'era_neural']

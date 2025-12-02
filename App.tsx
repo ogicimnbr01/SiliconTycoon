@@ -130,13 +130,21 @@ const App: React.FC = () => {
         const defaultX = window.innerWidth / 2 + (Math.random() * 40 - 20);
         const defaultY = window.innerHeight / 2 - 100 + (Math.random() * 40 - 20);
 
-        setFloatingTexts(prev => [...prev, {
-            id,
-            text,
-            type,
-            x: x || defaultX,
-            y: y || defaultY
-        }]);
+        setFloatingTexts(prev => {
+            // OPTIMIZATION: Cap at 30 items to prevent crash/lag
+            const limit = 30;
+            const newItems = [...prev, {
+                id,
+                text,
+                type,
+                x: x || defaultX,
+                y: y || defaultY
+            }];
+            if (newItems.length > limit) {
+                return newItems.slice(newItems.length - limit);
+            }
+            return newItems;
+        });
     }, []);
 
     const handleFloatingTextComplete = useCallback((id: string) => {

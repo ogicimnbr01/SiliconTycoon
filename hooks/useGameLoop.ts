@@ -215,9 +215,25 @@ export const useGameLoop = (
                 // Scale with office level (bigger warehouse = bigger market!)
                 const officeScaling = Math.pow(2, prev.officeLevel);
 
+                // Era Modifiers
+                const currentEra = ERAS.find(e => e.id === currentEraId) || ERAS[0];
+                const eraCpuMod = currentEra.cpuDemandMod || 1.0;
+                const eraGpuMod = currentEra.gpuDemandMod || 1.0;
+
+                // Trend Modifiers (Hype increases demand too!)
+                const activeTrend = MARKET_TRENDS.find(t => t.id === prev.activeTrendId);
+                let trendCpuMod = 1.0;
+                let trendGpuMod = 1.0;
+
+                if (activeTrend) {
+                    // If trend boosts price, it also boosts demand (hype)
+                    if (activeTrend.affectedProducts.includes(ProductType.CPU)) trendCpuMod = activeTrend.priceBonus;
+                    if (activeTrend.affectedProducts.includes(ProductType.GPU)) trendGpuMod = activeTrend.priceBonus;
+                }
+
                 const newDailyDemand = {
-                    [ProductType.CPU]: Math.floor(baseDemandCPU * cpuVariation * cpuTierScaling * officeScaling),
-                    [ProductType.GPU]: Math.floor(baseDemandGPU * gpuVariation * gpuTierScaling * officeScaling)
+                    [ProductType.CPU]: Math.floor(baseDemandCPU * cpuVariation * cpuTierScaling * officeScaling * eraCpuMod * trendCpuMod),
+                    [ProductType.GPU]: Math.floor(baseDemandGPU * gpuVariation * gpuTierScaling * officeScaling * eraGpuMod * trendGpuMod)
                 };
 
                 // Hero salaries
@@ -501,28 +517,56 @@ export const useGameLoop = (
                 if (Math.random() < 0.2) {
                     const type = Math.random() > 0.5 ? ProductType.CPU : ProductType.GPU;
                     const amount = Math.floor(Math.random() * 50) + 10;
-                    const techLevel = Math.max(0, prev.techLevels[type] - Math.floor(Math.random() * 2));
+
+                    // Tech Scaling: Ensure requested tech is relevant (current or slightly lower/higher)
+                    const currentTechLevel = prev.techLevels[type];
+                    const techLevel = Math.max(0, Math.min(
+                        (type === ProductType.CPU ? CPU_TECH_TREE.length : GPU_TECH_TREE.length) - 1,
+                        currentTechLevel + (Math.random() > 0.7 ? 1 : 0) // Small chance to request next tier
+                    ));
+
                     const basePrice = type === ProductType.CPU ? CPU_TECH_TREE[techLevel].baseMarketPrice : GPU_TECH_TREE[techLevel].baseMarketPrice;
-                    const officeScaling = 1 + (prev.officeLevel * 0.5);
-                    const totalReward = Math.floor(amount * basePrice * 1.3 * officeScaling);
+
+                    // Difficulty & Reward Multipliers
+                    // Easy: 1.2x, Medium: 1.5x, Hard: 2.0x
+                    const difficultyRoll = Math.random();
+                    let difficultyMult = 1.2;
+                    let duration = 15; // More time for easier contracts
+
+                    if (difficultyRoll > 0.6) {
+                        difficultyMult = 1.5;
+                        duration = 10;
+                    }
+                    if (difficultyRoll > 0.9) {
+                        difficultyMult = 2.0;
+                        duration = 7; // High risk, high reward
+                    }
+
+                    const totalReward = Math.floor(amount * basePrice * difficultyMult);
 
                     let minPerformance: number | undefined;
                     let minEfficiency: number | undefined;
 
+                    // Helper to round to nearest 5
+                    const round5 = (n: number) => Math.round(n / 5) * 5;
+
                     if (type === ProductType.CPU) {
-                        minPerformance = 30 + (techLevel * 15) + Math.floor(Math.random() * 10);
+                        // Base 50 + Tech Scaling + Random
+                        const rawReq = 50 + (techLevel * 10) + Math.random() * 15;
+                        minPerformance = round5(rawReq);
                     } else {
+                        const rawReq = 50 + (techLevel * 10) + Math.random() * 15;
                         if (Math.random() > 0.5) {
-                            minEfficiency = 30 + (techLevel * 15) + Math.floor(Math.random() * 10);
+                            minEfficiency = round5(rawReq);
                         } else {
-                            minPerformance = 30 + (techLevel * 15) + Math.floor(Math.random() * 10);
+                            minPerformance = round5(rawReq);
                         }
                     }
 
                     availableContracts.push({
                         id: `cnt_${Date.now()}`,
                         title: format(t.logContractOrder, amount, type),
-                        description: format(t.logContractDeadline, 10),
+                        description: format(t.logContractDeadline, duration),
                         requiredProduct: type,
                         requiredAmount: amount,
                         fulfilledAmount: 0,
@@ -532,8 +576,8 @@ export const useGameLoop = (
                         minPerformance,
                         minEfficiency,
                         penalty: Math.floor(totalReward * 0.4),
-                        deadlineDay: newDay + 10,
-                        duration: 10,
+                        deadlineDay: newDay + duration,
+                        duration: duration,
                     });
                     if (availableContracts.length > 3) availableContracts.shift();
                 }
@@ -640,12 +684,12 @@ export const useGameLoop = (
                     return { ...comp, money: newCompMoney, history: newHistory };
                 });
 
-                if (newDay % 5 === 0 && competitors.length > 0) {
+                if (newDay % 10 === 0 && competitors.length > 0) {
                     competitors = competitors.map(comp => {
                         const newComp = { ...comp };
                         const daysSinceRelease = newDay - (newComp.lastReleaseDay || -999);
-                        if (newComp.money > 1000000 && daysSinceRelease > 30) {
-                            if (Math.random() < 0.3) {
+                        if (newComp.money > 1000000 && daysSinceRelease > 60) {
+                            if (Math.random() < 0.2) {
                                 newComp.money -= 1000000;
                                 newComp.lastReleaseDay = newDay;
                                 const type = Math.random() > 0.5 ? ProductType.CPU : ProductType.GPU;
@@ -693,7 +737,7 @@ export const useGameLoop = (
                     silicon: newSilicon,
                     researchers: newResearchers,
                     staffMorale: newMorale,
-                    logs: newLogs,
+                    logs: newLogs.slice(-30), // OPTIMIZATION: Cap logs at 30
                     bankruptcyTimer: newBankruptcyTimer,
                     activeEvent,
                     overdriveActive,

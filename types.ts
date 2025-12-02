@@ -126,12 +126,14 @@ export interface MarketTrend {
 
 export interface Achievement {
   id: string;
-  title: string;
-  description: string;
+  title?: string; // Optional now, favoring titleKey
+  titleKey?: string; // For localization
+  description?: string; // Optional now
+  descriptionKey?: string; // For localization
   icon: string; // Lucide icon name
   condition: (state: GameState) => boolean;
   reward?: {
-    type: 'money' | 'rp' | 'reputation';
+    type: 'money' | 'rp' | 'reputation' | 'prestige' | 'sales';
     value: number;
   };
 }
@@ -147,11 +149,13 @@ export interface SaveMetadata {
 export interface MarketingCampaign {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   cost: number;
   duration: number; // Days
-  awarenessBoost: number; // Percentage
-  type: 'social' | 'influencer' | 'tv' | 'event';
+  brandAwarenessBoost: number; // Percentage
+  salesBoost?: number; // Added sales boost support
+  unlockCost?: number; // Added unlock cost support
+  type?: 'social' | 'influencer' | 'tv' | 'event';
 }
 
 export interface ActiveCampaign {
@@ -162,6 +166,9 @@ export interface ActiveCampaign {
 export interface Competitor {
   id: string;
   name: string;
+  logo: string; // Added logo property
+  color?: string; // Added color property as it was also used in entities.ts
+  reputation?: number; // Added reputation property
   marketShare: Record<ProductType, number>; // 0-100% for each product type
   productQuality: Record<ProductType, number>; // 0-100 quality rating
   aggressiveness: number; // 0-100, affects pricing and R&D investment
@@ -170,6 +177,17 @@ export interface Competitor {
   money: number; // New: Track competitor money
   history: number[]; // New: Track money history for charts
   lastReleaseDay: number; // New: Track last product release
+  products?: {
+    id: string;
+    name: string;
+    type: ProductType;
+    techTier: number;
+    quality: number;
+    price: number;
+    launchDay: number;
+    salesVolume: number;
+  }[];
+  personality?: string; // Added personality property
 }
 
 export interface FinancialSnapshot {

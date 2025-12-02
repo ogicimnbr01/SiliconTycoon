@@ -132,7 +132,7 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
                                     </div>
                                     <div className="bg-slate-800/80 rounded p-2 backdrop-blur-sm">
                                         <div className="text-slate-500">{t.boost}</div>
-                                        <div className="text-indigo-400 font-bold">+{campaign.awarenessBoost}%</div>
+                                        <div className="text-indigo-400 font-bold">+{campaign.brandAwarenessBoost}%</div>
                                     </div>
                                     <div className="bg-slate-800/80 rounded p-2 backdrop-blur-sm">
                                         <div className="text-slate-500">{t.type}</div>

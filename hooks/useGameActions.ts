@@ -294,16 +294,37 @@ export const useGameActions = (
     const handleUpgradeOffice = useCallback(() => {
         setGameState(prev => {
             const nextLevel = (prev.officeLevel + 1) as OfficeLevel;
-            const config = OFFICE_CONFIGS[prev.officeLevel];
-            if (prev.money >= config.upgradeCost) {
+            const nextConfig = OFFICE_CONFIGS[nextLevel];
+
+            if (!nextConfig) return prev; // Max level reached
+
+            // Check Tech Requirement
+            if (nextConfig.requiredTech) {
+                const isTechUnlocked = (prev.manufacturingTechLevels[nextConfig.requiredTech] || 0) > 0;
+                if (!isTechUnlocked) {
+                    playSfx('error');
+                    vibrate('error');
+                    return {
+                        ...prev,
+                        logs: [...prev.logs, {
+                            id: Date.now(),
+                            message: TRANSLATIONS[prev.language].lockedFeature || "Tech Required!",
+                            type: 'danger' as const,
+                            timestamp: `Day ${prev.day}`
+                        }].slice(-10)
+                    };
+                }
+            }
+
+            if (prev.money >= nextConfig.upgradeCost) {
                 playSfx('success');
                 vibrate('success');
-                if (onShowFloatingText) onShowFloatingText(`-$${config.upgradeCost}`, 'expense');
+                if (onShowFloatingText) onShowFloatingText(`-$${nextConfig.upgradeCost}`, 'expense');
                 return {
                     ...prev,
-                    money: prev.money - config.upgradeCost,
+                    money: prev.money - nextConfig.upgradeCost,
                     officeLevel: nextLevel,
-                    logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logHQUpgraded.replace('{0}', OFFICE_CONFIGS[nextLevel].name), type: 'success' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10)
+                    logs: [...prev.logs, { id: Date.now(), message: TRANSLATIONS[prev.language].logHQUpgraded.replace('{0}', nextConfig.name), type: 'success' as const, timestamp: `${TRANSLATIONS[prev.language].day} ${prev.day}` }].slice(-10)
                 };
             }
             playSfx('error');
@@ -850,7 +871,7 @@ export const useGameActions = (
             if (onShowFloatingText) onShowFloatingText(`-$${campaign.cost}`, 'expense');
 
             const newBrandAwareness = { ...prev.brandAwareness };
-            newBrandAwareness[productType] = Math.min(100, newBrandAwareness[productType] + campaign.awarenessBoost);
+            newBrandAwareness[productType] = Math.min(100, newBrandAwareness[productType] + campaign.brandAwarenessBoost);
 
             const t = TRANSLATIONS[prev.language];
             const nameKey = `${campaign.id}_name` as keyof typeof t;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GameState, ProductType, DesignSpec, OfficeLevel } from '../types';
 import { TRANSLATIONS } from '../constants';
-import { CPU_TECH_TREE, GPU_TECH_TREE, OFFICE_CONFIGS, MARKET_TRENDS, ERAS } from '../constants';
+import { CPU_TECH_TREE, GPU_TECH_TREE, OFFICE_CONFIGS, MARKET_TRENDS, ERAS, MANUFACTURING_TECH_TREE } from '../constants';
 import { Zap, TrendingUp, TrendingDown, AlertTriangle, Lock, Unlock, Factory, Briefcase, DollarSign, Clock, Shield, ChevronRight, ChevronDown, ArrowLeft, Cpu, Building, Settings, Package, ArrowUpCircle, ArrowDownCircle, Globe, Home, Warehouse, Building2, Landmark, Disc } from 'lucide-react';
 import { useAdMob } from '../hooks/useAdMob';
 import { calculateSellPrice, getEraTier } from '../utils/economySystem';
@@ -120,6 +120,13 @@ export const ProductionTab: React.FC<ProductionTabProps> = ({
         const nextOffice = OFFICE_CONFIGS[nextLevel];
         const hasNextLevel = !!nextOffice;
 
+        // Tech Requirement Logic
+        const requiredTechId = nextOffice?.requiredTech;
+        const isTechLocked = requiredTechId ? (gameState.manufacturingTechLevels[requiredTechId] || 0) === 0 : false;
+        const requiredTechName = requiredTechId
+            ? MANUFACTURING_TECH_TREE.find(t => t.id === requiredTechId)?.name || requiredTechId
+            : '';
+
         const getOfficeName = (level: number) => {
             const keys = [
                 'office_garage_name',
@@ -160,6 +167,18 @@ export const ProductionTab: React.FC<ProductionTabProps> = ({
                         </div>
                     </div>
 
+                    {isTechLocked && (
+                        <div className="mb-6 p-3 bg-slate-950 border border-amber-500/30 rounded-xl flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-500">
+                                <Lock size={16} />
+                            </div>
+                            <div>
+                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Requirement Locked</div>
+                                <div className="text-xs font-bold text-white">Research: <span className="text-amber-400">{requiredTechName}</span></div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="flex gap-3">
                         <button
                             onClick={() => setShowUpgradeConfirm(false)}
@@ -170,6 +189,7 @@ export const ProductionTab: React.FC<ProductionTabProps> = ({
                         {hasNextLevel && (
                             <button
                                 onClick={() => {
+                                    if (isTechLocked) return;
                                     if (gameState.money >= nextOffice.upgradeCost) {
                                         onUpgradeOffice();
                                         setShowUpgradeConfirm(false);
@@ -177,9 +197,13 @@ export const ProductionTab: React.FC<ProductionTabProps> = ({
                                         setUpgradeError(t.insufficientFunds);
                                     }
                                 }}
-                                className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-colors"
+                                disabled={isTechLocked}
+                                className={`flex-1 py-3 font-bold rounded-xl shadow-lg transition-colors ${isTechLocked
+                                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                                    : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20'
+                                    }`}
                             >
-                                {t.upgrade} (${nextOffice.upgradeCost.toLocaleString()})
+                                {isTechLocked ? 'Locked' : `${t.upgrade} ($${nextOffice.upgradeCost.toLocaleString()})`}
                             </button>
                         )}
                     </div>

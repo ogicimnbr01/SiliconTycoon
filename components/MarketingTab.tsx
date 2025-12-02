@@ -115,7 +115,7 @@ export const MarketingTab: React.FC<MarketingTabProps> = ({
                                     </div>
                                     <div className="bg-slate-800 rounded p-2">
                                         <div className="text-slate-500">{t.boost}</div>
-                                        <div className="text-indigo-400 font-bold">+{campaign.awarenessBoost}%</div>
+                                        <div className="text-indigo-400 font-bold">+{campaign.brandAwarenessBoost}%</div>
                                     </div>
                                     <div className="bg-slate-800 rounded p-2">
                                         <div className="text-slate-500">{t.type}</div>

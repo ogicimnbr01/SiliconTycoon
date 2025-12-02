@@ -46,14 +46,14 @@ export const useGameActions = (
                 vibrate('error');
                 return prev;
             }
-            if (prev.money < cost) {
+            if (cost > 0 && prev.money < cost) {
                 playSfx('error');
                 vibrate('error');
                 return prev;
             }
             playSfx('click');
             vibrate('light');
-            if (onShowFloatingText) onShowFloatingText(`-$${cost}`, 'expense');
+            if (cost > 0 && onShowFloatingText) onShowFloatingText(`-$${cost}`, 'expense');
 
             // Yield Rate Logic
             const techTree = type === ProductType.CPU ? CPU_TECH_TREE : GPU_TECH_TREE;

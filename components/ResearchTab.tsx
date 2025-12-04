@@ -49,7 +49,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
 
     // Find Active Research Target (Next cheapest available tech)
     const activeResearch = useMemo(() => {
-        let bestCandidate: { name: string; cost: number; type: 'cpu' | 'gpu' | 'manufacturing'; id: string; icon: any; index?: number } | null = null;
+        let bestCandidate: { name: string; cost: number; type: ProductType | 'manufacturing'; id: string; icon: any; index?: number } | null = null;
         let minCost = Infinity;
 
         // Check CPU
@@ -58,7 +58,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
             const tech = CPU_TECH_TREE[nextCpuIndex];
             if (tech.researchCost < minCost) {
                 minCost = tech.researchCost;
-                bestCandidate = { name: tech.name, cost: tech.researchCost, type: 'cpu', id: tech.id, icon: Cpu, index: nextCpuIndex };
+                bestCandidate = { name: tech.name, cost: tech.researchCost, type: ProductType.CPU, id: tech.id, icon: Cpu, index: nextCpuIndex };
             }
         }
 
@@ -68,7 +68,7 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
             const tech = GPU_TECH_TREE[nextGpuIndex];
             if (tech.researchCost < minCost) {
                 minCost = tech.researchCost;
-                bestCandidate = { name: tech.name, cost: tech.researchCost, type: 'gpu', id: tech.id, icon: Zap, index: nextGpuIndex };
+                bestCandidate = { name: tech.name, cost: tech.researchCost, type: ProductType.GPU, id: tech.id, icon: Zap, index: nextGpuIndex };
             }
         }
 
@@ -295,8 +295,8 @@ const ResearchTabComponent: React.FC<ResearchTabProps> = ({
                                             <div className="h-3 bg-slate-800 rounded-full overflow-hidden mb-3">
                                                 <div
                                                     className={`h-full transition-all duration-500 ${activeResearch.type === 'manufacturing'
-                                                            ? 'bg-gradient-to-r from-amber-600 to-orange-500'
-                                                            : 'bg-gradient-to-r from-cyan-600 to-blue-500'
+                                                        ? 'bg-gradient-to-r from-amber-600 to-orange-500'
+                                                        : 'bg-gradient-to-r from-cyan-600 to-blue-500'
                                                         }`}
                                                     style={{ width: `${Math.min(100, (gameState.rp / activeResearch.cost) * 100)}%` }}
                                                 ></div>

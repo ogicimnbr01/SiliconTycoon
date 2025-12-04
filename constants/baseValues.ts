@@ -25,7 +25,7 @@ export const OFFICE_CONFIGS = {
         rent: 0, // Safe Zone
         maxResearchers: 2,
         siliconCap: 200,
-        upgradeCost: 25000,
+        upgradeCost: 25000, // To Basement
         description: "Free but tiny. Max 2 staff.",
         requiredTech: null
     },
@@ -34,8 +34,17 @@ export const OFFICE_CONFIGS = {
         rent: 200,
         maxResearchers: 5,
         siliconCap: 1000,
-        upgradeCost: 100000,
+        upgradeCost: 50000, // To Co-Working (New Step)
         description: "Cheap underground space. Poor ventilation.",
+        requiredTech: null
+    },
+    [OfficeLevel.COWORKING]: {
+        name: "Co-Working Space",
+        rent: 500,
+        maxResearchers: 10,
+        siliconCap: 2500,
+        upgradeCost: 100000, // To Startup
+        description: "Shared space. Networking opportunities.",
         requiredTech: null
     },
     [OfficeLevel.STARTUP]: {

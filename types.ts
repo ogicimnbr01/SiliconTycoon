@@ -12,10 +12,11 @@ export interface DesignSpec {
 export enum OfficeLevel {
   GARAGE = 0,
   BASEMENT = 1,
-  STARTUP = 2,
-  CORPORATE = 3,
-  CAMPUS = 4,
-  HEADQUARTERS = 5
+  COWORKING = 2,
+  STARTUP = 3,
+  CORPORATE = 4,
+  CAMPUS = 5,
+  HEADQUARTERS = 6
 }
 
 export interface Researcher {

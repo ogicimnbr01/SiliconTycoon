@@ -2,16 +2,16 @@ import { OfficeLevel, GameEvent } from '../types';
 
 // --- SIMULATION CONSTANTS ---
 export const TICK_RATE_MS = 3000; // 3.0 seconds per day (Slower 1x)
-export const INITIAL_MONEY = 5000; // $5k Start (Safe)
+export const INITIAL_MONEY = 10000; // $10k Start (Faster onboarding)
 export const INITIAL_RP = 0;
 export const INITIAL_RESEARCHERS = 0;
-export const INITIAL_SILICON = 500;
+export const INITIAL_SILICON = 1000; // 1000 units
 export const INITIAL_REPUTATION = 0; // 0-100
 
-export const RESEARCHER_BASE_COST = 2000;
-export const RESEARCHER_COST_GROWTH = 1.5; // Exponential cost increase
+export const RESEARCHER_BASE_COST = 1500; // Reduced from 2000
+export const RESEARCHER_COST_GROWTH = 1.3; // Reduced from 1.5
 export const RESEARCHER_DAILY_SALARY = 150;
-export const RP_PER_RESEARCHER_PER_DAY = 10;
+export const RP_PER_RESEARCHER_PER_DAY = 20; // Increased from 10
 
 export const IPO_THRESHOLD_VALUATION = 10000000; // $10M Valuation to IPO
 export const MAX_ACTIVE_LOANS = 3;
@@ -25,7 +25,7 @@ export const OFFICE_CONFIGS = {
         rent: 0, // Safe Zone
         maxResearchers: 2,
         siliconCap: 200,
-        upgradeCost: 25000, // To Basement
+        upgradeCost: 15000, // To Basement
         description: "Free but tiny. Max 2 staff.",
         requiredTech: null
     },
@@ -34,8 +34,8 @@ export const OFFICE_CONFIGS = {
         rent: 200,
         maxResearchers: 5,
         siliconCap: 1000,
-        upgradeCost: 50000, // To Co-Working (New Step)
-        description: "Cheap underground space. Poor ventilation.",
+        upgradeCost: 35000, // To Co-Working
+        description: "Bonus: +5% Research Speed",
         requiredTech: null
     },
     [OfficeLevel.COWORKING]: {
@@ -43,44 +43,44 @@ export const OFFICE_CONFIGS = {
         rent: 500,
         maxResearchers: 10,
         siliconCap: 2500,
-        upgradeCost: 100000, // To Startup
-        description: "Shared space. Networking opportunities.",
+        upgradeCost: 75000, // To Startup
+        description: "Bonus: +10% Sales Price (Networking)",
         requiredTech: null
     },
     [OfficeLevel.STARTUP]: {
         name: "Startup Office",
         rent: 1000,
-        maxResearchers: 15,
+        maxResearchers: 20, // Increased capacity
         siliconCap: 5000,
-        upgradeCost: 500000,
-        description: "Real business starts here.",
+        upgradeCost: 350000,
+        description: "Bonus: -7% Staff Salary",
         requiredTech: 'mass_production'
     },
     [OfficeLevel.CORPORATE]: {
         name: "Corporate Floor",
         rent: 5000,
-        maxResearchers: 40,
+        maxResearchers: 50, // Increased capacity
         siliconCap: 20000,
-        upgradeCost: 2500000,
-        description: "Professional environment with amenities.",
+        upgradeCost: 2000000,
+        description: "Bonus: +15% Production Speed",
         requiredTech: 'advanced_logistics'
     },
     [OfficeLevel.CAMPUS]: {
         name: "Tech Campus",
         rent: 15000,
-        maxResearchers: 100,
+        maxResearchers: 150, // Increased capacity
         siliconCap: 100000,
         upgradeCost: 10000000,
-        description: "Massive production capacity.",
+        description: "Bonus: Hype Bonus Duration x2",
         requiredTech: 'ai_procurement'
     },
     [OfficeLevel.HEADQUARTERS]: {
         name: "Silicon HQ",
         rent: 50000,
-        maxResearchers: 300,
+        maxResearchers: 500, // Increased capacity
         siliconCap: 1000000,
         upgradeCost: 0,
-        description: "Global dominance.",
+        description: "Bonus: No Market Saturation Penalty",
         requiredTech: 'quantum_manufacturing'
     }
 };

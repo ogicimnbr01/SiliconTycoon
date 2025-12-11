@@ -22,7 +22,7 @@ export const ECONOMY_CONFIG = {
     MIN_SCRAP_VALUE: 1,           // Even e-waste has $1 value
 
     // New Tech Hype Bonus
-    HYPE_MULTIPLIER: 1.5,         // 50% bonus for current-gen tech
+    HYPE_MULTIPLIER: 1.75,        // 75% bonus for current-gen tech (Increased from 1.5)
 
     // Storage Costs - REDUCED for early game
     STORAGE_BASE_COST: 0.25,      // $0.25 per item per day (was $0.50)
@@ -30,14 +30,14 @@ export const ECONOMY_CONFIG = {
     EARLY_STORAGE_RELIEF: 0.5,    // 50% discount for Tier 0-1
 
     // Market Dynamics - SOFTENED
-    CRASH_SEVERITY: 0.3,
-    BASE_DAILY_DEMAND: 100,
+    CRASH_SEVERITY: 0.25,         // Capped at 25% max crash per single sale (was 30%)
+    BASE_DAILY_DEMAND: 1200,      // Increased from 100
     TIER_DEMAND_MULTIPLIER: 1.5,
 
     // Daily Market Limits
     DAILY_MARKET_DEMAND: {
-        [ProductType.CPU]: 1000,
-        [ProductType.GPU]: 600
+        [ProductType.CPU]: 1200,  // Increased from 1000
+        [ProductType.GPU]: 800    // Increased from 600
     },
     OVERSELL_PENALTY: 0.10,
 
@@ -45,45 +45,14 @@ export const ECONOMY_CONFIG = {
     MARKET_RECOVERY_RATE: 0.15,
 } as const;
 
+// ... (skipping unchanged parts)
+
 // ============================================================
 // 1. PROGRESSIVE PRICE SYSTEM (Easy Start, Hard Scale)
 // ============================================================
 
 /**
- * Calculates sell price with progressive difficulty.
- * 
- * BALANCING RULES:
- * 1. Current-gen tech gets 1.5x HYPE BONUS (funding expansion)
- * 2. One tier behind = small penalty (75% of base)
- * 3. Two+ tiers behind = exponential decay
- * 
- * @param basePrice - Original market price for this tech tier
- * @param productTier - Current product's tech level (0-9)
- * @param marketEra - Global market's current era tier (0-9)
- * @returns Final sell price (minimum $1)
- * 
- * @example
- * // Market Era 3, selling Tier 3 (Current Gen)
- * calculateSellPrice(100, 3, 3) 
- * // Returns: 100 * 1.5 = $150 (HYPE BONUS!)
- * 
- * // Market Era 3, selling Tier 2 (One behind)
- * calculateSellPrice(100, 2, 3)
- * // Returns: 100 * 0.75 = $75 (manageable)
- * 
- * // Market Era 5, selling Tier 1 (Old tech)
- * calculateSellPrice(100, 1, 5)
- * // Returns: 100 * 0.75^4 = $31.64 (decay kicks in)
- */
-/**
  * Gets the profit margin multiplier based on tech tier.
- * 
- * MARGIN CURVE:
- * - Tier 0: 20% (Survival)
- * - Tier 1: 50% (Breathing room)
- * - Tier 2: 100% (Growth)
- * - Tier 3: 150% (Expansion)
- * - Tier 4+: 200% + (50% per tier) (Dominance)
  */
 export function getTechMargin(tier: number): number {
     if (tier === 0) return 0.20;
@@ -95,17 +64,6 @@ export function getTechMargin(tier: number): number {
 
 /**
  * Calculates sell price with progressive difficulty.
- * 
- * NEW FORMULA:
- * Price = BasePrice * DecayMultiplier
- * 
- * Note: BasePrice in constants.ts is now pre-calculated based on:
- * (SiliconCost * (1 + TechMargin))
- * 
- * @param basePrice - Original market price for this tech tier (from constants)
- * @param productTier - Current product's tech level (0-9)
- * @param marketEra - Global market's current era tier (0-9)
- * @returns Final sell price (minimum $1)
  */
 export function calculateSellPrice(
     basePrice: number,
@@ -154,24 +112,6 @@ export function getPriceDecayWarning(
 
 /**
  * Calculates daily storage cost based on inventory fill ratio.
- * 
- * BALANCING RULES:
- * - Tier 0-1 products get 50% storage discount (early game relief)
- * - Empty warehouse = cheap
- * - Full warehouse = expensive but not crippling
- * 
- * @param totalItems - Current inventory count
- * @param maxCapacity - Maximum warehouse capacity
- * @param avgProductTier - Average tier of stored products (0-9)
- * @returns Daily storage cost in dollars
- * 
- * @example
- * // 500 Tier 0 items in 1000-capacity warehouse
- * calculateStorageCost(500, 1000, 0)
- * // Base: 500 * 0.25 = $125
- * // Fill penalty: (0.5)^1.5 = 0.35
- * // Early relief: * 0.5 = 0.175
- * // Total: $125 * 0.175 = $21.88/day (very affordable!)
  */
 export function calculateStorageCost(
     totalItems: number,
@@ -222,29 +162,17 @@ export function getStorageRecommendation(
 /**
  * Calculates actual revenue from batch sale with market crash penalty.
  * 
- * WHY THIS IS HARD:
- * - Selling 100 items when demand is 100 = normal price
- * - Selling 200 items when demand is 100 = 50% price crash
- * - Selling 1000 items when demand is 100 = massive loss
- * - Forces gradual selling instead of "dump everything"
+ * NEW SOFT DECLINE LOGIC:
+ * - Selling > Demand triggers a soft price drop, not a hard crash.
+ * - Formula: Price = Price * (1 - (ExcessRatio * 0.1))
+ * - Example: Selling 20% over demand -> 2% price drop.
+ * - Example: Selling 200% over demand -> 20% price drop.
+ * - Cap: Price won't drop below 25% of original value.
  * 
  * @param amount - Number of units to sell
  * @param unitPrice - Current market price per unit
  * @param dailyDemand - How much market can absorb without crash
  * @returns Actual total revenue after crash penalty
- * 
- * @example
- * // Normal sale: 50 units @ $100 each, demand = 100
- * executeBatchSell(50, 100, 100)
- * // Oversupply: 50/100 = 0.5
- * // Crash: 1 - (0.5 * 0.5) = 0.75 (25% loss)
- * // Revenue: 50 * 100 * 0.75 = $3,750 (instead of $5,000)
- * 
- * // MASSIVE DUMP: 500 units @ $100 each, demand = 100
- * executeBatchSell(500, 100, 100)
- * // Oversupply: 500/100 = 5.0
- * // Crash: 1 - (5.0 * 0.5) = -1.5 → clamped to 0.5 (50% loss)
- * // Revenue: 500 * 100 * 0.5 = $25,000 (instead of $50,000) 💀
  */
 export function executeBatchSell(
     amount: number,
@@ -260,26 +188,32 @@ export function executeBatchSell(
         return { revenue: 0, effectivePrice: 0, crashPenalty: 0, warning: null };
     }
 
-    // Calculate oversupply ratio
-    const oversupplyRatio = amount / dailyDemand;
+    let priceMultiplier = 1.0;
+    let crashPenalty = 0;
 
-    // Market crash severity (capped at 50% max crash)
-    const crashPenalty = Math.min(
-        ECONOMY_CONFIG.CRASH_SEVERITY,
-        oversupplyRatio * ECONOMY_CONFIG.CRASH_SEVERITY
-    );
+    if (amount > dailyDemand) {
+        const excessAmount = amount - dailyDemand;
+        const excessRatio = excessAmount / dailyDemand;
 
-    // Price multiplier after crash
-    const priceMultiplier = Math.max(0.5, 1 - crashPenalty);
+        // Soft penalty: 10% drop for every 100% oversupply
+        // But the prompt said "excess_ratio * 0.1". 
+        // If excess_ratio is 0.2 (20% over), penalty is 0.02 (2%).
+        // If excess_ratio is 1.0 (100% over), penalty is 0.1 (10%).
+        const penalty = excessRatio * 0.1;
+
+        // Apply penalty but clamp to max 75% reduction (min 25% price)
+        crashPenalty = Math.min(0.75, penalty);
+        priceMultiplier = 1.0 - crashPenalty;
+    }
 
     const effectivePrice = unitPrice * priceMultiplier;
     const revenue = amount * effectivePrice;
 
     // Generate warning
     let warning: string | null = null;
-    if (oversupplyRatio > 2) {
-        warning = `⚠️ Crash -${(crashPenalty * 100).toFixed(0)}%`;
-    } else if (oversupplyRatio > 1) {
+    if (crashPenalty > 0.2) {
+        warning = `⚠️ Market Flooded -${(crashPenalty * 100).toFixed(0)}% Price`;
+    } else if (crashPenalty > 0.05) {
         warning = `Oversupply -${(crashPenalty * 100).toFixed(0)}%`;
     }
 

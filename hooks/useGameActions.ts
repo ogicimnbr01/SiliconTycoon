@@ -66,7 +66,18 @@ export const useGameActions = (
             const qualityMod = prev.productionQuality === 'high' ? 5 : prev.productionQuality === 'medium' ? 0 : -5;
             const actualYield = Math.min(100, Math.max(10, yieldRate + qualityMod));
 
-            let successfulAmount = Math.floor(amount * (actualYield / 100));
+            let successfulAmount = 0;
+
+            // Fix for small batches: Use probabilistic calculation to avoid "0 produced" when yield is high
+            if (amount < 20) {
+                for (let i = 0; i < amount; i++) {
+                    if (Math.random() * 100 < actualYield) {
+                        successfulAmount++;
+                    }
+                }
+            } else {
+                successfulAmount = Math.floor(amount * (actualYield / 100));
+            }
 
             // Apply Overdrive Bonus (2x Production)
             if (prev.overdriveActive) {

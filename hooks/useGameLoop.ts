@@ -373,9 +373,17 @@ export const useGameLoop = (
                 const moraleEfficiency = newMorale / 100;
                 const rpModifier = prev.hiredHeroes.includes('hero_linus') ? 2 : 1;
                 const prestigeMult = 1 + prev.prestigePoints * 0.01;
+
+                // Diminishing Returns for RP (Geometric Series)
+                // Formula: Sum = Base * (1 - decay^N) / (1 - decay)
+                // Base = 20, Decay = 0.96
+                const decay = 0.96;
+                const baseRpTotal = researcherCount > 0
+                    ? (RP_PER_RESEARCHER_PER_DAY * (1 - Math.pow(decay, researcherCount))) / (1 - decay)
+                    : 0;
+
                 const rpGain =
-                    researcherCount *
-                    RP_PER_RESEARCHER_PER_DAY *
+                    baseRpTotal *
                     rpModifier *
                     prestigeMult *
                     bonuses.researchBonus *

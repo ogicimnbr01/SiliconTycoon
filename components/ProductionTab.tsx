@@ -149,23 +149,45 @@ export const ProductionTab: React.FC<ProductionTabProps> = ({
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="space-y-2">
                             <div className="text-xs font-bold text-slate-500 uppercase text-center">{t.current}</div>
-                            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center">
+                            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center h-full flex flex-col justify-center">
                                 <div className="font-bold text-white mb-1">{getOfficeName(gameState.officeLevel)}</div>
-                                <div className="text-[10px] text-slate-400">{t.cap}: {currentOffice.siliconCap}</div>
+                                <div className="text-[10px] text-slate-400">{t.cap}: {currentOffice.siliconCap.toLocaleString()}</div>
+                                <div className="text-[10px] text-slate-400">{t.maxResearchers}: {currentOffice.maxResearchers}</div>
                             </div>
                         </div>
                         <div className="space-y-2">
                             <div className="text-xs font-bold text-emerald-500 uppercase text-center">{t.nextLevel}</div>
-                            <div className="bg-slate-950 p-3 rounded-xl border border-emerald-500/30 text-center relative overflow-hidden">
+                            <div className="bg-slate-950 p-3 rounded-xl border border-emerald-500/30 text-center relative overflow-hidden h-full flex flex-col justify-center">
                                 <div className="absolute top-0 right-0 w-3 h-3 bg-emerald-500 rounded-bl-lg"></div>
                                 <div className="font-bold text-emerald-400 mb-1">{hasNextLevel ? getOfficeName(gameState.officeLevel + 1) : t.maxed}</div>
-                                <div className="text-[10px] text-emerald-400/70">{hasNextLevel ? `${t.cap}: ${nextOffice.siliconCap}` : '-'}</div>
+                                <div className="text-[10px] text-emerald-400/70">{hasNextLevel ? `${t.cap}: ${nextOffice.siliconCap.toLocaleString()}` : '-'}</div>
+                                <div className="text-[10px] text-emerald-400/70">{hasNextLevel ? `${t.maxResearchers}: ${nextOffice.maxResearchers}` : '-'}</div>
                             </div>
                         </div>
                     </div>
+
+                    {hasNextLevel && (
+                        <div className="mb-6 p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-center">
+                            <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-1">New Bonus</div>
+                            <div className="text-xs text-indigo-300">
+                                {(() => {
+                                    const keys = [
+                                        'office_garage_desc',
+                                        'office_basement_desc',
+                                        'office_coworking_desc',
+                                        'office_startup_desc',
+                                        'office_corporate_desc',
+                                        'office_campus_desc',
+                                        'office_hq_desc'
+                                    ];
+                                    return t[keys[nextLevel] as keyof typeof t] || nextOffice.description;
+                                })()}
+                            </div>
+                        </div>
+                    )}
 
                     {isTechLocked && (
                         <div className="mb-6 p-3 bg-slate-950 border border-amber-500/30 rounded-xl flex items-center gap-3">

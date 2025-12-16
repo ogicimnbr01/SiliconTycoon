@@ -145,7 +145,7 @@ export const ERAS: GameEra[] = [
         startDay: 0,
         description: 'Dawn of personal computers. CPUs are king.',
         cpuDemandMod: 1.2,
-        gpuDemandMod: 0.8
+        gpuDemandMod: 1.0 // Increased from 0.8 to encourage early GPU adoption
     },
     {
         id: 'era_mobile',
@@ -153,7 +153,7 @@ export const ERAS: GameEra[] = [
         startDay: 150,
         description: 'Smartphones everywhere. Efficiency matters.',
         cpuDemandMod: 0.8,
-        gpuDemandMod: 1.3
+        gpuDemandMod: 1.5 // Increased from 1.3
     },
     {
         id: 'era_ai',

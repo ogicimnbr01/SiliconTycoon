@@ -23,18 +23,18 @@ export const CPU_TECH_TREE: TechNode[] = [
     { id: 'cpu_5_eff', name: 'Dual-Core Budget', tier: 5, productionCost: 900, baseMarketPrice: 3500, researchCost: 100000, branch: 'efficiency', prerequisites: ['cpu_4_eff'], yield: 75 },
 
     // Tier 6
-    { id: 'cpu_6_perf', name: 'Quad-Core OC', tier: 6, productionCost: 2500, baseMarketPrice: 8000, researchCost: 500000, branch: 'performance', prerequisites: ['cpu_5_perf'], yield: 65 },
-    { id: 'cpu_6_eff', name: 'Quad-Core Mobile', tier: 6, productionCost: 1800, baseMarketPrice: 6000, researchCost: 500000, branch: 'efficiency', prerequisites: ['cpu_5_eff'], yield: 70 },
+    { id: 'cpu_6_perf', name: 'Quad-Core OC', tier: 6, productionCost: 2500, baseMarketPrice: 8000, researchCost: 250000, branch: 'performance', prerequisites: ['cpu_5_perf'], yield: 60 },
+    { id: 'cpu_6_eff', name: 'Quad-Core Mobile', tier: 6, productionCost: 1800, baseMarketPrice: 6000, researchCost: 250000, branch: 'efficiency', prerequisites: ['cpu_5_eff'], yield: 65 },
 
     // Tier 7
-    { id: 'cpu_7_perf', name: 'Octa-Core Extreme', tier: 7, productionCost: 5000, baseMarketPrice: 18000, researchCost: 2500000, branch: 'performance', prerequisites: ['cpu_6_perf'], yield: 60 },
-    { id: 'cpu_7_eff', name: 'Octa-Core Efficient', tier: 7, productionCost: 4000, baseMarketPrice: 14000, researchCost: 2500000, branch: 'efficiency', prerequisites: ['cpu_6_eff'], yield: 65 },
+    { id: 'cpu_7_perf', name: 'Octa-Core Extreme', tier: 7, productionCost: 5000, baseMarketPrice: 18000, researchCost: 1000000, branch: 'performance', prerequisites: ['cpu_6_perf'], yield: 55 },
+    { id: 'cpu_7_eff', name: 'Octa-Core Efficient', tier: 7, productionCost: 4000, baseMarketPrice: 14000, researchCost: 1000000, branch: 'efficiency', prerequisites: ['cpu_6_eff'], yield: 60 },
 
     // Tier 8
-    { id: 'cpu_8', name: '16-Core Workstation', tier: 8, productionCost: 10000, baseMarketPrice: 40000, researchCost: 10000000, branch: 'balanced', prerequisites: ['cpu_7_perf', 'cpu_7_eff'], yield: 55 },
+    { id: 'cpu_8', name: '16-Core Workstation', tier: 8, productionCost: 10000, baseMarketPrice: 38000, researchCost: 5000000, branch: 'balanced', prerequisites: ['cpu_7_perf', 'cpu_7_eff'], yield: 50 },
 
     // Tier 9
-    { id: 'cpu_9', name: '64-Core EPYC', tier: 9, productionCost: 20000, baseMarketPrice: 90000, researchCost: 50000000, branch: 'balanced', prerequisites: ['cpu_8'], yield: 50 },
+    { id: 'cpu_9', name: '64-Core EPYC', tier: 9, productionCost: 20000, baseMarketPrice: 85000, researchCost: 20000000, branch: 'balanced', prerequisites: ['cpu_8'], yield: 45 },
 ];
 
 
@@ -44,35 +44,35 @@ export const GPU_TECH_TREE: TechNode[] = [
     { id: 'gpu_0', name: 'VGA Graphics', tier: 0, productionCost: 45, baseMarketPrice: 100, researchCost: 0, branch: 'balanced', yield: 95 },
 
     // Tier 1: SVGA (Better Margin)
-    { id: 'gpu_1', name: 'SVGA Graphics', tier: 1, productionCost: 120, baseMarketPrice: 280, researchCost: 250, branch: 'balanced', prerequisites: ['gpu_0'], yield: 90 },
+    { id: 'gpu_1', name: 'SVGA Graphics', tier: 1, productionCost: 120, baseMarketPrice: 280, researchCost: 200, branch: 'balanced', prerequisites: ['gpu_0'], yield: 90 },
 
     // Tier 2: 3D Accelerator (Good Profit)
-    { id: 'gpu_2', name: '3D Accelerator', tier: 2, productionCost: 250, baseMarketPrice: 600, researchCost: 1200, branch: 'balanced', prerequisites: ['gpu_1'], yield: 85 },
+    { id: 'gpu_2', name: '3D Accelerator', tier: 2, productionCost: 250, baseMarketPrice: 600, researchCost: 800, branch: 'balanced', prerequisites: ['gpu_1'], yield: 85 },
 
     // Tier 3: T&L GPU (High Profit)
-    { id: 'gpu_3', name: 'T&L GPU', tier: 3, productionCost: 550, baseMarketPrice: 1600, researchCost: 5000, branch: 'balanced', prerequisites: ['gpu_2'], yield: 80 },
+    { id: 'gpu_3', name: 'T&L GPU', tier: 3, productionCost: 550, baseMarketPrice: 1600, researchCost: 3500, branch: 'balanced', prerequisites: ['gpu_2'], yield: 80 },
 
     // Tier 4: Branching starts
-    { id: 'gpu_4_perf', name: 'Shader Model 1.0', tier: 4, productionCost: 1200, baseMarketPrice: 3800, researchCost: 25000, branch: 'performance', prerequisites: ['gpu_3'], specialBonus: { type: 'market', value: 12 }, yield: 70 },
-    { id: 'gpu_4_eff', name: 'Budget Shader', tier: 4, productionCost: 1000, baseMarketPrice: 3200, researchCost: 25000, branch: 'efficiency', prerequisites: ['gpu_3'], specialBonus: { type: 'production', value: 18 }, yield: 75 },
+    { id: 'gpu_4_perf', name: 'Shader Model 1.0', tier: 4, productionCost: 1200, baseMarketPrice: 3800, researchCost: 15000, branch: 'performance', prerequisites: ['gpu_3'], specialBonus: { type: 'market', value: 12 }, yield: 70 },
+    { id: 'gpu_4_eff', name: 'Budget Shader', tier: 4, productionCost: 1000, baseMarketPrice: 3200, researchCost: 15000, branch: 'efficiency', prerequisites: ['gpu_3'], specialBonus: { type: 'production', value: 18 }, yield: 75 },
 
     // Tier 5
-    { id: 'gpu_5_perf', name: 'Shader Model 2.0', tier: 5, productionCost: 2500, baseMarketPrice: 9000, researchCost: 100000, branch: 'performance', prerequisites: ['gpu_4_perf'], yield: 65 },
-    { id: 'gpu_5_eff', name: 'DirectX 8.1 GPU', tier: 5, productionCost: 2000, baseMarketPrice: 6000, researchCost: 100000, branch: 'efficiency', prerequisites: ['gpu_4_eff'], yield: 70 },
+    { id: 'gpu_5_perf', name: 'Shader Model 2.0', tier: 5, productionCost: 2500, baseMarketPrice: 9000, researchCost: 75000, branch: 'performance', prerequisites: ['gpu_4_perf'], yield: 65 },
+    { id: 'gpu_5_eff', name: 'DirectX 8.1 GPU', tier: 5, productionCost: 2000, baseMarketPrice: 6000, researchCost: 75000, branch: 'efficiency', prerequisites: ['gpu_4_eff'], yield: 70 },
 
     // Tier 6
-    { id: 'gpu_6_perf', name: 'Shader Model 3.0', tier: 6, productionCost: 5500, baseMarketPrice: 18000, researchCost: 500000, branch: 'performance', prerequisites: ['gpu_5_perf'], specialBonus: { type: 'market', value: 18 }, yield: 60 },
-    { id: 'gpu_6_eff', name: 'DirectX 9c GPU', tier: 6, productionCost: 4500, baseMarketPrice: 14000, researchCost: 500000, branch: 'efficiency', prerequisites: ['gpu_5_eff'], specialBonus: { type: 'production', value: 25 }, yield: 65 },
+    { id: 'gpu_6_perf', name: 'Shader Model 3.0', tier: 6, productionCost: 5500, baseMarketPrice: 18000, researchCost: 250000, branch: 'performance', prerequisites: ['gpu_5_perf'], specialBonus: { type: 'market', value: 18 }, yield: 60 },
+    { id: 'gpu_6_eff', name: 'DirectX 9c GPU', tier: 6, productionCost: 4500, baseMarketPrice: 14000, researchCost: 250000, branch: 'efficiency', prerequisites: ['gpu_5_eff'], specialBonus: { type: 'production', value: 25 }, yield: 65 },
 
     // Tier 7
-    { id: 'gpu_7_perf', name: 'Unified Shader', tier: 7, productionCost: 12000, baseMarketPrice: 42000, researchCost: 2500000, branch: 'performance', prerequisites: ['gpu_6_perf'], yield: 60 },
-    { id: 'gpu_7_eff', name: 'DirectX 10 GPU', tier: 7, productionCost: 9000, baseMarketPrice: 32000, researchCost: 2500000, branch: 'efficiency', prerequisites: ['gpu_6_eff'], yield: 65 },
+    { id: 'gpu_7_perf', name: 'Unified Shader', tier: 7, productionCost: 12000, baseMarketPrice: 42000, researchCost: 1000000, branch: 'performance', prerequisites: ['gpu_6_perf'], yield: 55 },
+    { id: 'gpu_7_eff', name: 'DirectX 10 GPU', tier: 7, productionCost: 9000, baseMarketPrice: 32000, researchCost: 1000000, branch: 'efficiency', prerequisites: ['gpu_6_eff'], yield: 60 },
 
     // Tier 8
-    { id: 'gpu_8', name: 'Ray Tracing Core', tier: 8, productionCost: 25000, baseMarketPrice: 95000, researchCost: 10000000, branch: 'balanced', prerequisites: ['gpu_7_perf', 'gpu_7_eff'], yield: 55 },
+    { id: 'gpu_8', name: 'Ray Tracing Core', tier: 8, productionCost: 25000, baseMarketPrice: 90000, researchCost: 5000000, branch: 'balanced', prerequisites: ['gpu_7_perf', 'gpu_7_eff'], yield: 50 },
 
     // Tier 9
-    { id: 'gpu_9', name: 'AI Tensor Core', tier: 9, productionCost: 50000, baseMarketPrice: 220000, researchCost: 50000000, branch: 'balanced', prerequisites: ['gpu_8'], yield: 50 },
+    { id: 'gpu_9', name: 'AI Tensor Core', tier: 9, productionCost: 50000, baseMarketPrice: 200000, researchCost: 20000000, branch: 'balanced', prerequisites: ['gpu_8'], yield: 45 },
 ];
 
 export const MANUFACTURING_TECH_TREE: TechNode[] = [

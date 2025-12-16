@@ -11,7 +11,7 @@ export const INITIAL_REPUTATION = 0; // 0-100
 export const RESEARCHER_BASE_COST = 1500; // Reduced from 2000
 export const RESEARCHER_COST_GROWTH = 1.3; // Reduced from 1.5
 export const RESEARCHER_DAILY_SALARY = 150;
-export const RP_PER_RESEARCHER_PER_DAY = 20; // Increased from 10
+export const RP_PER_RESEARCHER_PER_DAY = 25; // Increased from 20 to boost mid-game
 
 export const IPO_THRESHOLD_VALUATION = 10000000; // $10M Valuation to IPO
 export const MAX_ACTIVE_LOANS = 3;
@@ -58,8 +58,8 @@ export const OFFICE_CONFIGS = {
     },
     [OfficeLevel.CORPORATE]: {
         name: "Corporate Floor",
-        rent: 5000,
-        maxResearchers: 50, // Increased capacity
+        rent: 8000, // Increased from 5000
+        maxResearchers: 50,
         siliconCap: 20000,
         upgradeCost: 2000000,
         description: "Bonus: +15% Production Speed",
@@ -67,8 +67,8 @@ export const OFFICE_CONFIGS = {
     },
     [OfficeLevel.CAMPUS]: {
         name: "Tech Campus",
-        rent: 15000,
-        maxResearchers: 150, // Increased capacity
+        rent: 25000, // Increased from 15000
+        maxResearchers: 150,
         siliconCap: 100000,
         upgradeCost: 10000000,
         description: "Bonus: Hype Bonus Duration x2",
@@ -76,8 +76,8 @@ export const OFFICE_CONFIGS = {
     },
     [OfficeLevel.HEADQUARTERS]: {
         name: "Silicon HQ",
-        rent: 50000,
-        maxResearchers: 500, // Increased capacity
+        rent: 100000, // Increased from 50000
+        maxResearchers: 500,
         siliconCap: 1000000,
         upgradeCost: 0,
         description: "Bonus: No Market Saturation Penalty",

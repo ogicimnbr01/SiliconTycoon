@@ -1032,8 +1032,9 @@ export const useGameActions = (
             if (prev.dailySpinCount >= 5) return prev;
             if (Date.now() < prev.nextSpinTime) return prev;
 
-            // Calculate cooldown: 15 to 120 minutes
-            const cooldownMinutes = 15 + Math.floor(Math.random() * 106); // 15 to 120
+            // Progressive Cooldowns: 2m -> 5m -> 15m -> 30m
+            const cooldowns = [2, 5, 15, 30];
+            const cooldownMinutes = cooldowns[prev.dailySpinCount] || 30;
             const nextSpinTime = Date.now() + (cooldownMinutes * 60 * 1000);
 
             let updates: Partial<GameState> = {
